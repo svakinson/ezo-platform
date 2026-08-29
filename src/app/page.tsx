@@ -6,16 +6,14 @@ import Link from 'next/link'
 export default function HomePage() {
   const [debugInfo, setDebugInfo] = useState({
     tailwindLoaded: false,
-    cssLoaded: false,
+    nextJsCssLoaded: false,
     envVars: {
       supabaseUrl: false,
       supabaseKey: false,
     },
     windowSize: { width: 0, height: 0 },
-    userAgent: '',
     errors: [] as string[],
     warnings: [] as string[],
-    computedStyles: {} as Record<string, string>,
   })
 
   useEffect(() => {
@@ -28,51 +26,34 @@ export default function HomePage() {
     document.body.appendChild(testDiv)
     const bgColor = window.getComputedStyle(testDiv).backgroundColor
     document.body.removeChild(testDiv)
-    const tailwindLoaded = bgColor === 'rgb(5, 150, 105)' || bgColor.includes('16')
+    
+    // emerald-600 არის rgb(5, 150, 105). ვამოწმებთ თუ შეიცავს ამ მნიშვნელობას.
+    const tailwindLoaded = bgColor.includes('5, 150, 105') || bgColor.includes('16, 185, 129')
     
     if (!tailwindLoaded) {
-      warnings.push('⚠️ Tailwind CSS არ ჩანს ჩატვირთული')
+      warnings.push(`Tailwind არ მუშაობს. ბრაუზერი ხედავს ფერს როგორც: "${bgColor}"`)
     }
 
-    // 2. შემოწმება: CSS ფაილი ჩატვირთულია?
-    const styles = document.styleSheets
-    let cssLoaded = false
-    try {
-      for (let i = 0; i < styles.length; i++) {
-        const sheet = styles[i]
-        if (sheet.href && sheet.href.includes('globals.css')) {
-          cssLoaded = true
-          break
-        }
-      }
-    } catch (e) {
-      errors.push('CSS ფაილის წვდომა აკრძალულია (CORS)')
+    // 2. შემოწმება: Next.js-ის CSS ფაილი ჩატვირთულია?
+    const stylesheets = Array.from(document.styleSheets)
+    const nextJsCssLoaded = stylesheets.some(sheet => 
+      sheet.href && sheet.href.includes('_next/static/css')
+    )
+
+    if (!nextJsCssLoaded) {
+      warnings.push('Next.js-ის CSS ფაილები ვერ მოიძებნა DOM-ში.')
     }
 
     // 3. შემოწმება: Environment Variables
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    if (!supabaseUrl) {
-      errors.push('❌ NEXT_PUBLIC_SUPABASE_URL არ არის დაყენებული')
-    }
-    if (!supabaseKey) {
-      errors.push('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY არ არის დაყენებული')
-    }
-
-    // 4. შემოწმება: Computed Styles
-    const testElement = document.createElement('div')
-    testElement.className = 'bg-gradient-to-br from-pink-100 via-blue-100 to-green-100'
-    document.body.appendChild(testElement)
-    const computedStyles = {
-      background: window.getComputedStyle(testElement).background,
-      minHeight: window.getComputedStyle(testElement).minHeight,
-    }
-    document.body.removeChild(testElement)
+    if (!supabaseUrl) errors.push('❌ NEXT_PUBLIC_SUPABASE_URL აკლია')
+    if (!supabaseKey) errors.push('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY აკლია')
 
     setDebugInfo({
       tailwindLoaded,
-      cssLoaded,
+      nextJsCssLoaded,
       envVars: {
         supabaseUrl: !!supabaseUrl,
         supabaseKey: !!supabaseKey,
@@ -81,87 +62,93 @@ export default function HomePage() {
         width: window.innerWidth,
         height: window.innerHeight,
       },
-      userAgent: navigator.userAgent,
       errors,
       warnings,
-      computedStyles,
     })
   }, [])
 
+  // დებაგერის სტილები (Inline), რათა ის მაინც ჩანდეს, თუ Tailwind გაფუჭებულია!
+  const debugPanelStyle = {
+    position: 'fixed' as const,
+    top: '10px',
+    right: '10px',
+    zIndex: 9999,
+    background: '#ffffff',
+    padding: '16px',
+    borderRadius: '12px',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+    border: '2px solid #ef4444',
+    maxWidth: '380px',
+    maxHeight: '80vh',
+    overflowY: 'auto' as const,
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '14px',
+    lineHeight: '1.5'
+  }
+
   return (
+    // მთავარი კონტეინერი Tailwind კლასებით
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-blue-100 to-green-100">
       
-      {/* ===== დებაგერის პანელი ===== */}
-      <div className="fixed top-0 right-0 z-50 m-4 p-4 bg-white/90 backdrop-blur-md rounded-xl shadow-2xl border-2 border-red-500 max-w-md max-h-[80vh] overflow-y-auto">
-        <h2 className="text-xl font-bold text-red-600 mb-3 flex items-center">
-          🐛 დებაგერი
+      {/* ===== ჭკვიანი დებაგერის პანელი ===== */}
+      <div style={debugPanelStyle} className="glass-strong">
+        <h2 className="text-xl font-bold text-red-600 mb-3 flex items-center" style={{ color: '#dc2626', fontWeight: 'bold', marginBottom: '12px', fontSize: '18px' }}>
+          🐛 EZO დებაგერი
           <button 
             onClick={() => window.location.reload()}
             className="ml-2 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '12px', background: '#2563eb', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
           >
             🔄 განაახლე
           </button>
         </h2>
 
-        <div className="space-y-2 text-sm">
-          <div className={`flex items-center gap-2 ${debugInfo.tailwindLoaded ? 'text-green-600' : 'text-red-600'}`}>
-            {debugInfo.tailwindLoaded ? '✅' : '❌'}
+        <div className="space-y-2 text-sm" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.tailwindLoaded ? '#16a34a' : '#dc2626' }}>
+            <span>{debugInfo.tailwindLoaded ? '✅' : '❌'}</span>
             <span>Tailwind CSS: {debugInfo.tailwindLoaded ? 'მუშაობს' : 'არ მუშაობს'}</span>
           </div>
 
-          <div className={`flex items-center gap-2 ${debugInfo.cssLoaded ? 'text-green-600' : 'text-yellow-600'}`}>
-            {debugInfo.cssLoaded ? '✅' : '⚠️'}
-            <span>CSS ფაილი: {debugInfo.cssLoaded ? 'ჩატვირთულია' : 'ვერ ვპოულობ'}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.nextJsCssLoaded ? '#16a34a' : '#ca8a04' }}>
+            <span>{debugInfo.nextJsCssLoaded ? '✅' : '⚠️'}</span>
+            <span>Next.js CSS: {debugInfo.nextJsCssLoaded ? 'ჩატვირთულია' : 'ვერ ვპოულობ'}</span>
           </div>
 
-          <div className={`flex items-center gap-2 ${debugInfo.envVars.supabaseUrl ? 'text-green-600' : 'text-red-600'}`}>
-            {debugInfo.envVars.supabaseUrl ? '✅' : '❌'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.envVars.supabaseUrl ? '#16a34a' : '#dc2626' }}>
+            <span>{debugInfo.envVars.supabaseUrl ? '✅' : '❌'}</span>
             <span>SUPABASE_URL: {debugInfo.envVars.supabaseUrl ? 'არის' : 'არ არის'}</span>
           </div>
 
-          <div className={`flex items-center gap-2 ${debugInfo.envVars.supabaseKey ? 'text-green-600' : 'text-red-600'}`}>
-            {debugInfo.envVars.supabaseKey ? '✅' : '❌'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.envVars.supabaseKey ? '#16a34a' : '#dc2626' }}>
+            <span>{debugInfo.envVars.supabaseKey ? '✅' : '❌'}</span>
             <span>SUPABASE_KEY: {debugInfo.envVars.supabaseKey ? 'არის' : 'არ არის'}</span>
           </div>
         </div>
 
         {debugInfo.warnings.length > 0 && (
-          <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded">
-            <h3 className="font-bold text-yellow-700 mb-2">⚠️ გაფრთხილებები:</h3>
-            <ul className="text-xs text-yellow-800 space-y-1">
-              {debugInfo.warnings.map((w, i) => <li key={i}>{w}</li>)}
+          <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded" style={{ marginTop: '16px', padding: '12px', background: '#fefce8', borderLeft: '4px solid #eab308', borderRadius: '4px' }}>
+            <h3 className="font-bold text-yellow-700 mb-2" style={{ fontWeight: 'bold', color: '#a16207', marginBottom: '8px' }}>⚠️ გაფრთხილებები:</h3>
+            <ul className="text-xs text-yellow-800 space-y-1" style={{ fontSize: '12px', color: '#854d0e' }}>
+              {debugInfo.warnings.map((w, i) => <li key={i}>• {w}</li>)}
             </ul>
           </div>
         )}
 
         {debugInfo.errors.length > 0 && (
-          <div className="mt-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
-            <h3 className="font-bold text-red-700 mb-2">❌ შეცდომები:</h3>
-            <ul className="text-xs text-red-800 space-y-1">
-              {debugInfo.errors.map((e, i) => <li key={i}>{e}</li>)}
+          <div className="mt-4 p-3 bg-red-50 border-l-4 border-red-500 rounded" style={{ marginTop: '16px', padding: '12px', background: '#fef2f2', borderLeft: '4px solid #ef4444', borderRadius: '4px' }}>
+            <h3 className="font-bold text-red-700 mb-2" style={{ fontWeight: 'bold', color: '#b91c1c', marginBottom: '8px' }}>❌ შეცდომები:</h3>
+            <ul className="text-xs text-red-800 space-y-1" style={{ fontSize: '12px', color: '#991b1b' }}>
+              {debugInfo.errors.map((e, i) => <li key={i}>• {e}</li>)}
             </ul>
           </div>
         )}
 
-        <div className="mt-4 space-y-2 text-xs">
-          <details className="bg-gray-50 p-2 rounded">
-            <summary className="cursor-pointer font-bold text-gray-700">📊 დეტალური ინფორმაცია</summary>
-            <div className="mt-2 space-y-1 text-gray-600">
+        <div className="mt-4 space-y-2 text-xs" style={{ marginTop: '16px', fontSize: '12px' }}>
+          <details style={{ background: '#f9fafb', padding: '8px', borderRadius: '4px', cursor: 'pointer' }}>
+            <summary className="font-bold text-gray-700" style={{ fontWeight: 'bold', color: '#374151' }}>📊 დეტალური ინფორმაცია</summary>
+            <div className="mt-2 space-y-1 text-gray-600" style={{ marginTop: '8px', color: '#4b5563' }}>
               <div>📱 ეკრანი: {debugInfo.windowSize.width} x {debugInfo.windowSize.height}px</div>
-              <div>🌐 ბრაუზერი: {debugInfo.userAgent.split(' ')[0]}</div>
-              <div>🎨 ფონი: {debugInfo.computedStyles.background || 'ვერ განისაზღვრა'}</div>
-            </div>
-          </details>
-
-          <details className="bg-gray-50 p-2 rounded">
-            <summary className="cursor-pointer font-bold text-gray-700">📝 ტესტის ელემენტები</summary>
-            <div className="mt-2 space-y-1">
-              <div className="p-2 bg-emerald-600 text-white rounded text-xs">
-                ეს არის bg-emerald-600 - {debugInfo.tailwindLoaded ? 'მუშაობს ✅' : 'არ მუშაობს ❌'}
-              </div>
-              <div className="p-2 bg-gradient-to-r from-pink-400 to-blue-400 text-white rounded text-xs">
-                ეს არის gradient - {debugInfo.tailwindLoaded ? 'მუშაობს ✅' : 'არ მუშაობს ❌'}
-              </div>
+              <div>🔍 Tailwind-მა დააგენერირა ფერი: {debugInfo.tailwindLoaded ? 'კი' : 'არა'}</div>
             </div>
           </details>
         </div>
