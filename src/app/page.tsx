@@ -28,10 +28,10 @@ export default function HomePage() {
     document.body.appendChild(testDiv)
     const bgColor = window.getComputedStyle(testDiv).backgroundColor
     document.body.removeChild(testDiv)
-    const tailwindLoaded = bgColor === 'rgb(5, 150, 105)' || bgColor.includes('16') // emerald-600
+    const tailwindLoaded = bgColor === 'rgb(5, 150, 105)' || bgColor.includes('16')
     
     if (!tailwindLoaded) {
-      warnings.push('⚠️ Tailwind CSS არ ჩანს ჩატვირთული (bg-emerald-600 არ მუშაობს)')
+      warnings.push('⚠️ Tailwind CSS არ ჩანს ჩატვირთული')
     }
 
     // 2. შემოწმება: CSS ფაილი ჩატვირთულია?
@@ -46,7 +46,7 @@ export default function HomePage() {
         }
       }
     } catch (e) {
-      errors.push(' CSS ფაილის წვდომა აკრძალულია (CORS)')
+      errors.push('CSS ფაილის წვდომა აკრძალულია (CORS)')
     }
 
     // 3. შემოწმება: Environment Variables
@@ -70,7 +70,6 @@ export default function HomePage() {
     }
     document.body.removeChild(testElement)
 
-    // 5. Window Size
     setDebugInfo({
       tailwindLoaded,
       cssLoaded,
@@ -104,7 +103,6 @@ export default function HomePage() {
           </button>
         </h2>
 
-        {/* სტატუსი */}
         <div className="space-y-2 text-sm">
           <div className={`flex items-center gap-2 ${debugInfo.tailwindLoaded ? 'text-green-600' : 'text-red-600'}`}>
             {debugInfo.tailwindLoaded ? '✅' : '❌'}
@@ -127,43 +125,36 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* გაფრთხილებები */}
         {debugInfo.warnings.length > 0 && (
           <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded">
             <h3 className="font-bold text-yellow-700 mb-2">⚠️ გაფრთხილებები:</h3>
             <ul className="text-xs text-yellow-800 space-y-1">
-              {debugInfo.warnings.map((w, i) => (
-                <li key={i}>{w}</li>
-              ))}
+              {debugInfo.warnings.map((w, i) => <li key={i}>{w}</li>)}
             </ul>
           </div>
         )}
 
-        {/* შეცდომები */}
         {debugInfo.errors.length > 0 && (
           <div className="mt-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
             <h3 className="font-bold text-red-700 mb-2">❌ შეცდომები:</h3>
             <ul className="text-xs text-red-800 space-y-1">
-              {debugInfo.errors.map((e, i) => (
-                <li key={i}>{e}</li>
-              ))}
+              {debugInfo.errors.map((e, i) => <li key={i}>{e}</li>)}
             </ul>
           </div>
         )}
 
-        {/* დეტალური ინფო */}
         <div className="mt-4 space-y-2 text-xs">
           <details className="bg-gray-50 p-2 rounded">
             <summary className="cursor-pointer font-bold text-gray-700">📊 დეტალური ინფორმაცია</summary>
             <div className="mt-2 space-y-1 text-gray-600">
-              <div>📱 ეკრანი: {debugInfo.windowSize.width} x {debugInfo.windowSize}px</div>
+              <div>📱 ეკრანი: {debugInfo.windowSize.width} x {debugInfo.windowSize.height}px</div>
               <div>🌐 ბრაუზერი: {debugInfo.userAgent.split(' ')[0]}</div>
               <div>🎨 ფონი: {debugInfo.computedStyles.background || 'ვერ განისაზღვრა'}</div>
             </div>
           </details>
 
           <details className="bg-gray-50 p-2 rounded">
-            <summary className="cursor-pointer font-bold text-gray-700"> ტესტის ელემენტები</summary>
+            <summary className="cursor-pointer font-bold text-gray-700">📝 ტესტის ელემენტები</summary>
             <div className="mt-2 space-y-1">
               <div className="p-2 bg-emerald-600 text-white rounded text-xs">
                 ეს არის bg-emerald-600 - {debugInfo.tailwindLoaded ? 'მუშაობს ✅' : 'არ მუშაობს ❌'}
@@ -171,31 +162,6 @@ export default function HomePage() {
               <div className="p-2 bg-gradient-to-r from-pink-400 to-blue-400 text-white rounded text-xs">
                 ეს არის gradient - {debugInfo.tailwindLoaded ? 'მუშაობს ✅' : 'არ მუშაობს ❌'}
               </div>
-            </div>
-          </details>
-
-          <details className="bg-gray-50 p-2 rounded">
-            <summary className="cursor-pointer font-bold text-gray-700">📝 როგორ გავასწოროთ</summary>
-            <div className="mt-2 text-xs text-gray-600 space-y-2">
-              {!debugInfo.tailwindLoaded && (
-                <div>
-                  <strong>1.</strong> შეამოწმე globals.css-ში არის თუ არა:
-                  <pre className="mt-1 p-2 bg-gray-100 rounded text-xs overflow-auto">
-{`@tailwind base;
-@tailwind components;
-@tailwind utilities;`}
-                  </pre>
-                </div>
-              )}
-              {!debugInfo.envVars.supabaseUrl && (
-                <div>
-                  <strong>2.</strong> Vercel-ში დაამატე Environment Variables:
-                  <ul className="list-disc ml-4 mt-1">
-                    <li>NEXT_PUBLIC_SUPABASE_URL</li>
-                    <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
-                  </ul>
-                </div>
-              )}
             </div>
           </details>
         </div>
@@ -217,7 +183,6 @@ export default function HomePage() {
             🚀 დაიწყე ახლა
           </Link>
           
-          {/* ტესტის ბარათები */}
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-lg">
               <div className="text-4xl mb-2">💰</div>
