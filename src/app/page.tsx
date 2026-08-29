@@ -1,191 +1,249 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 export default function HomePage() {
-  const [debugInfo, setDebugInfo] = useState({
-    tailwindLoaded: false,
-    nextJsCssLoaded: false,
-    envVars: {
-      supabaseUrl: false,
-      supabaseKey: false,
-    },
-    windowSize: { width: 0, height: 0 },
-    errors: [] as string[],
-    warnings: [] as string[],
-  })
-
-  useEffect(() => {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    // 1. შემოწმება: Tailwind CSS ჩატვირთულია?
-    const testDiv = document.createElement('div')
-    testDiv.className = 'bg-emerald-600'
-    document.body.appendChild(testDiv)
-    const bgColor = window.getComputedStyle(testDiv).backgroundColor
-    document.body.removeChild(testDiv)
-    
-    // emerald-600 არის rgb(5, 150, 105). ვამოწმებთ თუ შეიცავს ამ მნიშვნელობას.
-    const tailwindLoaded = bgColor.includes('5, 150, 105') || bgColor.includes('16, 185, 129')
-    
-    if (!tailwindLoaded) {
-      warnings.push(`Tailwind არ მუშაობს. ბრაუზერი ხედავს ფერს როგორც: "${bgColor}"`)
-    }
-
-    // 2. შემოწმება: Next.js-ის CSS ფაილი ჩატვირთულია?
-    const stylesheets = Array.from(document.styleSheets)
-    const nextJsCssLoaded = stylesheets.some(sheet => 
-      sheet.href && sheet.href.includes('_next/static/css')
-    )
-
-    if (!nextJsCssLoaded) {
-      warnings.push('Next.js-ის CSS ფაილები ვერ მოიძებნა DOM-ში.')
-    }
-
-    // 3. შემოწმება: Environment Variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl) errors.push('❌ NEXT_PUBLIC_SUPABASE_URL აკლია')
-    if (!supabaseKey) errors.push('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY აკლია')
-
-    setDebugInfo({
-      tailwindLoaded,
-      nextJsCssLoaded,
-      envVars: {
-        supabaseUrl: !!supabaseUrl,
-        supabaseKey: !!supabaseKey,
-      },
-      windowSize: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
-      errors,
-      warnings,
-    })
-  }, [])
-
-  // დებაგერის სტილები (Inline), რათა ის მაინც ჩანდეს, თუ Tailwind გაფუჭებულია!
-  const debugPanelStyle = {
-    position: 'fixed' as const,
-    top: '10px',
-    right: '10px',
-    zIndex: 9999,
-    background: '#ffffff',
-    padding: '16px',
-    borderRadius: '12px',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-    border: '2px solid #ef4444',
-    maxWidth: '380px',
-    maxHeight: '80vh',
-    overflowY: 'auto' as const,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    fontSize: '14px',
-    lineHeight: '1.5'
-  }
-
   return (
-    // მთავარი კონტეინერი Tailwind კლასებით
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-blue-100 to-green-100">
+    <div className="min-h-screen bg-pastel-gradient overflow-hidden relative">
       
-      {/* ===== ჭკვიანი დებაგერის პანელი ===== */}
-      <div style={debugPanelStyle} className="glass-strong">
-        <h2 className="text-xl font-bold text-red-600 mb-3 flex items-center" style={{ color: '#dc2626', fontWeight: 'bold', marginBottom: '12px', fontSize: '18px' }}>
-          🐛 EZO დებაგერი
-          <button 
-            onClick={() => window.location.reload()}
-            className="ml-2 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-            style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '12px', background: '#2563eb', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
-          >
-            🔄 განაახლე
-          </button>
-        </h2>
-
-        <div className="space-y-2 text-sm" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.tailwindLoaded ? '#16a34a' : '#dc2626' }}>
-            <span>{debugInfo.tailwindLoaded ? '✅' : '❌'}</span>
-            <span>Tailwind CSS: {debugInfo.tailwindLoaded ? 'მუშაობს' : 'არ მუშაობს'}</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.nextJsCssLoaded ? '#16a34a' : '#ca8a04' }}>
-            <span>{debugInfo.nextJsCssLoaded ? '✅' : '⚠️'}</span>
-            <span>Next.js CSS: {debugInfo.nextJsCssLoaded ? 'ჩატვირთულია' : 'ვერ ვპოულობ'}</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.envVars.supabaseUrl ? '#16a34a' : '#dc2626' }}>
-            <span>{debugInfo.envVars.supabaseUrl ? '✅' : '❌'}</span>
-            <span>SUPABASE_URL: {debugInfo.envVars.supabaseUrl ? 'არის' : 'არ არის'}</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: debugInfo.envVars.supabaseKey ? '#16a34a' : '#dc2626' }}>
-            <span>{debugInfo.envVars.supabaseKey ? '✅' : '❌'}</span>
-            <span>SUPABASE_KEY: {debugInfo.envVars.supabaseKey ? 'არის' : 'არ არის'}</span>
-          </div>
+      {/* ===== მცურავი ფონის ელემენტები (3D ეფექტები) ===== */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* ღრუბლები */}
+        <div className="absolute top-20 left-10 animate-cloud opacity-60">
+          <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
+            <path d="M20 50C20 50 15 50 15 45C15 40 20 40 20 40C20 30 30 25 40 30C45 20 65 20 70 30C80 25 90 30 90 40C95 40 100 40 100 45C100 50 95 50 95 50H20Z" fill="white" stroke="#10b981" strokeWidth="2"/>
+          </svg>
+        </div>
+        <div className="absolute top-40 right-20 animate-cloud opacity-50" style={{animationDelay: '2s'}}>
+          <svg width="100" height="70" viewBox="0 0 120 80" fill="none">
+            <path d="M20 50C20 50 15 50 15 45C15 40 20 40 20 40C20 30 30 25 40 30C45 20 65 20 70 30C80 25 90 30 90 40C95 40 100 40 100 45C100 50 95 50 95 50H20Z" fill="white" stroke="#10b981" strokeWidth="2"/>
+          </svg>
         </div>
 
-        {debugInfo.warnings.length > 0 && (
-          <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded" style={{ marginTop: '16px', padding: '12px', background: '#fefce8', borderLeft: '4px solid #eab308', borderRadius: '4px' }}>
-            <h3 className="font-bold text-yellow-700 mb-2" style={{ fontWeight: 'bold', color: '#a16207', marginBottom: '8px' }}>⚠️ გაფრთხილებები:</h3>
-            <ul className="text-xs text-yellow-800 space-y-1" style={{ fontSize: '12px', color: '#854d0e' }}>
-              {debugInfo.warnings.map((w, i) => <li key={i}>• {w}</li>)}
-            </ul>
-          </div>
-        )}
-
-        {debugInfo.errors.length > 0 && (
-          <div className="mt-4 p-3 bg-red-50 border-l-4 border-red-500 rounded" style={{ marginTop: '16px', padding: '12px', background: '#fef2f2', borderLeft: '4px solid #ef4444', borderRadius: '4px' }}>
-            <h3 className="font-bold text-red-700 mb-2" style={{ fontWeight: 'bold', color: '#b91c1c', marginBottom: '8px' }}>❌ შეცდომები:</h3>
-            <ul className="text-xs text-red-800 space-y-1" style={{ fontSize: '12px', color: '#991b1b' }}>
-              {debugInfo.errors.map((e, i) => <li key={i}>• {e}</li>)}
-            </ul>
-          </div>
-        )}
-
-        <div className="mt-4 space-y-2 text-xs" style={{ marginTop: '16px', fontSize: '12px' }}>
-          <details style={{ background: '#f9fafb', padding: '8px', borderRadius: '4px', cursor: 'pointer' }}>
-            <summary className="font-bold text-gray-700" style={{ fontWeight: 'bold', color: '#374151' }}>📊 დეტალური ინფორმაცია</summary>
-            <div className="mt-2 space-y-1 text-gray-600" style={{ marginTop: '8px', color: '#4b5563' }}>
-              <div>📱 ეკრანი: {debugInfo.windowSize.width} x {debugInfo.windowSize.height}px</div>
-              <div>🔍 Tailwind-მა დააგენერირა ფერი: {debugInfo.tailwindLoaded ? 'კი' : 'არა'}</div>
-            </div>
-          </details>
+        {/* მცურავი ბარათები */}
+        <div className="absolute top-32 right-1/4 animate-float opacity-30">
+          <div className="w-24 h-16 bg-white/60 rounded-xl border border-white/80 shadow-lg"></div>
+        </div>
+        <div className="absolute bottom-32 left-1/3 animate-float-delayed opacity-30">
+          <div className="w-20 h-14 bg-white/60 rounded-xl border border-white/80 shadow-lg"></div>
         </div>
       </div>
 
-      {/* ===== მთავარი კონტენტი ===== */}
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center max-w-2xl">
-          <h1 className="text-6xl font-bold text-gray-800 mb-6">
-            EZO
-          </h1>
-          <p className="text-2xl text-gray-600 mb-8">
-            კორპუსების მართვა მარტივად და ეფექტურად
-          </p>
-          <Link 
-            href="/register" 
-            className="inline-block px-8 py-4 bg-emerald-600 text-white text-lg font-semibold rounded-full hover:bg-emerald-700 shadow-lg transition-all hover:scale-105"
-          >
-            🚀 დაიწყე ახლა
-          </Link>
+      {/* ===== NAVBAR ===== */}
+      <nav className="fixed top-0 left-0 right-0 z-50 glass">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-3xl">🏘️</span>
+              <h1 className="text-2xl font-bold text-emerald-700">EZO</h1>
+            </div>
+            <div className="hidden md:flex items-center space-x-6">
+              <a href="#features" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">ფუნქციები</a>
+              <a href="#stats" className="text-gray-700 hover:text-emerald-600 transition-colors font-medium">სტატისტიკა</a>
+              <Link href="/register" className="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-full hover:bg-emerald-700 transition-all hover:scale-105 shadow-lg">
+                რეგისტრაცია
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ===== HERO სექცია ===== */}
+      <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-4">
+        <div className="relative z-10 max-w-6xl mx-auto text-center">
           
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-lg">
-              <div className="text-4xl mb-2">💰</div>
-              <h3 className="font-bold text-gray-800">ფინანსები</h3>
+          {/* EZO ლოგო */}
+          <div className="animate-scale-in">
+            <h1 className="text-7xl md:text-9xl font-black text-white text-glow mb-6 tracking-tight drop-shadow-lg">
+              EZO
+            </h1>
+          </div>
+
+          {/* 3D შენობების კომპოზიცია */}
+          <div className="relative h-64 md:h-80 mb-8 perspective-1000">
+            <div className="absolute inset-0 flex items-center justify-center transform-3d">
+              
+              {/* ცენტრალური შენობა */}
+              <div className="animate-float relative z-20">
+                <svg width="180" height="220" viewBox="0 0 180 220" className="drop-shadow-2xl">
+                  <rect x="40" y="40" width="100" height="160" rx="4" fill="url(#buildingGrad1)" stroke="#10b981" strokeWidth="2"/>
+                  <rect x="50" y="55" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="80" y="55" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="110" y="55" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="50" y="90" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="80" y="90" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="110" y="90" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="50" y="125" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="80" y="125" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="110" y="125" width="20" height="25" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="35" y="30" width="110" height="15" rx="3" fill="#f1f5f9" stroke="#10b981" strokeWidth="2"/>
+                  <defs>
+                    <linearGradient id="buildingGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#f8fafc"/>
+                      <stop offset="100%" stopColor="#e2e8f0"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              {/* მარცხენა შენობა */}
+              <div className="absolute left-0 md:left-10 top-10 animate-float-slow z-10" style={{animationDelay: '1s'}}>
+                <svg width="120" height="160" viewBox="0 0 120 160" className="drop-shadow-xl">
+                  <rect x="20" y="30" width="80" height="120" rx="4" fill="url(#buildingGrad2)" stroke="#10b981" strokeWidth="2"/>
+                  <rect x="30" y="45" width="15" height="20" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="55" y="45" width="15" height="20" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="80" y="45" width="15" height="20" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="30" y="75" width="15" height="20" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="55" y="75" width="15" height="20" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="80" y="75" width="15" height="20" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="15" y="22" width="90" height="12" rx="3" fill="#f1f5f9" stroke="#10b981" strokeWidth="2"/>
+                  <defs>
+                    <linearGradient id="buildingGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#ffffff"/>
+                      <stop offset="100%" stopColor="#f1f5f9"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              {/* მარჯვენა შენობა (სოლარული პანელით) */}
+              <div className="absolute right-0 md:right-10 top-20 animate-float-delayed z-10" style={{animationDelay: '2s'}}>
+                <svg width="140" height="180" viewBox="0 0 140 180" className="drop-shadow-xl">
+                  <rect x="20" y="30" width="100" height="140" rx="4" fill="url(#buildingGrad3)" stroke="#10b981" strokeWidth="2"/>
+                  <rect x="30" y="45" width="18" height="22" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="60" y="45" width="18" height="22" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="90" y="45" width="18" height="22" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="30" y="80" width="18" height="22" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="60" y="80" width="18" height="22" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="90" y="80" width="18" height="22" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                  <rect x="15" y="22" width="110" height="12" rx="3" fill="#f1f5f9" stroke="#10b981" strokeWidth="2"/>
+                  <rect x="35" y="10" width="30" height="15" rx="2" fill="#3b82f6" stroke="#1e40af" strokeWidth="1"/>
+                  <defs>
+                    <linearGradient id="buildingGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#f0fdf4"/>
+                      <stop offset="100%" stopColor="#dcfce7"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              {/* ხეები */}
+              <div className="absolute left-10 md:left-20 bottom-0 animate-float-slow z-30" style={{animationDelay: '0.5s'}}>
+                <svg width="60" height="80" viewBox="0 0 60 80">
+                  <rect x="25" y="50" width="10" height="30" fill="#92400e"/>
+                  <circle cx="30" cy="35" r="25" fill="#10b981"/>
+                  <circle cx="20" cy="40" r="15" fill="#059669"/>
+                  <circle cx="40" cy="40" r="15" fill="#059669"/>
+                </svg>
+              </div>
+              <div className="absolute right-10 md:right-20 bottom-10 animate-float z-30" style={{animationDelay: '1.5s'}}>
+                <svg width="50" height="70" viewBox="0 0 60 80">
+                  <rect x="25" y="50" width="10" height="30" fill="#92400e"/>
+                  <circle cx="30" cy="35" r="25" fill="#10b981"/>
+                  <circle cx="20" cy="40" r="15" fill="#059669"/>
+                  <circle cx="40" cy="40" r="15" fill="#059669"/>
+                </svg>
+              </div>
             </div>
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-lg">
-              <div className="text-4xl mb-2">🔧</div>
-              <h3 className="font-bold text-gray-800">შეკეთებები</h3>
+          </div>
+
+          {/* ტექსტი */}
+          <div className="animate-slide-up" style={{animationDelay: '0.3s'}}>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4">
+              კორპუსების მართვა
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              მარტივად, ეფექტურად და თანამედროვედ
+            </p>
+          </div>
+
+          {/* CTA ღილაკები */}
+          <div className="animate-slide-up flex flex-col sm:flex-row gap-4 justify-center items-center" style={{animationDelay: '0.5s'}}>
+            <Link href="/register" className="px-8 py-4 bg-emerald-600 text-white text-lg font-semibold rounded-full hover:bg-emerald-700 transition-all hover:scale-110 shadow-2xl hover:shadow-emerald-500/50">
+              🚀 უფასო რეგისტრაცია
+            </Link>
+            <a href="#features" className="px-8 py-4 glass-strong text-emerald-700 text-lg font-semibold rounded-full hover:bg-white/60 transition-all hover:scale-105">
+              გაიგე მეტი ↓
+            </a>
+          </div>
+
+          {/* სტატისტიკა */}
+          <div id="stats" className="mt-16 grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto animate-fade-in" style={{animationDelay: '0.8s'}}>
+            <div className="glass rounded-2xl p-4 md:p-6">
+              <div className="text-2xl md:text-3xl font-bold text-emerald-600">500+</div>
+              <div className="text-xs md:text-sm text-gray-600">კორპუსი</div>
             </div>
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-lg">
-              <div className="text-4xl mb-2">📊</div>
-              <h3 className="font-bold text-gray-800">ანგარიშები</h3>
+            <div className="glass rounded-2xl p-4 md:p-6">
+              <div className="text-2xl md:text-3xl font-bold text-emerald-600">10K+</div>
+              <div className="text-xs md:text-sm text-gray-600">მომხმარებელი</div>
+            </div>
+            <div className="glass rounded-2xl p-4 md:p-6">
+              <div className="text-2xl md:text-3xl font-bold text-emerald-600">99%</div>
+              <div className="text-xs md:text-sm text-gray-600">კმაყოფილება</div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* ===== FEATURES სექცია ===== */}
+      <section id="features" className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+              რატომ EZO?
+            </h2>
+            <p className="text-xl text-gray-600">
+              ყველაფერი რაც გჭირდება კორპუსის სამართავად
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { icon: '💰', title: 'ფინანსური მართვა', desc: 'გადასახადების, ხარჯების და ბიუჯეტის სრული კონტროლი ერთ სივრცეში' },
+              { icon: '🔧', title: 'შეკეთებები', desc: 'პრობლემების შეტყობინება და თვალყურის დევნება რეალურ დროში' },
+              { icon: '📊', title: 'ანგარიშები', desc: 'დეტალური ანგარიშები და ანალიტიკა გადაწყვეტილებების მისაღებად' },
+              { icon: '👥', title: 'კომუნიკაცია', desc: 'მეზობლებთან და მმართველ კომპანიასთან პირდაპირი კავშირი' },
+              { icon: '🔒', title: 'უსაფრთხოება', desc: 'მონაცემთა დაცვა და კონფიდენციალურობა უმაღლეს დონეზე' },
+              { icon: '📱', title: 'მობილური', desc: 'წვდომა ნებისმიერი მოწყობილობიდან, ნებისმიერი ადგილიდან' }
+            ].map((feature, index) => (
+              <div key={index} className="card-3d glass-strong rounded-3xl p-8 text-center">
+                <div className="text-5xl md:text-6xl mb-4">{feature.icon}</div>
+                <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-3">{feature.title}</h3>
+                <p className="text-gray-600">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== CTA სექცია ===== */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="glass-strong rounded-3xl p-8 md:p-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mb-6">
+              მზად ხარ დასაწყებად?
+            </h2>
+            <p className="text-lg md:text-xl text-gray-600 mb-8">
+              შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს
+            </p>
+            <Link href="/register" className="inline-block px-10 py-5 bg-emerald-600 text-white text-lg md:text-xl font-semibold rounded-full hover:bg-emerald-700 transition-all hover:scale-110 shadow-2xl hover:shadow-emerald-500/50">
+              🏘️ დაიწყე უფასოდ
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FOOTER ===== */}
+      <footer className="glass py-8 px-4 mt-12">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <span className="text-2xl">🏘️</span>
+            <h3 className="text-xl font-bold text-emerald-700">EZO</h3>
+          </div>
+          <p className="text-gray-600 text-sm">
+            © 2026 EZO. ყველა უფლება დაცულია.
+          </p>
+        </div>
+      </footer>
+
     </div>
   )
 }
