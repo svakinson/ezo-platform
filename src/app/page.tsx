@@ -9,7 +9,6 @@ export default function HomePage() {
   useEffect(() => {
     setMounted(true)
     
-    // რიცხვების ანიმაცია
     const countUp = (el: HTMLElement | null, target: number, suffix: string, duration: number) => {
       if (!el) return
       let start: number | null = null
@@ -30,15 +29,13 @@ export default function HomePage() {
     }, 500)
   }, [])
 
-  if (!mounted) return null
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#A7F3D0] via-[#6EE7B7] to-[#34D399] relative overflow-hidden">
       
-      {/* დეკორატიული ღრუბლები (CSS-ით) */}
-      <div className="absolute top-10 left-20 w-32 h-12 bg-white/60 rounded-full blur-xl"></div>
-      <div className="absolute top-20 right-32 w-40 h-14 bg-white/50 rounded-full blur-xl"></div>
-      <div className="absolute bottom-40 left-1/3 w-36 h-12 bg-white/40 rounded-full blur-xl"></div>
+      {/* დეკორატიული ღრუბლები */}
+      <div className="absolute top-10 left-20 w-32 h-12 bg-white/60 rounded-full blur-xl animate-pulse"></div>
+      <div className="absolute top-20 right-32 w-40 h-14 bg-white/50 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
+      <div className="absolute bottom-40 left-1/3 w-36 h-12 bg-white/40 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
 
       {/* Navigation */}
       <nav className="relative z-20 max-w-6xl mx-auto px-6 py-6">
@@ -53,7 +50,7 @@ export default function HomePage() {
             <a href="#features" className="text-gray-700 font-medium hover:text-[#8B5CF6] transition-colors">შესაძლებლობები</a>
             <a href="#how" className="text-gray-700 font-medium hover:text-[#8B5CF6] transition-colors">როგორ მუშაობს</a>
             <a href="#pricing" className="text-gray-700 font-medium hover:text-[#8B5CF6] transition-colors">ფასები</a>
-            <Link href="/register" className="bg-gray-900 text-white font-semibold px-6 py-2.5 rounded-full hover:bg-gray-800 transition-all hover:scale-105">
+            <Link href="/register" className="bg-gray-900 text-white font-semibold px-6 py-2.5 rounded-full hover:bg-gray-800 transition-all hover:scale-105 shadow-lg">
               დაიწყე უფასოდ
             </Link>
           </div>
@@ -113,12 +110,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* მარჯვენა მხარე - ილუსტრაცია (CSS-ით) */}
+          {/* მარჯვენა მხარე - CSS ილუსტრაცია */}
           <div className="relative">
             {/* მთავარი "შენობა" */}
             <div className="relative bg-gradient-to-b from-[#FDE68A] to-[#FBBF24] rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-transform duration-500">
               {/* სახურავი */}
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-48 h-16 bg-gradient-to-b from-[#8B5CF6] to-[#7C3AED] rounded-t-3xl"></div>
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-48 h-16 bg-gradient-to-b from-[#8B5CF6] to-[#7C3AED] rounded-t-3xl shadow-lg"></div>
               
               {/* შენობის სხეული */}
               <div className="mt-8 space-y-4">
@@ -130,7 +127,7 @@ export default function HomePage() {
                 <div className="bg-white/60 rounded-xl p-4 mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-semibold text-gray-700">ვაჟა-ფშაველას კორპუსი</span>
-                    <span className="text-xs bg-[#10B981] text-white px-2 py-1 rounded-full">აქტიური</span>
+                    <span className="text-xs bg-[#10B981] text-white px-2 py-1 rounded-full font-semibold">აქტიური</span>
                   </div>
                   <div className="text-2xl font-bold text-gray-900">18 420 ₾</div>
                   <div className="text-xs text-gray-600">თვის შეგროვება</div>
@@ -170,7 +167,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Features Section - Compact */}
+      {/* Features Section */}
       <section id="features" className="relative z-10 max-w-6xl mx-auto px-6 pb-20">
         <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-xl">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
@@ -178,14 +175,16 @@ export default function HomePage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: '💰', title: 'ფინანსები', desc: 'სრული კონტროლი ხარჯებსა და შემოსავლებზე' },
-              { icon: '🔧', title: 'შეკეთებები', desc: 'პრობლემების მართვა რეალურ დროში' },
-              { icon: '🔒', title: 'უსაფრთხოება', desc: 'მონაცემთა დაცვა საბანკო დონეზე' }
+              { icon: '💰', title: 'ფინანსები', desc: 'სრული კონტროლი ხარჯებსა და შემოსავლებზე', color: 'from-[#FBBF24] to-[#F59E0B]' },
+              { icon: '', title: 'შეკეთებები', desc: 'პრობლემების მართვა რეალურ დროში', color: 'from-[#60A5FA] to-[#3B82F6]' },
+              { icon: '🔒', title: 'უსაფრთხოება', desc: 'მონაცემთა დაცვა საბანკო დონეზე', color: 'from-[#34D399] to-[#10B981]' }
             ].map((f, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:-translate-y-2">
-                <div className="text-4xl mb-3">{f.icon}</div>
-                <h3 className="font-bold text-gray-900 mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-600">{f.desc}</p>
+              <div key={i} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:-translate-y-2 border-2 border-transparent hover:border-[#8B5CF6]/30">
+                <div className={`w-16 h-16 bg-gradient-to-br ${f.color} rounded-2xl flex items-center justify-center mb-4 shadow-lg text-3xl`}>
+                  {f.icon}
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2 text-lg">{f.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -194,19 +193,22 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="relative z-10 max-w-4xl mx-auto px-6 pb-20">
-        <div className="bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] rounded-3xl p-10 text-center shadow-2xl">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            მზად ხარ დასაწყებად?
-          </h2>
-          <p className="text-white/90 mb-8">
-            შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს
-          </p>
-          <Link 
-            href="/register" 
-            className="inline-block bg-white text-[#8B5CF6] font-bold text-lg px-10 py-4 rounded-full shadow-xl hover:bg-gray-100 transition-all hover:scale-105"
-          >
-            დაიწყე უფასოდ →
-          </Link>
+        <div className="bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] rounded-3xl p-10 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              მზად ხარ დასაწყებად?
+            </h2>
+            <p className="text-white/90 mb-8 text-lg">
+              შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს
+            </p>
+            <Link 
+              href="/register" 
+              className="inline-block bg-white text-[#8B5CF6] font-bold text-lg px-10 py-4 rounded-full shadow-xl hover:bg-gray-100 transition-all hover:scale-105"
+            >
+              დაიწყე უფასოდ →
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -214,7 +216,7 @@ export default function HomePage() {
       <footer className="relative z-10 bg-white/60 backdrop-blur-lg border-t border-white/50 py-8">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="text-2xl">🏘️</span>
+            <span className="text-2xl">️</span>
             <span className="text-xl font-bold text-gray-900">EZO</span>
           </div>
           <p className="text-sm text-gray-600">© 2026 EZO. ყველა უფლება დაცულია.</p>
@@ -229,6 +231,13 @@ export default function HomePage() {
         }
         .animate-bounce {
           animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
         }
       `}</style>
     </div>
