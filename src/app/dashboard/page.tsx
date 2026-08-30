@@ -92,7 +92,14 @@ const IconRocket = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-// ============ STAT CARD (OPTIMIZED - no blur, no colored shadows) ============
+const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
+)
+
+// ============ STAT CARD ============
 function StatCard({ icon: Icon, label, value, sublabel, gradient }: { 
   icon: any; 
   label: string; 
@@ -105,7 +112,6 @@ function StatCard({ icon: Icon, label, value, sublabel, gradient }: {
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300`}>
         <Icon className="w-6 h-6 text-white" />
       </div>
-      
       <div className="text-3xl font-bold text-white mb-1">{value}</div>
       <div className="text-sm text-slate-300 mb-1">{label}</div>
       <div className="text-xs text-slate-500">{sublabel}</div>
@@ -119,12 +125,13 @@ export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [buildings, setBuildings] = useState<any[]>([])
+  const [buildingsLoading, setBuildingsLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      
       if (!session) {
         router.push('/login')
       } else {
@@ -132,7 +139,6 @@ export default function DashboardPage() {
       }
       setLoading(false)
     }
-
     checkSession()
 
     const timer = setInterval(() => {
@@ -141,6 +147,24 @@ export default function DashboardPage() {
 
     return () => clearInterval(timer)
   }, [router])
+
+  useEffect(() => {
+    const fetchBuildings = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('buildings')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+        
+        if (data) {
+          setBuildings(data)
+        }
+        setBuildingsLoading(false)
+      }
+    }
+    if (user) fetchBuildings()
+  }, [user])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -168,10 +192,21 @@ export default function DashboardPage() {
 
   const userName = user?.user_metadata?.full_name || 'მომხმარებელი'
   const userInitial = userName.charAt(0).toUpperCase()
+  const hasBuilding = buildings.length > 0
+
+  // Dynamic onboarding steps based on real data
+  const onboardingSteps = [
+    { title: 'ანგარიშის შექმნა', desc: 'რეგისტრაცია წარმატებით დასრულდა', done: true },
+    { title: 'პაკეტის არჩევა', desc: 'აირჩიე შენთვის შესაფერისი გეგმა', done: true },
+    { title: 'კორპუსის დამატება', desc: hasBuilding ? 'კორპუსი წარმატებით დაემატა' : 'დაამატე შენი კორპუსის ინფორმაცია', done: hasBuilding, link: hasBuilding ? undefined : '/dashboard/add-building' },
+  ]
+  
+  const completedSteps = onboardingSteps.filter(s => s.done).length
+  const progressWidth = `${(completedSteps / onboardingSteps.length) * 100}%`
 
   return (
     <div className="min-h-screen bg-slate-900">
-      {/* Header - OPTIMIZED: no blur, no colored shadows */}
+      {/* Header */}
       <header className="sticky top-0 z-40 bg-slate-900 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -191,9 +226,7 @@ export default function DashboardPage() {
             
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-right">
-                <div className="text-sm font-medium text-white">
-                  {userName}
-                </div>
+                <div className="text-sm font-medium text-white">{userName}</div>
                 <div className="text-xs text-slate-400">{user?.email}</div>
               </div>
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg">
@@ -212,9 +245,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        {/* Welcome Banner - OPTIMIZED: no blur glow, no colored shadows */}
+        {/* Welcome Banner */}
         <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8 lg:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -235,20 +267,18 @@ export default function DashboardPage() {
                     {currentTime.toLocaleDateString('ka-GE', { weekday: 'long', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">
-                  {userName}!
-                </h1>
+                <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">{userName}!</h1>
                 <p className="text-slate-400 text-sm">{user?.email}</p>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link 
-                href="/dashboard/plans"
+                href="/dashboard/add-building"
                 className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all"
               >
-                <IconRocket className="w-5 h-5" />
-                <span>აირჩიე პაკეტი</span>
+                <IconBuilding className="w-5 h-5" />
+                <span>კორპუსის დამატება</span>
                 <IconArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -260,8 +290,8 @@ export default function DashboardPage() {
           <StatCard
             icon={IconBuilding}
             label="კორპუსები"
-            value="0"
-            sublabel="პაკეტის არჩევის შემდეგ"
+            value={buildings.length.toString()}
+            sublabel={hasBuilding ? "აქტიური კორპუსი" : "დაამატე პირველი კორპუსი"}
             gradient="from-emerald-500 to-teal-600"
           />
           <StatCard
@@ -274,7 +304,7 @@ export default function DashboardPage() {
           <StatCard
             icon={IconZap}
             label="აქტივობა"
-            value="0"
+            value={hasBuilding ? "აქტიური" : "0"}
             sublabel="ბოლო 30 დღე"
             gradient="from-amber-500 to-orange-600"
           />
@@ -287,7 +317,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Onboarding Progress - OPTIMIZED: no blur glow */}
+        {/* Onboarding Progress */}
         <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -298,17 +328,13 @@ export default function DashboardPage() {
               <p className="text-slate-400 text-sm">შეავსე ეს ნაბიჯები სრული ფუნქციონალის მისაღებად</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white">1/3</div>
+              <div className="text-2xl font-bold text-white">{completedSteps}/{onboardingSteps.length}</div>
               <div className="text-xs text-slate-500">ნაბიჯი შესრულებული</div>
             </div>
           </div>
 
           <div className="space-y-3">
-            {[
-              { title: 'ანგარიშის შექმნა', desc: 'რეგისტრაცია წარმატებით დასრულდა', done: true },
-              { title: 'პაკეტის არჩევა', desc: 'აირჩიე შენთვის შესაფერისი გეგმა', done: false, link: '/dashboard/plans' },
-              { title: 'კორპუსის დამატება', desc: 'დაამატე შენი კორპუსის ინფორმაცია', done: false },
-            ].map((step, i) => (
+            {onboardingSteps.map((step, i) => (
               <div 
                 key={i}
                 className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
@@ -342,61 +368,81 @@ export default function DashboardPage() {
 
           {/* Progress Bar */}
           <div className="mt-6 h-2 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000" style={{ width: '33%' }} />
+            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000" style={{ width: progressWidth }} />
           </div>
         </div>
 
-        {/* Quick Actions - OPTIMIZED: no blur, no colored shadows */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Link 
-            href="/dashboard/plans"
-            className="group bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                <IconStar className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-white text-lg">აირჩიე პაკეტი</h3>
-                <p className="text-sm text-slate-400">გაააქტიურე სრული ფუნქციონალი</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
-                <span>ნახე პაკეტები</span>
-                <IconArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-              <div className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-xs font-bold text-emerald-400">
-                რეკომენდებული
-              </div>
-            </div>
-          </Link>
-
-          <div className="group bg-slate-800/50 border border-white/10 rounded-2xl p-6 opacity-60">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-lg">
-                <IconBuilding className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-white text-lg">ჩემი კორპუსი</h3>
-                <p className="text-sm text-slate-400">მალე დაემატება</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-500 font-semibold text-sm">
-                <IconClock className="w-4 h-4" />
-                <span>მალე</span>
-              </div>
-              <div className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-slate-400">
-                მალე
-              </div>
-            </div>
+        {/* My Buildings Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <IconBuilding className="w-5 h-5 text-emerald-400" />
+              ჩემი კორპუსები
+            </h2>
+            <Link 
+              href="/dashboard/add-building"
+              className="text-sm text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 transition-colors"
+            >
+              <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
+              ახლის დამატება
+            </Link>
           </div>
+
+          {buildingsLoading ? (
+            <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-8 flex items-center justify-center">
+              <IconLoader className="w-8 h-8 text-emerald-400 animate-spin" />
+            </div>
+          ) : buildings.length > 0 ? (
+            <div className="space-y-4">
+              {buildings.map((building) => (
+                <div key={building.id} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                        <IconBuilding className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-lg">{building.name || building.street}</h3>
+                        <p className="text-sm text-slate-400">{building.city}{building.district ? `, ${building.district}` : ''}</p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                          <span className="flex items-center gap-1"><IconCheck className="w-3 h-3 text-emerald-400" /> {building.apartments_count} ბინა</span>
+                          <span className="flex items-center gap-1"><IconCheck className="w-3 h-3 text-emerald-400" /> {building.entrances_count} სადარბაზო</span>
+                          {building.total_area && (
+                            <span className="flex items-center gap-1"><IconCheck className="w-3 h-3 text-emerald-400" /> {building.total_area} მ²</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <Link 
+                      href={`/dashboard/building/${building.id}`}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg transition-colors"
+                    >
+                      მართვა
+                      <IconArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-slate-800/50 border border-white/10 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
+                <IconBuilding className="w-8 h-8 text-slate-400" />
+              </div>
+              <h3 className="font-bold text-white text-lg mb-2">კორპუსი ჯერ არ არის დამატებული</h3>
+              <p className="text-sm text-slate-400 mb-4 max-w-sm">დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.</p>
+              <Link 
+                href="/dashboard/add-building"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all"
+              >
+                <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
+                კორპუსის დამატება
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* Feature Cards - OPTIMIZED: no blur, no colored shadows */}
+        {/* Feature Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="group bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300">
@@ -404,7 +450,7 @@ export default function DashboardPage() {
             </div>
             <h3 className="font-bold text-white mb-2">კორპუსის მართვა</h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              პაკეტის არჩევის შემდეგ შეგეძლება დაამატო შენი კორპუსი და დაიწყო სრული მართვა.
+              დაამატე ბინები, მაცხოვრებლები და მართე ყოველდღიური ოპერაციები ერთი სივრციდან.
             </p>
           </div>
 
@@ -429,7 +475,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Bottom CTA - OPTIMIZED: no blur glow */}
+        {/* Bottom CTA */}
         <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8 lg:p-12 text-center">
           <div className="max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-6">
