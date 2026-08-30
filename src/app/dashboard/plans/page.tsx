@@ -1,0 +1,409 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
+
+const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2" />
+    <path d="M9 22v-4h6v4" />
+    <path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01" />
+  </svg>
+)
+
+const IconCheck = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+const IconStar = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+)
+
+const IconArrowLeft = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+)
+
+const IconLogOut = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+)
+
+const plans = [
+  {
+    id: 'starter',
+    name: 'STARTER',
+    subtitle: 'საცდელი პაკეტი',
+    price: '19',
+    period: 'თვეში',
+    trial: '1 თვე უფასო',
+    apartments: '20-მდე ბინა',
+    buildings: '1 კორპუსი',
+    color: 'slate',
+    gradient: 'from-slate-500 to-slate-600',
+    popular: false,
+    features: [
+      { text: 'შემოსავლების და ხარჯების თრექინგი', included: true },
+      { text: 'ძირითადი ანგარიშები (PDF)', included: true },
+      { text: 'ხელით გადახდების ჩაწერა', included: true },
+      { text: 'მაცხოვრებლების ბაზა (20-მდე)', included: true },
+      { text: 'განცხადებების დაფა', included: true },
+      { text: 'Email შეტყობინებები', included: true },
+      { text: 'ონლაინ გადახდები', included: false },
+      { text: 'SMS შეტყობინებები', included: false },
+      { text: 'მოვლის თრექინგი', included: false },
+      { text: 'მობილური აპლიკაცია', included: false },
+      { text: 'Excel ექსპორტი', included: false },
+    ],
+    cta: 'დაიწყე უფასოდ',
+  },
+  {
+    id: 'professional',
+    name: 'PROFESSIONAL',
+    subtitle: 'ყველაზე პოპულარული',
+    price: '49',
+    period: 'თვეში',
+    trial: '14 დღე უფასო',
+    apartments: '50-მდე ბინა',
+    buildings: '1 კორპუსი',
+    color: 'emerald',
+    gradient: 'from-emerald-500 to-teal-600',
+    popular: true,
+    features: [
+      { text: 'ყველაფერი Starter-ში', included: true },
+      { text: 'ონლაინ გადახდები (ბარათი, ბანკი)', included: true },
+      { text: 'ავტომატური ინვოისები', included: true },
+      { text: 'ავტომატური შეხსენებები', included: true },
+      { text: 'SMS შეტყობინებები (100/თვე)', included: true },
+      { text: 'მოვლის თრექინგი + ფოტოები', included: true },
+      { text: 'ფინანსური დაფები', included: true },
+      { text: 'ბიუჯეტის დაგეგმვა', included: true },
+      { text: 'Excel ექსპორტი', included: true },
+      { text: 'მობილური აპლიკაცია (iOS/Android)', included: true },
+      { text: 'დოკუმენტების მართვა', included: true },
+      { text: 'პრიორიტეტული მხარდაჭერა', included: true },
+    ],
+    cta: 'აირჩიე Professional',
+  },
+  {
+    id: 'enterprise',
+    name: 'ENTERPRISE',
+    subtitle: 'დიდი კორპუსებისთვის',
+    price: '99',
+    period: 'თვეში',
+    trial: '14 დღე უფასო',
+    apartments: '50+ ბინა (უსაზღვრო)',
+    buildings: 'უსაზღვრო კორპუსი',
+    color: 'purple',
+    gradient: 'from-purple-500 to-indigo-600',
+    popular: false,
+    features: [
+      { text: 'ყველაფერი Professional-ში', included: true },
+      { text: 'მრავალკორპუსიანი მართვა', included: true },
+      { text: 'ერთი დაფიდან ყველა კორპუსი', included: true },
+      { text: 'API წვდომა', included: true },
+      { text: 'Webhook მხარდაჭერა', included: true },
+      { text: 'AI დაფუძნებული ინსაიტები', included: true },
+      { text: 'პროგნოზირება და ბენჩმარკინგი', included: true },
+      { text: 'Custom ანგარიშები', included: true },
+      { text: 'როლების მართვა', included: true },
+      { text: 'აუდიტის ლოგი', included: true },
+      { text: '99.9% uptime SLA', included: true },
+      { text: '24/7 პრიორიტეტული მხარდაჭერა', included: true },
+      { text: 'პერსონალური მენეჯერი', included: true },
+      { text: 'ონბორდინგი და ტრენინგი', included: true },
+    ],
+    cta: 'დაგვიკავშირდი',
+  },
+]
+
+export default function PlansPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login')
+      } else {
+        setUser(session.user)
+      }
+      setLoading(false)
+    }
+    checkSession()
+  }, [router])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
+  const handleSelectPlan = async (planId: string) => {
+    setSelectedPlan(planId)
+    
+    // აქ მომავალში დავამატებთ პაკეტის შენახვას Supabase-ში
+    // და გადამისამართებას კორპუსის მონაცემების შეყვანის გვერდზე
+    
+    setTimeout(() => {
+      // დროებით - უბრალოდ ვაჩვენებთ შეტყობინებას
+      alert(`${planId.toUpperCase()} პაკეტი არჩეულია! მომდევნო ეტაპზე დაგემატება კორპუსის მონაცემების შეყვანის ფორმა.`)
+      setSelectedPlan(null)
+    }, 500)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-slate-600">იტვირთება...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <IconBuilding className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-slate-900">EZO</span>
+            </Link>
+            <div className="hidden sm:block h-6 w-px bg-slate-200"></div>
+            <Link 
+              href="/dashboard" 
+              className="hidden sm:flex items-center gap-2 text-sm text-slate-600 hover:text-emerald-600 transition-colors"
+            >
+              <IconArrowLeft className="w-4 h-4" />
+              <span>უკან დაბრუნება</span>
+            </Link>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block text-right">
+              <div className="text-sm font-medium text-slate-900">
+                {user?.user_metadata?.full_name || 'მომხმარებელი'}
+              </div>
+              <div className="text-xs text-slate-500">{user?.email}</div>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+            >
+              <IconLogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">გამოსვლა</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header Section */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full mb-6">
+            <IconStar className="w-4 h-4 text-emerald-600" />
+            <span className="text-sm font-medium text-emerald-700">აირჩიე შენი პაკეტი</span>
+          </div>
+          
+          <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+            გქონდეს სრული კონტროლი
+            <span className="block bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              შენს კორპუსზე
+            </span>
+          </h1>
+          
+          <p className="text-lg text-slate-600 leading-relaxed">
+            აირჩიე პაკეტი, რომელიც საუკეთესოდ შეესაბამება შენს კორპუსს. 
+            ყველა პაკეტი მოიცავს უფასო საცდელ პერიოდს.
+          </p>
+        </div>
+
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+          {plans.map((plan) => (
+            <div
+              key={plan.id}
+              className={`relative bg-white rounded-2xl border-2 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${
+                plan.popular 
+                  ? 'border-emerald-500 shadow-xl shadow-emerald-500/20' 
+                  : 'border-slate-200 hover:border-slate-300'
+              } ${selectedPlan === plan.id ? 'ring-4 ring-emerald-500/30' : ''}`}
+            >
+              {/* Popular Badge */}
+              {plan.popular && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2">
+                    <IconStar className="w-4 h-4" />
+                    ყველაზე პოპულარული
+                  </div>
+                </div>
+              )}
+
+              <div className="p-8">
+                {/* Plan Header */}
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-1">{plan.name}</h3>
+                  <p className="text-sm text-slate-600">{plan.subtitle}</p>
+                </div>
+
+                {/* Price */}
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-bold text-slate-900">₾{plan.price}</span>
+                    <span className="text-slate-500">/{plan.period}</span>
+                  </div>
+                  <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full">
+                    <span className="text-xs font-semibold text-emerald-700">🎉 {plan.trial}</span>
+                  </div>
+                </div>
+
+                {/* Limits */}
+                <div className="space-y-2 mb-6 pb-6 border-b border-slate-100">
+                  <div className="flex items-center gap-2 text-sm">
+                    <IconBuilding className="w-4 h-4 text-slate-400" />
+                    <span className="text-slate-700 font-medium">{plan.apartments}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    <span className="text-slate-700 font-medium">{plan.buildings}</span>
+                  </div>
+                </div>
+
+                {/* Features */}
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      {feature.included ? (
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
+                          <IconCheck className="w-3 h-3 text-emerald-600" />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center mt-0.5">
+                          <IconX className="w-3 h-3 text-slate-400" />
+                        </div>
+                      )}
+                      <span className={`text-sm ${feature.included ? 'text-slate-700' : 'text-slate-400'}`}>
+                        {feature.text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA Button */}
+                <button
+                  onClick={() => handleSelectPlan(plan.id)}
+                  disabled={selectedPlan !== null}
+                  className={`w-full py-3.5 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30'
+                      : 'bg-slate-900 text-white hover:bg-slate-800'
+                  }`}
+                >
+                  {selectedPlan === plan.id ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ირჩევა...
+                    </span>
+                  ) : (
+                    plan.cta
+                  )}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* FAQ Section */}
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">
+            ხშირად დასმული კითხვები
+          </h2>
+          
+          <div className="space-y-4">
+            {[
+              {
+                question: 'შემიძლია პაკეტის შეცვლა?',
+                answer: 'დიახ, ნებისმიერ დროს შეგიძლია განაახლო ან შეცვალო შენი პაკეტი. ცვლილება მომდევნო გადახდის პერიოდიდან ამოქმედდება.'
+              },
+              {
+                question: 'რა ხდება საცდელი პერიოდის შემდეგ?',
+                answer: 'საცდელი პერიოდის დასრულებამდე მიიღებ შეხსენებას. თუ არ აირჩევ გადახდილ პაკეტს, ანგარიში ავტომატურად გადავა Starter პაკეტზე.'
+              },
+              {
+                question: 'არის თუ არა ბარათის მონაცემები საჭირო?',
+                answer: 'არა, საცდელი პერიოდისთვის ბარათის მონაცემები არ არის საჭირო. მხოლოდ გადახდილი პაკეტის არჩევისას დაგჭირდება გადახდის მეთოდი.'
+              },
+              {
+                question: 'შემიძლია გაუქმება?',
+                answer: 'რა თქმა უნდა. შეგიძლია გააუქმო გამოწერა ნებისმიერ დროს და შენი მონაცემები ექსპორტზე გაიტანო.'
+              },
+            ].map((faq, i) => (
+              <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 hover:border-emerald-300 transition-colors">
+                <h3 className="font-semibold text-slate-900 mb-2">{faq.question}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-16 text-center">
+          <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-8 lg:p-12 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl"></div>
+            
+            <div className="relative">
+              <h3 className="text-2xl lg:text-3xl font-bold mb-4">
+                გაქვს კითხვები?
+              </h3>
+              <p className="text-emerald-50 mb-6 max-w-2xl mx-auto">
+                ჩვენი გუნდი მზადაა დაგეხმაროს საუკეთესო პაკეტის არჩევაში. დაგვიკავშირდი და მიიღე პერსონალური კონსულტაცია.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <a 
+                  href="mailto:info@ezo.ge" 
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-all"
+                >
+                  📧 info@ezo.ge
+                </a>
+                <a 
+                  href="tel:+995555123456" 
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg border border-white/20 hover:bg-white/20 transition-all"
+                >
+                  📞 +995 555 123 456
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
