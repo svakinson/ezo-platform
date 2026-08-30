@@ -82,7 +82,6 @@ const plans = [
     buildings: '1 კორპუსი',
     icon: IconSparkles,
     gradient: 'from-slate-600 via-slate-700 to-slate-800',
-    glowColor: 'shadow-slate-500/30', // შემსუბუქებული ჩრდილი
     popular: false,
     features: [
       { text: 'შემოსავლების და ხარჯების თრექინგი', included: true },
@@ -110,7 +109,6 @@ const plans = [
     buildings: '1 კორპუსი',
     icon: IconZap,
     gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
-    glowColor: 'shadow-emerald-500/30', // შემსუბუქებული ჩრდილი
     popular: true,
     features: [
       { text: 'ყველაფერი Starter-ში', included: true },
@@ -139,7 +137,6 @@ const plans = [
     buildings: 'უსაზღვრო კორპუსი',
     icon: IconCrown,
     gradient: 'from-purple-600 via-violet-600 to-indigo-600',
-    glowColor: 'shadow-purple-500/30', // შემსუბუქებული ჩრდილი
     popular: false,
     features: [
       { text: 'ყველაფერი Professional-ში', included: true },
@@ -163,42 +160,28 @@ const plans = [
 
 // ============ COMPONENTS ============
 
-// OPTIMIZED: იყენებს translate3d ანიმაციას და GPU აქსელერაციას
-function FloatingOrb({ className, color }: { className?: string; color: string }) {
-  return (
-    <div 
-      className={`absolute rounded-full blur-3xl opacity-20 animate-float-slow gpu-accelerated pointer-events-none ${className}`} 
-      style={{ background: color }} 
-    />
-  )
-}
-
 function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: string) => void }) {
   const Icon = plan.icon
 
   return (
-    <div className={`relative group transition-all duration-500 gpu-accelerated ${plan.popular ? 'md:-translate-y-4' : ''}`}>
-      {/* Glow Effect - შემსუბუქებული blur */}
-      <div className={`absolute -inset-1 bg-gradient-to-r ${plan.gradient} rounded-3xl blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-500 ${plan.popular ? 'opacity-30' : ''}`} />
-      
-      {/* OPTIMIZED: backdrop-blur-xl შეცვლილია backdrop-blur-md-ით, რაც ბევრად ნაკლებ რესურსს მოითხოვს */}
-      <div className={`relative bg-slate-900/60 backdrop-blur-md rounded-3xl border-2 transition-all duration-500 ${
+    <div className={`relative group transition-all duration-300 ${plan.popular ? 'md:-translate-y-2' : ''}`}>
+      {/* OPTIMIZED: Removed heavy blur glow. Simple border transition is 100x faster */}
+      <div className={`relative bg-slate-900/80 rounded-3xl border-2 transition-all duration-300 ${
         plan.popular 
           ? 'border-emerald-500/50 shadow-xl' 
-          : 'border-white/10 shadow-lg hover:shadow-xl'
+          : 'border-white/10 shadow-lg hover:border-white/20 hover:shadow-xl'
       }`}>
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none rounded-3xl overflow-hidden">
+        {/* Subtle pattern */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none rounded-3xl overflow-hidden">
           <div className={`absolute inset-0 bg-gradient-to-br ${plan.gradient}`} style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
             backgroundSize: '24px 24px'
           }} />
         </div>
 
-        {/* Popular Badge */}
         {plan.popular && (
           <div className="absolute top-0 right-0 z-10">
-            <div className={`relative overflow-hidden bg-gradient-to-r ${plan.gradient} text-white px-6 py-2 rounded-bl-2xl text-sm font-bold shadow-lg flex items-center gap-2`}>
+            <div className={`relative bg-gradient-to-r ${plan.gradient} text-white px-6 py-2 rounded-bl-2xl text-sm font-bold shadow-md flex items-center gap-2`}>
               <IconStar className="w-4 h-4" />
               ყველაზე პოპულარული
             </div>
@@ -206,33 +189,29 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
         )}
 
         <div className="relative p-8 pt-10">
-          {/* Icon */}
-          <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6 shadow-lg ${plan.glowColor} group-hover:scale-105 transition-transform duration-300`}>
+          <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6 shadow-md group-hover:scale-105 transition-transform duration-300`}>
             <Icon className="w-8 h-8 text-white" />
           </div>
 
-          {/* Plan Header */}
           <div className="mb-6">
             <h3 className="text-2xl font-bold text-white mb-1 tracking-tight leading-tight">{plan.name}</h3>
             <p className="text-sm text-slate-400 leading-snug">{plan.subtitle}</p>
           </div>
 
-          {/* Price */}
           <div className="mb-6">
             <div className="flex items-baseline gap-2">
-              <span className="text-6xl font-bold text-white leading-none">₾{plan.price}</span>
+              <span className="text-5xl font-bold text-white leading-none">₾{plan.price}</span>
               <span className="text-slate-400 text-lg">/{plan.period}</span>
             </div>
             <div className={`mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold ${
               plan.popular 
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                : 'bg-white/10 text-slate-300 border border-white/10'
+                : 'bg-white/5 text-slate-300 border border-white/10'
             }`}>
               {plan.trial}
             </div>
           </div>
 
-          {/* Limits */}
           <div className="space-y-3 mb-6 pb-6 border-b border-white/10">
             <div className="flex items-center gap-3 text-sm">
               <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
@@ -251,7 +230,6 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
             </div>
           </div>
 
-          {/* Features */}
           <ul className="space-y-3 mb-8">
             {plan.features.map((feature, i) => (
               <li key={i} className="flex items-start gap-3">
@@ -261,7 +239,7 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
                   </div>
                 ) : (
                   <div className="flex-shrink-0 w-5 h-5 rounded-full bg-white/5 flex items-center justify-center mt-0.5">
-                    <IconX className="w-3 h-3 text-slate-500" />
+                    <IconX className="w-3 h-3 text-slate-600" />
                   </div>
                 )}
                 <span className={`text-sm leading-relaxed ${feature.included ? 'text-slate-300' : 'text-slate-500'}`}>
@@ -271,12 +249,11 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
             ))}
           </ul>
 
-          {/* CTA Button */}
           <button
             onClick={() => onSelect(plan.id)}
-            className={`relative w-full py-4 rounded-xl font-bold text-white overflow-hidden transition-all duration-300 group-hover:shadow-xl ${
+            className={`relative w-full py-4 rounded-xl font-bold text-white overflow-hidden transition-all duration-300 ${
               plan.popular
-                ? `bg-gradient-to-r ${plan.gradient} shadow-lg ${plan.glowColor} hover:shadow-2xl hover:scale-[1.02]`
+                ? `bg-gradient-to-r ${plan.gradient} shadow-md hover:shadow-lg hover:scale-[1.02]`
                 : `bg-white/10 hover:bg-white/20 border border-white/10`
             }`}
           >
@@ -322,12 +299,12 @@ export default function PlansPage() {
     localStorage.setItem('selectedPlan', planId)
     setTimeout(() => {
       router.push('/dashboard/add-building')
-    }, 400)
+    }, 300)
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050507]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="relative">
           <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -339,27 +316,15 @@ export default function PlansPage() {
   }
 
   return (
-    // OPTIMIZED: მუქი ფონი უფრო თანმიმდევრულია და ნაკლებად ტვირთავს ბრაუზერს ვიდრე გრადიენტების მუდმივი რენდერი
-    <div className="min-h-screen bg-[#050507] relative overflow-x-hidden">
-      {/* Animated Background - OPTIMIZED with gpu-accelerated */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <FloatingOrb className="w-[500px] h-[500px] top-[-100px] left-[-100px]" color="#10b981" />
-        <FloatingOrb className="w-[500px] h-[500px] top-[20%] right-[-150px]" color="#8b5cf6" />
-        <FloatingOrb className="w-[500px] h-[500px] bottom-[-100px] left-[30%]" color="#06b6d4" />
-        
-        {/* Grid Pattern - OPTIMIZED: ნაკლები opacity და ფიქსირებული */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
-        }} />
-      </div>
-
-      {/* Header - OPTIMIZED: backdrop-blur-md ნაცვლად xl-ისა */}
-      <header className="relative z-40 bg-[#050507]/70 backdrop-blur-md border-b border-white/10 sticky top-0">
+    // OPTIMIZED: Static gradient background instead of animated heavy blurs
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-x-hidden">
+      
+      {/* Header - OPTIMIZED: No backdrop-blur, solid semi-transparent background */}
+      <header className="relative z-40 bg-slate-950/90 border-b border-white/10 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
                 <IconBuilding className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-white leading-tight">EZO</span>
@@ -396,7 +361,7 @@ export default function PlansPage() {
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-16 py-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-6">
             <IconSparkles className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-medium text-slate-300 leading-snug">აირჩიე შენი პაკეტი</span>
           </div>
@@ -425,13 +390,13 @@ export default function PlansPage() {
           ))}
         </div>
 
-        {/* Comparison Table - OPTIMIZED: ნაკლები blur და მუქი ფონი */}
+        {/* Comparison Table - OPTIMIZED: No backdrop-blur */}
         <div className="mb-20">
           <h2 className="text-3xl font-bold text-white text-center mb-12 leading-[1.3] py-2">
             დეტალური შედარება
           </h2>
           
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-3xl border border-white/10 overflow-hidden">
+          <div className="bg-slate-900/50 rounded-3xl border border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -460,7 +425,7 @@ export default function PlansPage() {
                     { feature: 'AI ინსაიტები', values: [false, false, true] },
                     { feature: '24/7 მხარდაჭერა', values: [false, false, true] },
                   ].map((row, i) => (
-                    <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors duration-200">
                       <td className="p-6 text-slate-300 font-medium leading-snug">{row.feature}</td>
                       {row.values.map((val, j) => (
                         <td key={j} className="p-6 text-center">
@@ -487,7 +452,7 @@ export default function PlansPage() {
           </div>
         </div>
 
-        {/* FAQ Section */}
+        {/* FAQ Section - OPTIMIZED: No backdrop-blur */}
         <div className="max-w-3xl mx-auto mb-20">
           <h2 className="text-3xl font-bold text-white text-center mb-12 leading-[1.3] py-2">
             ხშირად დასმული კითხვები
@@ -512,7 +477,7 @@ export default function PlansPage() {
                 answer: 'რა თქმა უნდა. შეგიძლია გააუქმო გამოწერა ნებისმიერ დროს და შენი მონაცემები ექსპორტზე გაიტანო.'
               },
             ].map((faq, i) => (
-              <div key={i} className="bg-slate-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors group">
+              <div key={i} className="bg-slate-900/50 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors duration-200 group">
                 <h3 className="font-semibold text-white mb-2 flex items-center gap-2 leading-[1.3]">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
                     {i + 1}
@@ -525,10 +490,9 @@ export default function PlansPage() {
           </div>
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA - OPTIMIZED: No heavy blur glow */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 rounded-3xl blur-3xl" />
-          <div className="relative bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-3xl p-12 text-center">
+          <div className="relative bg-slate-900/80 border border-white/10 rounded-3xl p-12 text-center">
             <h3 className="text-3xl font-bold text-white mb-4 leading-[1.3] py-2">
               გაქვს კითხვები?
             </h3>
