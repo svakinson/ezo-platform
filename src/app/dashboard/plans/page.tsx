@@ -342,7 +342,7 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-900 relative overflow-x-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
@@ -397,14 +397,14 @@ export default function PlansPage() {
 
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        {/* Header Section - FIXED: Added py-4 and leading-snug */}
+        <div className="text-center max-w-3xl mx-auto mb-16 py-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full mb-6">
             <IconSparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
             <span className="text-sm font-medium text-white/90">აირჩიე შენი პაკეტი</span>
           </div>
           
-          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 tracking-tight">
+          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 leading-[1.15]">
             გქონდეს სრული კონტროლი
             <span className="block bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
               შენს კორპუსზე
@@ -430,7 +430,7 @@ export default function PlansPage() {
 
         {/* Comparison Table */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-3xl font-bold text-white text-center mb-12 leading-snug">
             დეტალური შედარება
           </h2>
           
@@ -492,7 +492,7 @@ export default function PlansPage() {
 
         {/* FAQ Section */}
         <div className="max-w-3xl mx-auto mb-20">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-3xl font-bold text-white text-center mb-12 leading-snug">
             ხშირად დასმული კითხვები
           </h2>
           
@@ -516,8 +516,8 @@ export default function PlansPage() {
               },
             ].map((faq, i) => (
               <div key={i} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors group">
-                <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-sm font-bold">
+                <h3 className="font-semibold text-white mb-2 flex items-center gap-2 leading-snug">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
                     {i + 1}
                   </div>
                   {faq.question}
@@ -532,10 +532,10 @@ export default function PlansPage() {
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 rounded-3xl blur-3xl" />
           <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-12 text-center">
-            <h3 className="text-3xl font-bold text-white mb-4">
+            <h3 className="text-3xl font-bold text-white mb-4 leading-snug">
               გაქვს კითხვები?
             </h3>
-            <p className="text-white/70 mb-8 max-w-2xl mx-auto">
+            <p className="text-white/70 mb-8 max-w-2xl mx-auto leading-relaxed">
               ჩვენი გუნდი მზადაა დაგეხმაროს საუკეთესო პაკეტის არჩევაში.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -543,13 +543,13 @@ export default function PlansPage() {
                 href="mailto:info@ezo.ge" 
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-900 font-semibold rounded-xl hover:bg-white/90 transition-all hover:scale-105"
               >
-                 info@ezo.ge
+                📧 info@ezo.ge
               </a>
               <a 
                 href="tel:+995555123456" 
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all"
               >
-                📞 +995 593278010
+                📞 +995 555 123 456
               </a>
             </div>
           </div>
