@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -70,9 +70,9 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-// ============ MAIN PAGE ============
+// ============ FORM COMPONENT (Wrapped in Suspense) ============
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
@@ -82,7 +82,6 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
 
-  // წარმატებული რეგისტრაციის შეტყობინების ჩვენება
   const isRegistered = searchParams.get('registered') === 'true'
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,6 +114,133 @@ export default function LoginPage() {
     }
   }
 
+  return (
+    <div className="w-full max-w-md">
+      <div className="lg:hidden mb-8">
+        <Link href="/" className="flex items-center gap-2.5 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+            <IconBuilding className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-2xl font-bold text-slate-900">EZO</span>
+        </Link>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-slate-900 mb-2">შესვლა</h2>
+        <p className="text-slate-600">
+          არ გაქვს ანგარიში?{' '}
+          <Link href="/register" className="text-emerald-600 font-semibold hover:underline">
+            დარეგისტრირდი
+          </Link>
+        </p>
+      </div>
+
+      {isRegistered && (
+        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3">
+          <IconCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-emerald-800">
+            რეგისტრაცია წარმატებულია! გთხოვთ, შეხვიდეთ თქვენი მონაცემებით.
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-3">
+          <IconAlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-rose-700">{error}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700">ელ-ფოსტა</label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <IconMail className="w-5 h-5" />
+            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="მაგ: giorgi@example.com"
+              className="w-full pl-10 pr-4 py-3 bg-white !text-slate-900 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all [&:-webkit-autofill]:!text-slate-900 [&:-webkit-autofill]:!bg-white"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-slate-700">პაროლი</label>
+            <a href="#" className="text-sm text-emerald-600 hover:underline">დაგავიწყდა პაროლი?</a>
+          </div>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <IconLock className="w-5 h-5" />
+            </div>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="შეიყვანე პაროლი"
+              className="w-full pl-10 pr-10 py-3 bg-white !text-slate-900 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all [&:-webkit-autofill]:!text-slate-900 [&:-webkit-autofill]:!bg-white"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="remember"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          <label htmlFor="remember" className="text-sm text-slate-600">
+            დამიმახსოვრე ამ მოწყობილობაზე
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-600/25 hover:shadow-xl hover:shadow-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <IconLoader className="w-5 h-5" />
+              <span>შესვლა...</span>
+            </>
+          ) : (
+            <>
+              <span>შესვლა</span>
+              <IconArrowLeft className="w-5 h-5 rotate-180" />
+            </>
+          )}
+        </button>
+      </form>
+
+      <div className="mt-8 text-center">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-emerald-600 transition-colors">
+          <IconArrowLeft className="w-4 h-4" />
+          <span>მთავარ გვერდზე დაბრუნება</span>
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ============ MAIN PAGE (Wraps LoginForm in Suspense) ============
+
+export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -164,134 +290,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right side - Form */}
+        {/* Right side - Form wrapped in Suspense */}
         <div className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12">
-          <div className="w-full max-w-md">
-            <div className="lg:hidden mb-8">
-              <Link href="/" className="flex items-center gap-2.5 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                  <IconBuilding className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-slate-900">EZO</span>
-              </Link>
-            </div>
-
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-slate-900 mb-2">შესვლა</h2>
-              <p className="text-slate-600">
-                არ გაქვს ანგარიში?{' '}
-                <Link href="/register" className="text-emerald-600 font-semibold hover:underline">
-                  დარეგისტრირდი
-                </Link>
-              </p>
-            </div>
-
-            {isRegistered && (
-              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3">
-                <IconCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-emerald-800">
-                  რეგისტრაცია წარმატებულია! გთხოვთ, შეხვიდეთ თქვენი მონაცემებით.
-                </p>
-              </div>
-            )}
-
-            {error && (
-              <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-3">
-                <IconAlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-rose-700">{error}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">ელ-ფოსტა</label>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                    <IconMail className="w-5 h-5" />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="მაგ: giorgi@example.com"
-                    // დამატებულია !text-slate-900 და autofill-ის გადაფარვა
-                    className="w-full pl-10 pr-4 py-3 bg-white !text-slate-900 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all [&:-webkit-autofill]:!text-slate-900 [&:-webkit-autofill]:!bg-white"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-medium text-slate-700">პაროლი</label>
-                  <a href="#" className="text-sm text-emerald-600 hover:underline">დაგავიწყდა პაროლი?</a>
-                </div>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                    <IconLock className="w-5 h-5" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="შეიყვანე პაროლი"
-                    // დამატებულია !text-slate-900 და autofill-ის გადაფარვა
-                    className="w-full pl-10 pr-10 py-3 bg-white !text-slate-900 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all [&:-webkit-autofill]:!text-slate-900 [&:-webkit-autofill]:!bg-white"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showPassword ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember Me */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <label htmlFor="remember" className="text-sm text-slate-600">
-                  დამიმახსოვრე ამ მოწყობილობაზე
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-600/25 hover:shadow-xl hover:shadow-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <IconLoader className="w-5 h-5" />
-                    <span>შესვლა...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>შესვლა</span>
-                    <IconArrowLeft className="w-5 h-5 rotate-180" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="mt-8 text-center">
-              <Link href="/" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-emerald-600 transition-colors">
-                <IconArrowLeft className="w-4 h-4" />
-                <span>მთავარ გვერდზე დაბრუნება</span>
-              </Link>
-            </div>
-          </div>
+          <Suspense fallback={<div className="text-slate-600">იტვირთება...</div>}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>
