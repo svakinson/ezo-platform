@@ -195,9 +195,6 @@ export default function RegisterPage() {
     phone: '',
     password: '',
     confirmPassword: '',
-    buildingAddress: '',
-    apartmentCount: '',
-    role: 'admin',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -240,10 +237,6 @@ export default function RegisterPage() {
       newErrors.confirmPassword = 'პაროლები არ ემთხვევა'
     }
 
-    if (!formData.buildingAddress.trim()) {
-      newErrors.buildingAddress = 'მისამართი სავალდებულოა'
-    }
-
     if (!agreedToTerms) {
       newErrors.terms = 'უნდა დაეთანხმო წესებს და პირობებს'
     }
@@ -267,15 +260,13 @@ export default function RegisterPage() {
           data: {
             full_name: formData.fullName,
             phone: formData.phone,
-            role: formData.role,
-            building_address: formData.buildingAddress,
-            apartment_count: formData.apartmentCount,
+            role: 'user', // ავტომატურად ენიჭება "user" როლი
           },
         },
       })
 
       if (error) {
-        if (error.message.includes('already registered')) {
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
           setErrors({ email: 'ეს ელ-ფოსტა უკვე რეგისტრირებულია' })
         } else {
           setErrors({ submit: error.message })
@@ -285,10 +276,9 @@ export default function RegisterPage() {
 
       setSuccess(true)
       
-      // Redirect after 2 seconds
       setTimeout(() => {
         router.push('/login?registered=true')
-      }, 2000)
+      }, 2500)
     } catch (err) {
       setErrors({ submit: 'რეგისტრაციის დროს მოხდა შეცდომა. სცადეთ თავიდან.' })
     } finally {
@@ -308,9 +298,9 @@ export default function RegisterPage() {
             რეგისტრაციის დასასრულებლად გთხოვთ დაადასტუროთ თქვენი ელ-ფოსტა. გაგზავნილია წერილი მისამართზე:
           </p>
           <div className="bg-slate-50 rounded-lg p-3 mb-6">
-            <p className="text-sm font-medium text-slate-700">{formData.email}</p>
+            <p className="text-sm font-medium text-slate-700 break-all">{formData.email}</p>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 animate-pulse">
             გადამისამართება შესვლის გვერდზე...
           </p>
         </div>
@@ -320,14 +310,13 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
-      {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-200/30 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-200/30 rounded-full blur-3xl" />
       </div>
 
       <div className="relative min-h-screen flex flex-col lg:flex-row">
-        {/* Left side - Branding */}
+        {/* Left side - Branding (მხოლოდ დესკტოპზე) */}
         <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 p-12 flex-col justify-between relative overflow-hidden">
           <div className="absolute inset-0">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
@@ -345,10 +334,10 @@ export default function RegisterPage() {
 
           <div className="relative max-w-md">
             <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
-              დაიწყე კორპუსის ციფრული მართვა დღესვე
+              შეუერთდი EZO-ს დღესვე
             </h1>
             <p className="text-lg text-emerald-50 leading-relaxed mb-8">
-              შეუერთდი 420+ კორპუსს, რომლებიც უკვე იყენებენ EZO-ს. მიიღე სრული კონტროლი ფინანსებზე, კომუნიკაციაზე და მოვლაზე.
+              შექმენი ანგარიში რამდენიმე წამში. მოგვიანებით შეგეძლება აირჩიო პაკეტი და დარეგისტრირდე როგორც კორპუსის მმართველი.
             </p>
 
             <div className="space-y-4">
@@ -369,16 +358,13 @@ export default function RegisterPage() {
           </div>
 
           <div className="relative">
-            <p className="text-sm text-emerald-100">
-              © 2026 EZO. ყველა უფლება დაცულია.
-            </p>
+            <p className="text-sm text-emerald-100">© 2026 EZO. ყველა უფლება დაცულია.</p>
           </div>
         </div>
 
         {/* Right side - Form */}
         <div className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12">
-          <div className="w-full max-w-lg">
-            {/* Mobile logo */}
+          <div className="w-full max-w-md">
             <div className="lg:hidden mb-8">
               <Link href="/" className="flex items-center gap-2.5 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -408,34 +394,6 @@ export default function RegisterPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Role Selection */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">
-                  როლი <span className="text-rose-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: 'admin', label: 'ადმინისტრატორი', desc: 'კორპუსის მმართველი' },
-                    { value: 'resident', label: 'მაცხოვრებელი', desc: 'ბინის მფლობელი' },
-                  ].map((role) => (
-                    <button
-                      key={role.value}
-                      type="button"
-                      onClick={() => updateField('role', role.value)}
-                      className={`p-4 rounded-lg border-2 text-left transition-all ${
-                        formData.role === role.value
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="font-semibold text-slate-900 text-sm">{role.label}</div>
-                      <div className="text-xs text-slate-500 mt-1">{role.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Full Name */}
               <InputField
                 label="სრული სახელი"
                 placeholder="მაგ: გიორგი ბერიძე"
@@ -446,7 +404,6 @@ export default function RegisterPage() {
                 required
               />
 
-              {/* Email */}
               <InputField
                 label="ელ-ფოსტა"
                 type="email"
@@ -458,7 +415,6 @@ export default function RegisterPage() {
                 required
               />
 
-              {/* Phone */}
               <InputField
                 label="ტელეფონი"
                 type="tel"
@@ -470,7 +426,6 @@ export default function RegisterPage() {
                 required
               />
 
-              {/* Password */}
               <div className="space-y-2">
                 <InputField
                   label="პაროლი"
@@ -485,7 +440,6 @@ export default function RegisterPage() {
                 <PasswordStrength password={formData.password} />
               </div>
 
-              {/* Confirm Password */}
               <InputField
                 label="გაიმეორე პაროლი"
                 type="password"
@@ -497,29 +451,7 @@ export default function RegisterPage() {
                 required
               />
 
-              {/* Building Address */}
-              <InputField
-                label="კორპუსის მისამართი"
-                placeholder="მაგ: ვაჟა-ფშაველას 42, თბილისი"
-                value={formData.buildingAddress}
-                onChange={(value) => updateField('buildingAddress', value)}
-                icon={IconBuilding}
-                error={errors.buildingAddress}
-                required
-              />
-
-              {/* Apartment Count */}
-              <InputField
-                label="ბინების რაოდენობა (არასავალდებულო)"
-                type="number"
-                placeholder="მაგ: 48"
-                value={formData.apartmentCount}
-                onChange={(value) => updateField('apartmentCount', value)}
-                icon={IconBuilding}
-              />
-
-              {/* Terms */}
-              <div className="space-y-2">
+              <div className="space-y-2 pt-2">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -545,7 +477,6 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -565,33 +496,6 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            {/* Divider */}
-            <div className="my-6 flex items-center gap-4">
-              <div className="flex-1 h-px bg-slate-200"></div>
-              <span className="text-sm text-slate-500">ან</span>
-              <div className="flex-1 h-px bg-slate-200"></div>
-            </div>
-
-            {/* Social Login (placeholder) */}
-            <div className="grid grid-cols-2 gap-3">
-              <button className="py-3 px-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-700">
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                </svg>
-                Google
-              </button>
-              <button className="py-3 px-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-700">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z" />
-                </svg>
-                GitHub
-              </button>
-            </div>
-
-            {/* Back to home */}
             <div className="mt-8 text-center">
               <Link href="/" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-emerald-600 transition-colors">
                 <IconArrowLeft className="w-4 h-4" />
