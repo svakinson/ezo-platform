@@ -111,12 +111,13 @@ function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // OPTIMIZED: Removed backdrop-blur-xl, using solid bg-white/95 for better performance
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-xl shadow-sm border-b border-slate-200/60' : 'bg-transparent'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 shadow-sm border-b border-slate-200/60' : 'bg-white/80'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-shadow">
+            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               <IconBuilding className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <span className="text-xl lg:text-2xl font-bold text-slate-900">EZO</span>
@@ -130,11 +131,10 @@ function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            {/* შესწორებულია: ახლა ეს არის ლინკი /login-ზე */}
             <Link href="/login" className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors">
               შესვლა
             </Link>
-            <Link href="/register" className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30">
+            <Link href="/register" className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg">
               დაიწყე უფასოდ
             </Link>
           </div>
@@ -145,18 +145,17 @@ function Navbar() {
         </div>
 
         {isOpen && (
-          <div className="lg:hidden py-4 border-t border-slate-200/60">
+          <div className="lg:hidden py-4 border-t border-slate-200/60 bg-white">
             <div className="flex flex-col gap-1">
               <a href="#features" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">შესაძლებლობები</a>
               <a href="#how-it-works" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">როგორ მუშაობს</a>
               <a href="#pricing" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">ტარიფები</a>
               <a href="#faq" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">FAQ</a>
-              <div className="pt-3 mt-2 border-t border-slate-200/60 flex flex-col gap-2">
-                {/* შესწორებულია: აქაც ლინკია /login-ზე */}
-                <Link href="/login" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left">
+              <div className="pt-3 mt-2 border-t border-slate-200/60 flex flex-col gap-2 px-4">
+                <Link href="/login" onClick={() => setIsOpen(false)} className="py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left">
                   შესვლა
                 </Link>
-                <Link href="/register" onClick={() => setIsOpen(false)} className="px-4 py-3 bg-emerald-600 text-white text-sm font-semibold rounded-lg text-center">
+                <Link href="/register" onClick={() => setIsOpen(false)} className="py-3 bg-emerald-600 text-white text-sm font-semibold rounded-lg text-center">
                   დაიწყე უფასოდ
                 </Link>
               </div>
@@ -170,19 +169,14 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="relative pt-28 lg:pt-36 pb-20 lg:pb-32 overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-200/30 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-emerald-100/40 to-teal-100/40 rounded-full blur-3xl" />
-      </div>
-
+    // OPTIMIZED: Replaced heavy blur-3xl orbs with a clean, lightweight gradient background
+    <section className="relative pt-28 lg:pt-36 pb-20 lg:pb-32 bg-gradient-to-b from-emerald-50/60 to-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="max-w-2xl">
+            {/* OPTIMIZED: Removed animate-ping */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full mb-6">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span className="text-sm font-medium text-emerald-700">ახალი თაობის პლატფორმა კორპუსებისთვის</span>
@@ -199,11 +193,12 @@ function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-12">
-              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/25 hover:shadow-xl hover:shadow-emerald-600/30 hover:-translate-y-0.5">
+              {/* OPTIMIZED: Removed colored shadows */}
+              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
                 დაიწყე უფასოდ
                 <IconArrowRight className="w-4 h-4" />
               </Link>
-              <a href="#how-it-works" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-slate-700 font-semibold rounded-lg border border-slate-200 hover:border-emerald-300 hover:text-emerald-700 transition-all">
+              <a href="#how-it-works" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-slate-700 font-semibold rounded-lg border border-slate-200 hover:border-emerald-300 hover:text-emerald-700 transition-all shadow-sm hover:shadow-md">
                 როგორ მუშაობს
               </a>
             </div>
@@ -237,7 +232,8 @@ function Hero() {
           </div>
 
           <div className="relative">
-            <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-900/10 border border-slate-200/60 p-4 lg:p-6">
+            {/* OPTIMIZED: Removed heavy shadows and pulses */}
+            <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200/60 p-4 lg:p-6">
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
@@ -251,17 +247,17 @@ function Hero() {
               </div>
 
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl p-3 border border-emerald-200/50">
+                <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
                   <div className="text-xs text-emerald-700 font-medium mb-1">ბალანსი</div>
                   <div className="text-lg lg:text-xl font-bold text-emerald-900">₾12,540</div>
                   <div className="text-xs text-emerald-600 mt-1">+12% ამ თვეში</div>
                 </div>
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-3 border border-blue-200/50">
+                <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
                   <div className="text-xs text-blue-700 font-medium mb-1">შემოსავალი</div>
                   <div className="text-lg lg:text-xl font-bold text-blue-900">₾8,420</div>
                   <div className="text-xs text-blue-600 mt-1">96 ბინა</div>
                 </div>
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-3 border border-amber-200/50">
+                <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
                   <div className="text-xs text-amber-700 font-medium mb-1">ხარჯები</div>
                   <div className="text-lg lg:text-xl font-bold text-amber-900">₾3,240</div>
                   <div className="text-xs text-amber-600 mt-1">4 კატეგორია</div>
@@ -275,7 +271,7 @@ function Hero() {
                 </div>
                 <div className="h-32 flex items-end gap-1.5">
                   {[40, 55, 45, 65, 50, 75, 60, 85, 70, 90, 80, 95].map((h, i) => (
-                    <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t" style={{ height: `${h}%` }}></div>
+                    <div key={i} className="flex-1 bg-emerald-500 rounded-t" style={{ height: `${h}%` }}></div>
                   ))}
                 </div>
                 <div className="flex justify-between mt-2 text-xs text-slate-400">
@@ -292,7 +288,7 @@ function Hero() {
                 ].map((item, i) => (
                   <div key={i} className="flex items-center justify-between py-2 px-3 bg-white rounded-lg border border-slate-100">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
                         {item.name.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div>
@@ -309,7 +305,8 @@ function Hero() {
               </div>
             </div>
 
-            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl border border-slate-100 p-3 flex items-center gap-2.5 animate-pulse">
+            {/* OPTIMIZED: Removed animate-pulse and heavy shadows */}
+            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg border border-slate-100 p-3 flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
                 <IconCheck className="w-5 h-5 text-emerald-600" />
               </div>
@@ -319,7 +316,7 @@ function Hero() {
               </div>
             </div>
 
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl border border-slate-100 p-3 flex items-center gap-2.5">
+            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg border border-slate-100 p-3 flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
                 <IconWrench className="w-5 h-5 text-blue-600" />
               </div>
@@ -376,33 +373,31 @@ function ProblemSolution() {
             </ul>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                  <IconCheck className="w-6 h-6 text-emerald-600" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">EZO-სთან ერთად</h3>
+          {/* OPTIMIZED: Removed absolute blur-3xl orb */}
+          <div className="bg-white rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <IconCheck className="w-6 h-6 text-emerald-600" />
               </div>
-              <ul className="space-y-4">
-                {[
-                  'ავტომატური ფინანსური ანგარიშები რეალურ დროში',
-                  'ონლაინ გადახდები და ავტომატური შეხსენებები',
-                  'ცენტრალიზებული შეტყობინებები და განცხადებები',
-                  'შეკეთებების სრული თრექინგი სტატუსებით',
-                  'სრული გამჭვირვალობა ყველა ხარჯზე',
-                  'ერთი დაწკაპუნებით ანგარიშების გენერირება'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <IconCheck className="w-3 h-3 text-emerald-600" />
-                    </div>
-                    <span className="text-slate-700 font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-xl font-bold text-slate-900">EZO-სთან ერთად</h3>
             </div>
+            <ul className="space-y-4">
+              {[
+                'ავტომატური ფინანსური ანგარიშები რეალურ დროში',
+                'ონლაინ გადახდები და ავტომატური შეხსენებები',
+                'ცენტრალიზებული შეტყობინებები და განცხადებები',
+                'შეკეთებების სრული თრექინგი სტატუსებით',
+                'სრული გამჭვირვალობა ყველა ხარჯზე',
+                'ერთი დაწკაპუნებით ანგარიშების გენერირება'
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <IconCheck className="w-3 h-3 text-emerald-600" />
+                  </div>
+                  <span className="text-slate-700 font-medium">{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -483,8 +478,8 @@ function Features() {
             const colors = colorMap[feature.color]
             const Icon = feature.icon
             return (
-              <div key={i} className="group bg-white rounded-2xl p-6 lg:p-8 border border-slate-200/60 hover:border-slate-300 transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform`}>
+              <div key={i} className="group bg-white rounded-2xl p-6 lg:p-8 border border-slate-200/60 hover:border-slate-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform duration-300`}>
                   <Icon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
@@ -529,19 +524,15 @@ function HowItWorks() {
   ]
 
   return (
-    <section id="how-it-works" className="py-20 lg:py-28 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
-      </div>
-
+    // OPTIMIZED: Removed heavy blur-3xl orbs from background
+    <section id="how-it-works" className="py-20 lg:py-28 bg-slate-900 text-white relative overflow-hidden">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">მარტივი დასაწყისი</div>
           <h2 className="text-3xl lg:text-5xl font-bold mb-4">
             როგორ მუშაობს EZO?
           </h2>
-          <p className="text-lg text-slate-300">
+          <p className="text-lg text-slate-400">
             ციფრულ მართვაზე გადასვლა რამდენიმე წუთში შეგიძლია.
           </p>
         </div>
@@ -553,15 +544,16 @@ function HowItWorks() {
             const Icon = step.icon
             return (
               <div key={i} className="relative">
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-white/10 hover:border-emerald-500/30 transition-all hover:bg-white/10">
+                {/* OPTIMIZED: Removed backdrop-blur and colored shadows */}
+                <div className="bg-slate-800/50 rounded-2xl p-6 lg:p-8 border border-white/10 hover:border-emerald-500/30 transition-all duration-300 hover:bg-slate-800">
                   <div className="flex items-center gap-4 mb-5">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
                       <Icon className="w-7 h-7 text-white" />
                     </div>
                     <div className="text-3xl font-bold text-emerald-400">{step.number}</div>
                   </div>
                   <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                  <p className="text-slate-300 leading-relaxed">{step.description}</p>
+                  <p className="text-slate-400 leading-relaxed">{step.description}</p>
                 </div>
               </div>
             )
@@ -612,7 +604,7 @@ function Testimonials() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, i) => (
-            <div key={i} className="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200/60 shadow-sm hover:shadow-lg transition-shadow">
+            <div key={i} className="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow duration-300">
               <div className="flex items-center gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, j) => (
                   <IconStar key={j} className="w-4 h-4 text-amber-400" />
@@ -705,7 +697,8 @@ function Pricing() {
 
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {plans.map((plan, i) => (
-            <div key={i} className={`relative rounded-2xl p-6 lg:p-8 ${plan.popular ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-2xl shadow-emerald-600/30 scale-105' : 'bg-white border border-slate-200/60'}`}>
+            // OPTIMIZED: Removed heavy colored shadows (shadow-emerald-600/30)
+            <div key={i} className={`relative rounded-2xl p-6 lg:p-8 ${plan.popular ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-xl scale-105' : 'bg-white border border-slate-200/60 shadow-sm'}`}>
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-amber-400 text-slate-900 text-xs font-bold rounded-full">
                   ყველაზე პოპულარული
@@ -729,7 +722,7 @@ function Pricing() {
                   </li>
                 ))}
               </ul>
-              <button className={`w-full py-3 rounded-lg font-semibold transition-all ${plan.popular ? 'bg-white text-emerald-700 hover:bg-emerald-50' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
+              <button className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 ${plan.popular ? 'bg-white text-emerald-700 hover:bg-emerald-50' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
                 {plan.cta}
               </button>
             </div>
@@ -794,10 +787,10 @@ function FAQ() {
             <div key={i} className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="w-full flex items-center justify-between p-5 lg:p-6 text-left hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center justify-between p-5 lg:p-6 text-left hover:bg-slate-50 transition-colors duration-300"
               >
                 <span className="font-semibold text-slate-900 pr-4">{faq.question}</span>
-                <div className={`flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center transition-transform ${openIndex === i ? 'rotate-180' : ''}`}>
+                <div className={`flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`}>
                   {openIndex === i ? <IconMinus className="w-4 h-4 text-emerald-600" /> : <IconPlus className="w-4 h-4 text-emerald-600" />}
                 </div>
               </button>
@@ -818,11 +811,8 @@ function FinalCTA() {
   return (
     <section className="py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* OPTIMIZED: Removed heavy blur-3xl orbs, using clean gradient */}
         <div className="relative bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-8 lg:p-16 overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl"></div>
-
           <div className="relative text-center max-w-3xl mx-auto">
             <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6">
               მზად ხარ კორპუსის მართვა გაამარტივო?
@@ -831,11 +821,12 @@ function FinalCTA() {
               შეუერთდი 420+ კორპუსს, რომლებიც უკვე იყენებენ EZO-ს ყოველდღიური მართვისთვის. დაიწყე უფასოდ დღესვე.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
+              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
                 დაიწყე უფასოდ
                 <IconArrowRight className="w-4 h-4" />
               </Link>
-              <a href="#contact" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg border border-white/20 hover:bg-white/20 transition-all">
+              {/* OPTIMIZED: Removed backdrop-blur-sm */}
+              <a href="#contact" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white font-semibold rounded-lg border border-white/20 hover:bg-white/20 transition-all">
                 დემოს დაჯავშნა
               </a>
             </div>
