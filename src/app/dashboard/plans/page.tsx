@@ -170,25 +170,21 @@ function FloatingOrb({ className, color }: { className?: string; color: string }
 }
 
 function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: string) => void }) {
-  const [isHovered, setIsHovered] = useState(false)
   const Icon = plan.icon
 
   return (
-    <div
-      className={`relative group transition-all duration-500 ${plan.popular ? 'md:-translate-y-4' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={`relative group transition-all duration-500 ${plan.popular ? 'md:-translate-y-4' : ''}`}>
       {/* Glow Effect */}
       <div className={`absolute -inset-1 bg-gradient-to-r ${plan.gradient} rounded-3xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500 ${plan.popular ? 'opacity-30' : ''}`} />
       
-      <div className={`relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 transition-all duration-500 overflow-hidden ${
+      {/* FIXED: Removed overflow-hidden from main card */}
+      <div className={`relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 transition-all duration-500 ${
         plan.popular 
           ? 'border-emerald-500/50 shadow-2xl shadow-emerald-500/20' 
           : 'border-white/20 shadow-xl hover:shadow-2xl'
       }`}>
         {/* Animated Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 opacity-5 pointer-events-none">
           <div className={`absolute inset-0 bg-gradient-to-br ${plan.gradient}`} style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
             backgroundSize: '24px 24px'
@@ -197,7 +193,7 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
 
         {/* Popular Badge */}
         {plan.popular && (
-          <div className="absolute top-0 right-0">
+          <div className="absolute top-0 right-0 z-10">
             <div className={`relative overflow-hidden bg-gradient-to-r ${plan.gradient} text-white px-6 py-2 rounded-bl-2xl text-sm font-bold shadow-lg flex items-center gap-2`}>
               <IconStar className="w-4 h-4 animate-pulse" />
               ყველაზე პოპულარული
@@ -205,7 +201,8 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
           </div>
         )}
 
-        <div className="relative p-8">
+        {/* FIXED: Added pt-10 to give space for badge */}
+        <div className="relative p-8 pt-10">
           {/* Icon */}
           <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6 shadow-lg ${plan.glowColor} group-hover:scale-110 transition-transform duration-500`}>
             <Icon className="w-8 h-8 text-white" />
@@ -214,14 +211,14 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
 
           {/* Plan Header */}
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">{plan.name}</h3>
-            <p className="text-sm text-slate-600">{plan.subtitle}</p>
+            <h3 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight leading-tight">{plan.name}</h3>
+            <p className="text-sm text-slate-600 leading-snug">{plan.subtitle}</p>
           </div>
 
           {/* Price */}
           <div className="mb-6">
             <div className="flex items-baseline gap-2">
-              <span className="text-6xl font-bold bg-gradient-to-br from-slate-900 to-slate-600 bg-clip-text text-transparent">₾{plan.price}</span>
+              <span className="text-6xl font-bold bg-gradient-to-br from-slate-900 to-slate-600 bg-clip-text text-transparent leading-none">₾{plan.price}</span>
               <span className="text-slate-500 text-lg">/{plan.period}</span>
             </div>
             <div className={`mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold ${
@@ -240,7 +237,7 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                 <IconBuilding className="w-4 h-4 text-slate-600" />
               </div>
-              <span className="text-slate-700 font-semibold">{plan.apartments}</span>
+              <span className="text-slate-700 font-semibold leading-snug">{plan.apartments}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
@@ -249,7 +246,7 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
               </div>
-              <span className="text-slate-700 font-semibold">{plan.buildings}</span>
+              <span className="text-slate-700 font-semibold leading-snug">{plan.buildings}</span>
             </div>
           </div>
 
@@ -266,7 +263,7 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
                     <IconX className="w-3 h-3 text-slate-400" />
                   </div>
                 )}
-                <span className={`text-sm leading-tight ${feature.included ? 'text-slate-700 font-medium' : 'text-slate-400'}`}>
+                <span className={`text-sm leading-relaxed ${feature.included ? 'text-slate-700 font-medium' : 'text-slate-400'}`}>
                   {feature.text}
                 </span>
               </li>
@@ -344,7 +341,7 @@ export default function PlansPage() {
   return (
     <div className="min-h-screen bg-slate-900 relative overflow-x-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
         <FloatingOrb className="w-96 h-96 top-0 left-0" color="#10b981" />
         <FloatingOrb className="w-96 h-96 top-1/2 right-0" color="#8b5cf6" />
@@ -357,15 +354,15 @@ export default function PlansPage() {
         }} />
       </div>
 
-      {/* Header */}
+      {/* FIXED: Changed h-16 to min-h-16 and added py-3 */}
       <header className="relative z-40 bg-white/5 backdrop-blur-xl border-b border-white/10 sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <IconBuilding className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-white">EZO</span>
+              <span className="text-xl font-bold text-white leading-tight">EZO</span>
             </Link>
             <div className="hidden sm:block h-6 w-px bg-white/20"></div>
             <Link 
@@ -373,23 +370,23 @@ export default function PlansPage() {
               className="hidden sm:flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
             >
               <IconArrowLeft className="w-4 h-4" />
-              <span>უკან დაბრუნება</span>
+              <span className="leading-snug">უკან დაბრუნება</span>
             </Link>
           </div>
           
           <div className="flex items-center gap-3">
             <div className="hidden sm:block text-right">
-              <div className="text-sm font-medium text-white">
+              <div className="text-sm font-medium text-white leading-snug">
                 {user?.user_metadata?.full_name || 'მომხმარებელი'}
               </div>
-              <div className="text-xs text-white/50">{user?.email}</div>
+              <div className="text-xs text-white/50 leading-snug">{user?.email}</div>
             </div>
             <button 
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/70 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
             >
               <IconLogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">გამოსვლა</span>
+              <span className="hidden sm:inline leading-snug">გამოსვლა</span>
             </button>
           </div>
         </div>
@@ -397,16 +394,17 @@ export default function PlansPage() {
 
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header Section - FIXED: Added py-4 and leading-snug */}
-        <div className="text-center max-w-3xl mx-auto mb-16 py-4">
+        {/* Header Section - FIXED: Added py-6 and proper line-height */}
+        <div className="text-center max-w-3xl mx-auto mb-16 py-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full mb-6">
             <IconSparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span className="text-sm font-medium text-white/90">აირჩიე შენი პაკეტი</span>
+            <span className="text-sm font-medium text-white/90 leading-snug">აირჩიე შენი პაკეტი</span>
           </div>
           
-          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 leading-[1.15]">
+          {/* FIXED: Added leading-[1.2] and py-2 */}
+          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 leading-[1.2] py-2">
             გქონდეს სრული კონტროლი
-            <span className="block bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent py-1">
               შენს კორპუსზე
             </span>
           </h1>
@@ -430,7 +428,7 @@ export default function PlansPage() {
 
         {/* Comparison Table */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-white text-center mb-12 leading-snug">
+          <h2 className="text-3xl font-bold text-white text-center mb-12 leading-[1.3] py-2">
             დეტალური შედარება
           </h2>
           
@@ -439,10 +437,10 @@ export default function PlansPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="text-left p-6 text-white/90 font-semibold">ფუნქცია</th>
+                    <th className="text-left p-6 text-white/90 font-semibold leading-snug">ფუნქცია</th>
                     {plans.map(plan => (
                       <th key={plan.id} className="p-6 text-center">
-                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${plan.gradient} text-white text-sm font-bold`}>
+                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${plan.gradient} text-white text-sm font-bold leading-snug`}>
                           {plan.name}
                         </div>
                       </th>
@@ -464,7 +462,7 @@ export default function PlansPage() {
                     { feature: '24/7 მხარდაჭერა', values: [false, false, true] },
                   ].map((row, i) => (
                     <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="p-6 text-white/90 font-medium">{row.feature}</td>
+                      <td className="p-6 text-white/90 font-medium leading-snug">{row.feature}</td>
                       {row.values.map((val, j) => (
                         <td key={j} className="p-6 text-center">
                           {typeof val === 'boolean' ? (
@@ -478,7 +476,7 @@ export default function PlansPage() {
                               </div>
                             )
                           ) : (
-                            <span className="text-white/90 font-medium">{val}</span>
+                            <span className="text-white/90 font-medium leading-snug">{val}</span>
                           )}
                         </td>
                       ))}
@@ -492,7 +490,7 @@ export default function PlansPage() {
 
         {/* FAQ Section */}
         <div className="max-w-3xl mx-auto mb-20">
-          <h2 className="text-3xl font-bold text-white text-center mb-12 leading-snug">
+          <h2 className="text-3xl font-bold text-white text-center mb-12 leading-[1.3] py-2">
             ხშირად დასმული კითხვები
           </h2>
           
@@ -516,7 +514,7 @@ export default function PlansPage() {
               },
             ].map((faq, i) => (
               <div key={i} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors group">
-                <h3 className="font-semibold text-white mb-2 flex items-center gap-2 leading-snug">
+                <h3 className="font-semibold text-white mb-2 flex items-center gap-2 leading-[1.3]">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
                     {i + 1}
                   </div>
@@ -532,7 +530,7 @@ export default function PlansPage() {
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 rounded-3xl blur-3xl" />
           <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-12 text-center">
-            <h3 className="text-3xl font-bold text-white mb-4 leading-snug">
+            <h3 className="text-3xl font-bold text-white mb-4 leading-[1.3] py-2">
               გაქვს კითხვები?
             </h3>
             <p className="text-white/70 mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -541,13 +539,13 @@ export default function PlansPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="mailto:info@ezo.ge" 
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-900 font-semibold rounded-xl hover:bg-white/90 transition-all hover:scale-105"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-900 font-semibold rounded-xl hover:bg-white/90 transition-all hover:scale-105 leading-snug"
               >
                 📧 info@ezo.ge
               </a>
               <a 
                 href="tel:+995555123456" 
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all leading-snug"
               >
                 📞 +995 555 123 456
               </a>
