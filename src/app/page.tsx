@@ -130,9 +130,10 @@ function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <button className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors">
+            {/* შესწორებულია: ახლა ეს არის ლინკი /login-ზე */}
+            <Link href="/login" className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors">
               შესვლა
-            </button>
+            </Link>
             <Link href="/register" className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30">
               დაიწყე უფასოდ
             </Link>
@@ -151,8 +152,13 @@ function Navbar() {
               <a href="#pricing" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">ტარიფები</a>
               <a href="#faq" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">FAQ</a>
               <div className="pt-3 mt-2 border-t border-slate-200/60 flex flex-col gap-2">
-                <button className="px-4 py-3 text-sm font-medium text-slate-700 text-left">შესვლა</button>
-                <Link href="/register" className="px-4 py-3 bg-emerald-600 text-white text-sm font-semibold rounded-lg text-center">დაიწყე უფასოდ</Link>
+                {/* შესწორებულია: აქაც ლინკია /login-ზე */}
+                <Link href="/login" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left">
+                  შესვლა
+                </Link>
+                <Link href="/register" onClick={() => setIsOpen(false)} className="px-4 py-3 bg-emerald-600 text-white text-sm font-semibold rounded-lg text-center">
+                  დაიწყე უფასოდ
+                </Link>
               </div>
             </div>
           </div>
@@ -165,7 +171,6 @@ function Navbar() {
 function Hero() {
   return (
     <section className="relative pt-28 lg:pt-36 pb-20 lg:pb-32 overflow-hidden">
-      {/* Background decorations */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-200/30 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-200/30 rounded-full blur-3xl" />
@@ -174,7 +179,6 @@ function Hero() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left content */}
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full mb-6">
               <span className="relative flex h-2 w-2">
@@ -204,7 +208,6 @@ function Hero() {
               </a>
             </div>
 
-            {/* Trust indicators */}
             <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
@@ -233,10 +236,8 @@ function Hero() {
             </div>
           </div>
 
-          {/* Right content - Dashboard mockup */}
           <div className="relative">
             <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-900/10 border border-slate-200/60 p-4 lg:p-6">
-              {/* Top bar */}
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
@@ -249,7 +250,6 @@ function Hero() {
                 <div className="text-xs font-medium text-slate-500">ვაჟა-ფშაველას 42</div>
               </div>
 
-              {/* KPI Cards */}
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl p-3 border border-emerald-200/50">
                   <div className="text-xs text-emerald-700 font-medium mb-1">ბალანსი</div>
@@ -268,7 +268,6 @@ function Hero() {
                 </div>
               </div>
 
-              {/* Chart area */}
               <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-100">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-sm font-semibold text-slate-700">ფინანსური დინამიკა</div>
@@ -284,7 +283,6 @@ function Hero() {
                 </div>
               </div>
 
-              {/* Recent activity */}
               <div className="space-y-2">
                 <div className="text-xs font-semibold text-slate-700 mb-2">ბოლო ტრანზაქციები</div>
                 {[
@@ -311,14 +309,13 @@ function Hero() {
               </div>
             </div>
 
-            {/* Floating badges */}
             <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl border border-slate-100 p-3 flex items-center gap-2.5 animate-pulse">
               <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
                 <IconCheck className="w-5 h-5 text-emerald-600" />
               </div>
               <div>
                 <div className="text-xs font-semibold text-slate-900">გადახდა მიღებულია</div>
-                <div className="text-xs text-emerald-600 font-medium">+ 240</div>
+                <div className="text-xs text-emerald-600 font-medium">+ 240 ₾</div>
               </div>
             </div>
 
@@ -353,7 +350,6 @@ function ProblemSolution() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-          {/* Before */}
           <div className="bg-white rounded-2xl p-6 lg:p-8 border border-rose-100 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center">
@@ -380,7 +376,6 @@ function ProblemSolution() {
             </ul>
           </div>
 
-          {/* After */}
           <div className="bg-white rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
             <div className="relative">
@@ -552,7 +547,6 @@ function HowItWorks() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8 relative">
-          {/* Connecting line */}
           <div className="hidden md:block absolute top-24 left-1/6 right-1/6 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
 
           {steps.map((step, i) => {
@@ -825,7 +819,6 @@ function FinalCTA() {
     <section className="py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-8 lg:p-16 overflow-hidden">
-          {/* Decorations */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl"></div>
