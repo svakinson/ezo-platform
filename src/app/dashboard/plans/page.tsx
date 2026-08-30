@@ -177,7 +177,6 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
       {/* Glow Effect */}
       <div className={`absolute -inset-1 bg-gradient-to-r ${plan.gradient} rounded-3xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500 ${plan.popular ? 'opacity-30' : ''}`} />
       
-      {/* FIXED: Removed overflow-hidden from main card */}
       <div className={`relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 transition-all duration-500 ${
         plan.popular 
           ? 'border-emerald-500/50 shadow-2xl shadow-emerald-500/20' 
@@ -201,7 +200,6 @@ function PlanCard({ plan, onSelect }: { plan: typeof plans[0]; onSelect: (id: st
           </div>
         )}
 
-        {/* FIXED: Added pt-10 to give space for badge */}
         <div className="relative p-8 pt-10">
           {/* Icon */}
           <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6 shadow-lg ${plan.glowColor} group-hover:scale-110 transition-transform duration-500`}>
@@ -317,12 +315,17 @@ export default function PlansPage() {
     router.push('/')
   }
 
+  // განახლებული ფუნქცია: ინახავს პაკეტს და გადადის add-building გვერდზე
   const handleSelectPlan = async (planId: string) => {
     setSelectedPlan(planId)
+    
+    // შევინახოთ არჩეული პაკეტი localStorage-ში, რომ add-building გვერდმა წაიკითხოს
+    localStorage.setItem('selectedPlan', planId)
+    
+    // მცირე დაყოვნება ვიზუალური ეფექტისთვის, შემდეგ გადამისამართება
     setTimeout(() => {
-      alert(`${planId.toUpperCase()} პაკეტი არჩეულია! მომდევნო ეტაპზე დაგემატება კორპუსის მონაცემების შეყვანის ფორმა.`)
-      setSelectedPlan(null)
-    }, 800)
+      router.push('/dashboard/add-building')
+    }, 500)
   }
 
   if (loading) {
@@ -354,7 +357,7 @@ export default function PlansPage() {
         }} />
       </div>
 
-      {/* FIXED: Changed h-16 to min-h-16 and added py-3 */}
+      {/* Header */}
       <header className="relative z-40 bg-white/5 backdrop-blur-xl border-b border-white/10 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -394,14 +397,13 @@ export default function PlansPage() {
 
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header Section - FIXED: Added py-6 and proper line-height */}
+        {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-16 py-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full mb-6">
             <IconSparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
             <span className="text-sm font-medium text-white/90 leading-snug">აირჩიე შენი პაკეტი</span>
           </div>
           
-          {/* FIXED: Added leading-[1.2] and py-2 */}
           <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 leading-[1.2] py-2">
             გქონდეს სრული კონტროლი
             <span className="block bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent py-1">
