@@ -185,13 +185,24 @@ export default function BuildingPage() {
             <IconBuilding className="w-5 h-5 text-emerald-400" />
             <h1 className="text-lg font-bold text-white">{building.name || building.street}</h1>
           </div>
-          <Link 
-            href={`/dashboard/building/${buildingId}/edit`}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-sm font-medium rounded-lg transition-colors"
-          >
-            <IconEdit className="w-4 h-4" />
-            რედაქტირება
-          </Link>
+          
+          {/* UPDATED: Added Apartments button next to Edit button */}
+          <div className="flex items-center gap-3">
+            <Link 
+              href={`/dashboard/building/${buildingId}/apartments`}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-sm font-medium rounded-lg transition-colors"
+            >
+              <IconBuilding className="w-4 h-4" />
+              ბინები
+            </Link>
+            <Link 
+              href={`/dashboard/building/${buildingId}/edit`}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-sm font-medium rounded-lg transition-colors"
+            >
+              <IconEdit className="w-4 h-4" />
+              რედაქტირება
+            </Link>
+          </div>
         </div>
       </header>
 
