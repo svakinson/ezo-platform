@@ -406,6 +406,326 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
   )
 }
 
+// ============ FINANCIAL SETTINGS MODAL ============
+function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  buildingId: string;
+  onSuccess: () => void;
+}) {
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [settings, setSettings] = useState<any>({
+    fee_calculation_method: 'per_apartment',
+    residential_rate_per_sqm: 0,
+    commercial_rate_per_sqm: 0,
+    fixed_monthly_fee: 0,
+    payment_due_day: 15,
+    grace_period_days: 5,
+    late_fee_amount: 0,
+    late_fee_percentage: 0,
+    auto_generate_late_fees: false,
+    send_reminders: true,
+    reminder_days_before: 3,
+    reserve_fund_balance: 0,
+    reserve_fund_monthly_contribution: 0,
+    currency: 'GEL',
+  })
+
+  useEffect(() => {
+    if (isOpen) {
+      loadSettings()
+    }
+  }, [isOpen])
+
+  const loadSettings = async () => {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('building_financial_settings')
+        .select('*')
+        .eq('building_id', buildingId)
+        .single()
+
+      if (data) {
+        setSettings({
+          fee_calculation_method: data.fee_calculation_method || 'per_apartment',
+          residential_rate_per_sqm: data.residential_rate_per_sqm || 0,
+          commercial_rate_per_sqm: data.commercial_rate_per_sqm || 0,
+          fixed_monthly_fee: data.fixed_monthly_fee || 0,
+          payment_due_day: data.payment_due_day || 15,
+          grace_period_days: data.grace_period_days || 5,
+          late_fee_amount: data.late_fee_amount || 0,
+          late_fee_percentage: data.late_fee_percentage || 0,
+          auto_generate_late_fees: data.auto_generate_late_fees || false,
+          send_reminders: data.send_reminders ?? true,
+          reminder_days_before: data.reminder_days_before || 3,
+          reserve_fund_balance: data.reserve_fund_balance || 0,
+          reserve_fund_monthly_contribution: data.reserve_fund_monthly_contribution || 0,
+          currency: data.currency || 'GEL',
+        })
+      }
+    } catch (error) {
+      console.error('Load settings error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const { data: existing } = await supabase
+        .from('building_financial_settings')
+        .select('id')
+        .eq('building_id', buildingId)
+        .single()
+
+      const payload = {
+        building_id: buildingId,
+        ...settings,
+      }
+
+      let error
+      if (existing) {
+        const res = await supabase
+          .from('building_financial_settings')
+          .update(payload)
+          .eq('id', existing.id)
+        error = res.error
+      } else {
+        const res = await supabase
+          .from('building_financial_settings')
+          .insert(payload)
+        error = res.error
+      }
+
+      if (error) throw error
+
+      alert('ფინანსური პარამეტრები წარმატებით შეინახა!')
+      onSuccess()
+      onClose()
+    } catch (error: any) {
+      console.error('Save settings error:', error)
+      alert('შეცდომა: ' + error.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <IconWallet className="w-6 h-6 text-amber-400" />
+            ფინანსური პარამეტრები
+          </h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+            <IconX className="w-6 h-6" />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="p-12 text-center">
+            <IconLoader className="w-8 h-8 text-emerald-400 mx-auto mb-4" />
+            <div className="text-slate-400">იტვირთება...</div>
+          </div>
+        ) : (
+          <div className="p-6 space-y-6">
+            <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
+              <h4 className="font-bold text-white mb-4">გამოთვლის მეთოდი</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button
+                  onClick={() => setSettings({...settings, fee_calculation_method: 'per_apartment'})}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    settings.fee_calculation_method === 'per_apartment'
+                      ? 'border-emerald-500 bg-emerald-500/10'
+                      : 'border-white/10 bg-slate-900/50 hover:border-white/20'
+                  }`}
+                >
+                  <div className="font-medium text-white mb-1">ფიქსირებული თანხა</div>
+                  <div className="text-xs text-slate-400">ყველა ბინა იხდის ერთსა და იმავე თანხას</div>
+                </button>
+                <button
+                  onClick={() => setSettings({...settings, fee_calculation_method: 'per_sqm'})}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    settings.fee_calculation_method === 'per_sqm'
+                      ? 'border-emerald-500 bg-emerald-500/10'
+                      : 'border-white/10 bg-slate-900/50 hover:border-white/20'
+                  }`}
+                >
+                  <div className="font-medium text-white mb-1">კვადრატულობით</div>
+                  <div className="text-xs text-slate-400">ფართობი × ტარიფი (/მ²)</div>
+                </button>
+                <button
+                  onClick={() => setSettings({...settings, fee_calculation_method: 'custom'})}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    settings.fee_calculation_method === 'custom'
+                      ? 'border-emerald-500 bg-emerald-500/10'
+                      : 'border-white/10 bg-slate-900/50 hover:border-white/20'
+                  }`}
+                >
+                  <div className="font-medium text-white mb-1">ინდივიდუალური</div>
+                  <div className="text-xs text-slate-400">თითო ბინას ცალკე თანხა</div>
+                </button>
+              </div>
+            </div>
+
+            {settings.fee_calculation_method === 'per_sqm' && (
+              <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
+                <h4 className="font-bold text-white mb-4">ტარიფები (₾/მ²)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">საცხოვრებელი ტარიფი</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={settings.residential_rate_per_sqm}
+                      onChange={(e) => setSettings({...settings, residential_rate_per_sqm: parseFloat(e.target.value) || 0})}
+                      className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                      placeholder="მაგ: 1.5"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">მაგ: 1.5 ₾/მ² × 80მ² = 120 ₾</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">სავაჭრო ტარიფი</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={settings.commercial_rate_per_sqm}
+                      onChange={(e) => setSettings({...settings, commercial_rate_per_sqm: parseFloat(e.target.value) || 0})}
+                      className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                      placeholder="მაგ: 3.0"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">მაგ: 3.0 ₾/მ² × 50მ² = 150 ₾</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {settings.fee_calculation_method === 'per_apartment' && (
+              <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
+                <h4 className="font-bold text-white mb-4">ფიქსირებული თანხა</h4>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">ყოველთვიური გადასახადი (₾)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.fixed_monthly_fee}
+                    onChange={(e) => setSettings({...settings, fixed_monthly_fee: parseFloat(e.target.value) || 0})}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                    placeholder="მაგ: 50"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">ყველა ბინა იხდის ამ თანხას</p>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
+              <h4 className="font-bold text-white mb-4">გადახდის პირობები</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">გადახდის ვადა (რიცხვი)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={settings.payment_due_day}
+                    onChange={(e) => setSettings({...settings, payment_due_day: parseInt(e.target.value) || 15})}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">მაგ: 15 = თვის 15 რიცხვი</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">შეღავათის პერიოდი (დღე)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={settings.grace_period_days}
+                    onChange={(e) => setSettings({...settings, grace_period_days: parseInt(e.target.value) || 0})}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">ჯარიმა ამ ვადის შემდეგ</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">ვალუტა</label>
+                  <select
+                    value={settings.currency}
+                    onChange={(e) => setSettings({...settings, currency: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                  >
+                    <option value="GEL" className="bg-slate-800">GEL (₾)</option>
+                    <option value="USD" className="bg-slate-800">USD ($)</option>
+                    <option value="EUR" className="bg-slate-800">EUR (€)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
+              <h4 className="font-bold text-white mb-4">ჯარიმები</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">ჯარიმა (₾)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.late_fee_amount}
+                    onChange={(e) => setSettings({...settings, late_fee_amount: parseFloat(e.target.value) || 0})}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                    placeholder="მაგ: 10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">ჯარიმა (%)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.late_fee_percentage}
+                    onChange={(e) => setSettings({...settings, late_fee_percentage: parseFloat(e.target.value) || 0})}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                    placeholder="მაგ: 2"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">გადასახადის %-ით</p>
+                </div>
+              </div>
+              <label className="flex items-center gap-3 mt-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.auto_generate_late_fees}
+                  onChange={(e) => setSettings({...settings, auto_generate_late_fees: e.target.checked})}
+                  className="w-5 h-5 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50"
+                />
+                <span className="text-sm text-slate-300">ჯარიმების ავტომატური დამატება</span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+              <button
+                onClick={onClose}
+                className="px-6 py-3 text-slate-300 hover:text-white font-medium transition-colors"
+              >
+                გაუქმება
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-700 text-white font-bold rounded-lg transition-colors"
+              >
+                {saving ? <IconLoader className="w-5 h-5" /> : <IconWallet className="w-5 h-5" />}
+                {saving ? 'ინახება...' : 'შენახვა'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ============ MAIN PAGE ============
 
 export default function FinancesPage() {
@@ -415,6 +735,7 @@ export default function FinancesPage() {
 
   const [loading, setLoading] = useState(true)
   const [building, setBuilding] = useState<any>(null)
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false)
   const [stats, setStats] = useState({
     totalIncome: 0,
@@ -600,7 +921,22 @@ export default function FinancesPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <button 
+            onClick={() => setIsSettingsModalOpen(true)}
+            className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300 text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <IconWallet className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="font-bold text-white text-lg">ფინანსური პარამეტრები</div>
+                <div className="text-sm text-slate-400">ტარიფები და წესები</div>
+              </div>
+            </div>
+          </button>
+
           <button 
             onClick={() => setIsGenerateModalOpen(true)}
             className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 text-left group"
@@ -712,6 +1048,14 @@ export default function FinancesPage() {
           </div>
         </div>
       </main>
+
+      {/* Financial Settings Modal */}
+      <FinancialSettingsModal 
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        buildingId={buildingId}
+        onSuccess={loadData}
+      />
 
       {/* Generate Modal */}
       <GenerateModal 
