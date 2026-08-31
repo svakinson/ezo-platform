@@ -736,8 +736,9 @@ function BankAccountModal({ isOpen, onClose, form, setForm, onSubmit, editingAcc
                 value={form.account_holder}
                 onChange={(e) => setForm({...form, account_holder: e.target.value})}
                 className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
-                placeholder="მაგ: ვაკე 42 კორპუსი"
+                placeholder="ავტომატურად შეივსება კორპუსის მონაცემებით"
               />
+              <p className="text-xs text-slate-500 mt-1">შეგიძლია შეცვალო, თუ ბანკში სხვაგვარად არის დარეგისტრირებული</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">ვალუტა</label>
@@ -935,6 +936,7 @@ export default function FinancesPage() {
   // ============ BANK ACCOUNT HANDLERS ============
   const handleOpenBankModal = (account?: any) => {
     if (account) {
+      // რედაქტირების რეჟიმი
       setEditingBankAccount(account)
       setBankForm({
         bank_name: account.bank_name || '',
@@ -946,11 +948,18 @@ export default function FinancesPage() {
         notes: account.notes || '',
       })
     } else {
+      // ახლის დამატების რეჟიმი - ავტომატური შევსება
       setEditingBankAccount(null)
+      
+      // ავტომატურად ვქმნით მფლობელის სახელს კორპუსის მონაცემებიდან
+      const defaultHolder = building.name 
+        ? `${building.name} - ${building.street}` 
+        : building.street
+
       setBankForm({
         bank_name: '',
         account_number: '',
-        account_holder: '',
+        account_holder: defaultHolder, // ავტომატურად შევსებული!
         currency: 'GEL',
         swift_code: '',
         is_primary: false,
