@@ -108,6 +108,10 @@ const unitTypeLabels: Record<string, string> = {
   duplex: 'დუპლექსი',
 }
 
+// სპეციალური სტატუსები (ხელით დასაყენებელი)
+const SPECIAL_STATUSES = ['under_maintenance', 'reserved']
+const AUTO_STATUSES = ['vacant', 'owner_occupied', 'rented']
+
 // ============ MAIN PAGE ============
 
 export default function ApartmentsPage() {
@@ -135,7 +139,7 @@ export default function ApartmentsPage() {
 
   const [formData, setFormData] = useState({
     apartment_number: '', floor: '', area_sqm: '', rooms: '', bedrooms: '', bathrooms: '',
-    unit_type: '1_bedroom', status: 'vacant', parking_spaces: '0', storage_units: '0',
+    unit_type: '1_bedroom', parking_spaces: '0', storage_units: '0',
     has_balcony: false, has_elevator_access: true, special_notes: '',
   })
 
@@ -159,25 +163,7 @@ export default function ApartmentsPage() {
         if (buildingError) throw buildingError
         setBuilding(buildingData)
 
-        const { data: apartmentsData, error: apartmentsError } = await supabase
-          .from('apartments')
-          .select('*')
-          .eq('building_id', buildingId)
-          .order('floor', { ascending: false })
-          .order('apartment_number', { ascending: true })
-        if (apartmentsError) throw apartmentsError
-
-        // Load owners and tenants
-        const { data: ownersData } = await supabase.from('owners').select('*').eq('building_id', buildingId)
-        const { data: tenantsData } = await supabase.from('tenants').select('*').eq('building_id', buildingId).eq('is_active', true)
-
-        // Map to apartments
-        const enriched = (apartmentsData || []).map(apt => ({
-          ...apt,
-          owner: (ownersData || []).find(o => o.apartment_id === apt.id),
-          tenant: (tenantsData || []).find(t => t.apartment_id === apt.id && t.is_active),
-        }))
-        setApartments(enriched)
+        await refreshApartments()
       } catch (error) {
         console.error('Error loading data:', error)
         alert('მონაცემების ჩატვირთვის შეცდომა')
@@ -188,6 +174,41 @@ export default function ApartmentsPage() {
     }
     loadData()
   }, [buildingId, router])
+
+  const refreshApartments = async () => {
+    const { data: apartmentsData } = await supabase
+      .from('apartments')
+      .select('*')
+      .eq('building_id', buildingId)
+      .order('floor', { ascending: false })
+      .order('apartment_number', { ascending: true })
+    
+    const { data: ownersData } = await supabase.from('owners').select('*').eq('building_id', buildingId)
+    const { data: tenantsData } = await supabase.from('tenants').select('*').eq('building_id', buildingId).eq('is_active', true)
+
+    const enriched = (apartmentsData || []).map(apt => ({
+      ...apt,
+      owner: (ownersData || []).find(o => o.apartment_id === apt.id),
+      tenant: (tenantsData || []).find(t => t.apartment_id === apt.id && t.is_active),
+    }))
+    setApartments(enriched)
+  }
+
+  // სტატუსის ავტომატური განსაზღვრა
+  const determineStatus = (apt: any): string => {
+    // თუ სპეციალური სტატუსია, არ შევცვალოთ
+    if (apt.status && SPECIAL_STATUSES.includes(apt.status)) {
+      return apt.status
+    }
+    // თუ მფლობელი არ არის → vacant
+    if (!apt.owner) return 'vacant'
+    // თუ მფლობელი ცხოვრობს → owner_occupied
+    if (apt.owner.is_occupying) return 'owner_occupied'
+    // თუ მქირავნობელი არის → rented
+    if (apt.tenant) return 'rented'
+    // სხვა შემთხვევაში → vacant (გასაქირავებელი)
+    return 'vacant'
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -211,7 +232,7 @@ export default function ApartmentsPage() {
       bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
       bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
       unit_type: formData.unit_type,
-      status: formData.status,
+      status: 'vacant', // ავტომატურად vacant
       parking_spaces: parseInt(formData.parking_spaces) || 0,
       storage_units: parseInt(formData.storage_units) || 0,
       has_balcony: formData.has_balcony,
@@ -228,7 +249,7 @@ export default function ApartmentsPage() {
       setIsAddModalOpen(false)
       setFormData({
         apartment_number: '', floor: '', area_sqm: '', rooms: '', bedrooms: '', bathrooms: '',
-        unit_type: '1_bedroom', status: 'vacant', parking_spaces: '0', storage_units: '0',
+        unit_type: '1_bedroom', parking_spaces: '0', storage_units: '0',
         has_balcony: false, has_elevator_access: true, special_notes: '',
       })
       
@@ -268,7 +289,7 @@ export default function ApartmentsPage() {
       bedrooms: editingApartment.bedrooms ? parseInt(editingApartment.bedrooms) : null,
       bathrooms: editingApartment.bathrooms ? parseInt(editingApartment.bathrooms) : null,
       unit_type: editingApartment.unit_type,
-      status: editingApartment.status,
+      status: editingApartment.status, // სპეციალური სტატუსი (ან auto)
       parking_spaces: parseInt(editingApartment.parking_spaces) || 0,
       storage_units: parseInt(editingApartment.storage_units) || 0,
       has_balcony: editingApartment.has_balcony,
@@ -302,25 +323,6 @@ export default function ApartmentsPage() {
         }
       }
     }
-  }
-
-  const refreshApartments = async () => {
-    const { data: apartmentsData } = await supabase
-      .from('apartments')
-      .select('*')
-      .eq('building_id', buildingId)
-      .order('floor', { ascending: false })
-      .order('apartment_number', { ascending: true })
-    
-    const { data: ownersData } = await supabase.from('owners').select('*').eq('building_id', buildingId)
-    const { data: tenantsData } = await supabase.from('tenants').select('*').eq('building_id', buildingId).eq('is_active', true)
-
-    const enriched = (apartmentsData || []).map(apt => ({
-      ...apt,
-      owner: (ownersData || []).find(o => o.apartment_id === apt.id),
-      tenant: (tenantsData || []).find(t => t.apartment_id === apt.id && t.is_active),
-    }))
-    setApartments(enriched)
   }
 
   // ============ OWNER HANDLERS ============
@@ -382,6 +384,9 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
+      // ავტომატური სტატუსის განსაზღვრა
+      const newStatus = ownerForm.is_occupying ? 'owner_occupied' : 'vacant'
+      await supabase.from('apartments').update({ status: newStatus }).eq('id', selectedAptId)
       await refreshApartments()
       setIsOwnerModalOpen(false)
     }
@@ -396,6 +401,8 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
+      // სტატუსი → vacant
+      await supabase.from('apartments').update({ status: 'vacant' }).eq('id', selectedAptId)
       await refreshApartments()
       setIsOwnerModalOpen(false)
     }
@@ -462,7 +469,7 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
-      // Update apartment status to 'rented'
+      // ავტომატური სტატუსი → rented
       await supabase.from('apartments').update({ status: 'rented' }).eq('id', selectedAptId)
       await refreshApartments()
       setIsTenantModalOpen(false)
@@ -478,6 +485,9 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
+      // სტატუსის განსაზღვრა: თუ მფლობელი ცხოვრობს → owner_occupied, თუ არა → vacant
+      const newStatus = currentOwner?.is_occupying ? 'owner_occupied' : 'vacant'
+      await supabase.from('apartments').update({ status: newStatus }).eq('id', selectedAptId)
       await refreshApartments()
       setIsTenantModalOpen(false)
     }
@@ -539,8 +549,8 @@ export default function ApartmentsPage() {
             <h2 className="text-2xl font-bold text-white mb-1">ბინები</h2>
             <p className="text-slate-400 text-sm">
               სულ {apartments.length} ბინა
-              {apartments.filter(a => a.status === 'vacant').length > 0 && (
-                <span className="text-slate-500"> • {apartments.filter(a => a.status === 'vacant').length} ცარიელი</span>
+              {apartments.filter(a => determineStatus(a) === 'vacant').length > 0 && (
+                <span className="text-slate-500"> • {apartments.filter(a => determineStatus(a) === 'vacant').length} ცარიელი</span>
               )}
             </p>
           </div>
@@ -573,18 +583,25 @@ export default function ApartmentsPage() {
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {apartments.map((apt) => {
-              const status = statusConfig[apt.status] || statusConfig.vacant
+              const status = determineStatus(apt)
+              const statusInfo = statusConfig[status] || statusConfig.vacant
+              const isSpecialStatus = SPECIAL_STATUSES.includes(apt.status)
+              
               return (
-                <div key={apt.id} className={`group bg-slate-800/50 border ${status.borderColor} rounded-xl p-5 hover:bg-slate-800 transition-all duration-300 flex flex-col`}>
+                <div key={apt.id} className={`group bg-slate-800/50 border ${statusInfo.borderColor} rounded-xl p-5 hover:bg-slate-800 transition-all duration-300 flex flex-col`}>
+                  {/* Header with status */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="font-bold text-white text-lg mb-1">ბინა {apt.apartment_number}</h3>
                       <p className="text-xs text-slate-400">სართული {apt.floor}</p>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                      {status.label}
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.bgColor} ${statusInfo.textColor} border ${statusInfo.borderColor}`}>
+                      {statusInfo.label}
+                      {isSpecialStatus && <span className="text-xs ml-1 opacity-70">(სპეც.)</span>}
                     </span>
                   </div>
+
+                  {/* Basic Info */}
                   <div className="space-y-2 mb-4 flex-grow">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400">ფართობი</span>
@@ -604,10 +621,22 @@ export default function ApartmentsPage() {
 
                   {/* Owner/Tenant Section */}
                   <div className="pt-4 border-t border-white/10 mb-3">
-                    {apt.owner ? (
+                    {!apt.owner ? (
+                      // NO OWNER - Big prominent button
+                      <button 
+                        onClick={() => handleOpenOwnerModal(apt)}
+                        className="w-full py-3 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 border-2 border-dashed border-emerald-500/40 hover:border-emerald-500/70 rounded-lg transition-all group/btn"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <IconPlus className="w-4 h-4 text-emerald-400 group-hover/btn:scale-110 transition-transform" />
+                          <span className="text-sm font-semibold text-emerald-400">მფლობელის დამატება</span>
+                        </div>
+                      </button>
+                    ) : (
+                      // OWNER EXISTS
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                             <IconUser className="w-3.5 h-3.5 text-emerald-400" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -616,17 +645,19 @@ export default function ApartmentsPage() {
                           </div>
                         </div>
                         {apt.owner.phone && (
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400 pl-9">
                             <IconPhone className="w-3 h-3" />
                             <span className="truncate">{apt.owner.phone}</span>
                           </div>
                         )}
+                        
                         {apt.owner.is_occupying ? (
-                          <div className="text-xs text-emerald-400 font-medium">✓ თვითონ ცხოვრობს</div>
+                          <div className="text-xs text-emerald-400 font-medium pl-9">✓ თვითონ ცხოვრობს</div>
                         ) : apt.tenant ? (
-                          <div className="pt-2 border-t border-white/5">
+                          // TENANT EXISTS
+                          <div className="pt-2 border-t border-white/5 mt-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center">
+                              <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
                                 <IconUser className="w-3.5 h-3.5 text-blue-400" />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -635,25 +666,27 @@ export default function ApartmentsPage() {
                               </div>
                             </div>
                             {apt.tenant.phone && (
-                              <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
+                              <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 pl-9">
                                 <IconPhone className="w-3 h-3" />
                                 <span className="truncate">{apt.tenant.phone}</span>
                               </div>
                             )}
+                            {apt.tenant.monthly_rent && (
+                              <div className="text-xs text-blue-400 font-medium mt-1 pl-9"> {apt.tenant.monthly_rent}/თვე</div>
+                            )}
                           </div>
                         ) : (
-                          <div className="text-xs text-amber-400 font-medium">⚠ მქირავნობელი არ არის მითითებული</div>
+                          // NO TENANT - Show add tenant button
+                          <div className="pt-2 border-t border-white/5 mt-2">
+                            <div className="text-xs text-amber-400 font-medium mb-2"> მფლობელი არ ცხოვრობს</div>
+                            <button 
+                              onClick={() => handleOpenTenantModal(apt)}
+                              className="w-full py-2 px-3 bg-blue-500/10 hover:bg-blue-500/20 border border-dashed border-blue-500/40 hover:border-blue-500/70 rounded-lg transition-all text-xs font-semibold text-blue-400"
+                            >
+                              + მქირავნობლის დამატება
+                            </button>
+                          </div>
                         )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-2">
-                        <div className="text-xs text-slate-500 mb-2">მფლობელი არ არის მითითებული</div>
-                        <button 
-                          onClick={() => handleOpenOwnerModal(apt)}
-                          className="text-xs text-emerald-400 hover:text-emerald-300 font-medium"
-                        >
-                          + მფლობელის დამატება
-                        </button>
                       </div>
                     )}
                   </div>
@@ -663,15 +696,13 @@ export default function ApartmentsPage() {
                     <button 
                       onClick={() => handleOpenOwnerModal(apt)}
                       className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg transition-colors"
-                      title="მფლობელი"
                     >
                       <IconUser className="w-3 h-3" /> მფლობელი
                     </button>
-                    {!apt.owner?.is_occupying && (
+                    {!apt.owner?.is_occupying && apt.owner && (
                       <button 
                         onClick={() => handleOpenTenantModal(apt)}
                         className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors"
-                        title="მქირავნობელი"
                       >
                         <IconUser className="w-3 h-3" /> მქირავნ.
                       </button>
@@ -707,13 +738,14 @@ export default function ApartmentsPage() {
                     <th className="text-left p-4 text-slate-400 font-medium text-sm">ოთახები</th>
                     <th className="text-left p-4 text-slate-400 font-medium text-sm">ტიპი</th>
                     <th className="text-left p-4 text-slate-400 font-medium text-sm">სტატუსი</th>
-                    <th className="text-left p-4 text-slate-400 font-medium text-sm">მფლობელი</th>
+                    <th className="text-left p-4 text-slate-400 font-medium text-sm">მფლობელი / მქირავნობელი</th>
                     <th className="text-right p-4 text-slate-400 font-medium text-sm">მოქმედებები</th>
                   </tr>
                 </thead>
                 <tbody>
                   {apartments.map((apt) => {
-                    const status = statusConfig[apt.status] || statusConfig.vacant
+                    const status = determineStatus(apt)
+                    const statusInfo = statusConfig[status] || statusConfig.vacant
                     return (
                       <tr key={apt.id} className="border-b border-white/5 hover:bg-slate-800/50 transition-colors">
                         <td className="p-4"><div className="font-semibold text-white">ბინა {apt.apartment_number}</div></td>
@@ -722,21 +754,21 @@ export default function ApartmentsPage() {
                         <td className="p-4 text-slate-300">{apt.rooms || '—'}</td>
                         <td className="p-4 text-slate-300">{unitTypeLabels[apt.unit_type] || apt.unit_type || '—'}</td>
                         <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
-                            {status.label}
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.bgColor} ${statusInfo.textColor} border ${statusInfo.borderColor}`}>
+                            {statusInfo.label}
                           </span>
                         </td>
                         <td className="p-4">
                           {apt.owner ? (
-                            <div>
-                              <div className="text-sm text-white font-medium">{apt.owner.full_name}</div>
+                            <div className="text-sm">
+                              <div className="text-white font-medium">{apt.owner.full_name}</div>
                               <div className="text-xs text-slate-400">
-                                {apt.owner.is_occupying ? 'თვითონ ცხოვრობს' : apt.tenant ? `ქირა: ${apt.tenant.full_name}` : 'მქირავნობელი არ არის'}
+                                {apt.owner.is_occupying ? '✓ თვითონ ცხოვრობს' : apt.tenant ? `→ ${apt.tenant.full_name}` : '⚠ მქირავნობელი არ არის'}
                               </div>
                             </div>
                           ) : (
-                            <button onClick={() => handleOpenOwnerModal(apt)} className="text-xs text-emerald-400 hover:text-emerald-300">
-                              + დამატება
+                            <button onClick={() => handleOpenOwnerModal(apt)} className="text-xs text-emerald-400 hover:text-emerald-300 font-medium">
+                              + მფლობელის დამატება
                             </button>
                           )}
                         </td>
@@ -745,7 +777,7 @@ export default function ApartmentsPage() {
                             <button onClick={() => handleOpenOwnerModal(apt)} className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors" title="მფლობელი">
                               <IconUser className="w-4 h-4" />
                             </button>
-                            {!apt.owner?.is_occupying && (
+                            {!apt.owner?.is_occupying && apt.owner && (
                               <button onClick={() => handleOpenTenantModal(apt)} className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" title="მქირავნობელი">
                                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                               </button>
@@ -768,7 +800,7 @@ export default function ApartmentsPage() {
         )}
       </main>
 
-      {/* ============ ADD APARTMENT MODAL ============ */}
+      {/* ============ ADD APARTMENT MODAL (NO STATUS FIELD) ============ */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -779,6 +811,9 @@ export default function ApartmentsPage() {
               </button>
             </div>
             <form onSubmit={handleAddSubmit} className="p-6 space-y-6">
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 text-sm text-emerald-400">
+                💡 ბინა ავტომატურად დაემატება <strong>"ცარიელია"</strong> სტატუსით. მფლობელის დამატების შემდეგ სტატუსი ავტომატურად განახლდება.
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ნომერი *</label>
@@ -817,16 +852,6 @@ export default function ApartmentsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">სტატუსი</label>
-                  <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none">
-                    <option value="vacant">ცარიელია</option>
-                    <option value="owner_occupied">მფლობელი ცხოვრობს</option>
-                    <option value="rented">ქირავდება</option>
-                    <option value="under_maintenance">რემონტში</option>
-                    <option value="reserved">დაჯავშნილი</option>
-                  </select>
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">პარკინგის ადგილები</label>
                   <input type="number" name="parking_spaces" value={formData.parking_spaces} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="0" />
                 </div>
@@ -861,7 +886,7 @@ export default function ApartmentsPage() {
         </div>
       )}
 
-      {/* ============ EDIT APARTMENT MODAL ============ */}
+      {/* ============ EDIT APARTMENT MODAL (WITH SPECIAL STATUS) ============ */}
       {isEditModalOpen && editingApartment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -909,15 +934,17 @@ export default function ApartmentsPage() {
                     <option value="duplex">დუპლექსი</option>
                   </select>
                 </div>
+                {/* SPECIAL STATUS DROPDOWN */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">სტატუსი</label>
-                  <select name="status" value={editingApartment.status} onChange={(e) => setEditingApartment({...editingApartment, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none">
-                    <option value="vacant">ცარიელია</option>
-                    <option value="owner_occupied">მფლობელი ცხოვრობს</option>
-                    <option value="rented">ქირავდება</option>
-                    <option value="under_maintenance">რემონტში</option>
-                    <option value="reserved">დაჯავშნილი</option>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">სპეციალური სტატუსი</label>
+                  <select name="status" value={editingApartment.status || 'vacant'} onChange={(e) => setEditingApartment({...editingApartment, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none">
+                    <option value="vacant">ავტომატური (ცარიელია)</option>
+                    <option value="owner_occupied">ავტომატური (მფლობელი ცხოვრობს)</option>
+                    <option value="rented">ავტომატური (ქირავდება)</option>
+                    <option value="under_maintenance">🔧 რემონტში</option>
+                    <option value="reserved">🔒 დაჯავშნილი</option>
                   </select>
+                  <p className="text-xs text-slate-500 mt-1">სპეციალური სტატუსი override-ს აკეთებს ავტომატურზე</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">პარკინგის ადგილები</label>
@@ -988,12 +1015,16 @@ export default function ApartmentsPage() {
                 </div>
               </div>
 
-              {/* Occupying Toggle */}
-              <div className="bg-slate-800/50 border border-white/10 rounded-xl p-4">
+              {/* Occupying Toggle - PROMINENT */}
+              <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
                 <label className="flex items-center justify-between cursor-pointer">
                   <div>
-                    <div className="font-medium text-white">თვითონ ცხოვრობს ბინაში?</div>
-                    <div className="text-xs text-slate-400 mt-1">თუ გამორთულია, შეგიძლია მქირავნობლის დამატება</div>
+                    <div className="font-semibold text-white text-base">თვითონ ცხოვრობს ბინაში?</div>
+                    <div className="text-sm text-slate-400 mt-1">
+                      {ownerForm.is_occupying 
+                        ? '✓ სტატუსი იქნება: "მფლობელი ცხოვრობს"' 
+                        : '⚠ სტატუსი იქნება: "ცარიელია" (შეგიძლია მქირავნობლის დამატება)'}
+                    </div>
                   </div>
                   <div className="relative">
                     <input 
@@ -1002,8 +1033,8 @@ export default function ApartmentsPage() {
                       onChange={(e) => setOwnerForm({...ownerForm, is_occupying: e.target.checked})} 
                       className="sr-only peer" 
                     />
-                    <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 transition-colors"></div>
-                    <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform"></div>
+                    <div className="w-12 h-7 bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 transition-colors"></div>
+                    <div className="absolute top-1 left-1 w-5 h-5 bg-white rounded-full peer-checked:translate-x-5 transition-transform shadow-md"></div>
                   </div>
                 </label>
               </div>
@@ -1058,6 +1089,9 @@ export default function ApartmentsPage() {
               </button>
             </div>
             <form onSubmit={handleTenantSubmit} className="p-6 space-y-6">
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-sm text-blue-400">
+                💡 მქირავნობლის დამატების შემდეგ ბინის სტატუსი ავტომატურად შეიცვლება <strong>"ქირავდება"</strong>-ზე.
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-300 mb-1">სრული სახელი *</label>
