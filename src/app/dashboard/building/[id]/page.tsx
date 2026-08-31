@@ -28,6 +28,14 @@ const IconEdit = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconWallet = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+  </svg>
+)
+
 const IconUser = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -188,6 +196,13 @@ export default function BuildingPage() {
           
           {/* Header Buttons */}
           <div className="flex items-center gap-3">
+            <Link 
+              href={`/dashboard/building/${buildingId}/finances`}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-sm font-medium rounded-lg transition-colors"
+            >
+              <IconWallet className="w-4 h-4" />
+              ფინანსები
+            </Link>
             <Link 
               href={`/dashboard/building/${buildingId}/apartments`}
               className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-sm font-medium rounded-lg transition-colors"
