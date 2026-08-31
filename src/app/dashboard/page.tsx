@@ -99,6 +99,20 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+)
+
+const IconEdit = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+)
+
 // ============ STAT CARD ============
 function StatCard({ icon: Icon, label, value, sublabel, gradient }: { 
   icon: any; 
@@ -169,6 +183,17 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  const handleDeleteBuilding = async (id: string) => {
+    if (confirm('დარწმუნებული ხარ, რომ გსურს ამ კორპუსის წაშლა? ეს მოქმედება შეუქცევადია.')) {
+      const { error } = await supabase.from('buildings').delete().eq('id', id)
+      if (error) {
+        alert('შეცდომა წაშლისას: ' + error.message)
+      } else {
+        setBuildings(prev => prev.filter(b => b.id !== id))
+      }
+    }
   }
 
   const getGreeting = () => {
@@ -317,64 +342,66 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Onboarding Progress */}
-        <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-                <IconSparkles className="w-5 h-5 text-emerald-400" />
-                დაწყების გზამკვლევი
-              </h2>
-              <p className="text-slate-400 text-sm">შეავსე ეს ნაბიჯები სრული ფუნქციონალის მისაღებად</p>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-white">{completedSteps}/{onboardingSteps.length}</div>
-              <div className="text-xs text-slate-500">ნაბიჯი შესრულებული</div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {onboardingSteps.map((step, i) => (
-              <div 
-                key={i}
-                className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
-                  step.done 
-                    ? 'bg-emerald-500/10 border-emerald-500/30' 
-                    : step.link 
-                      ? 'bg-slate-900/50 border-white/10 hover:border-emerald-500/30 cursor-pointer group' 
-                      : 'bg-slate-900/50 border-white/10 opacity-50'
-                }`}
-                onClick={() => step.link && router.push(step.link)}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  step.done 
-                    ? 'bg-emerald-500 text-white' 
-                    : 'bg-white/10 text-slate-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-400'
-                }`}>
-                  {step.done ? <IconCheck className="w-5 h-5" /> : <span className="font-bold">{i + 1}</span>}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-white mb-0.5">{step.title}</div>
-                  <div className="text-sm text-slate-400 truncate">{step.desc}</div>
-                </div>
-
-                {step.link && !step.done && (
-                  <IconArrowRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
-                )}
+        {/* Onboarding Progress - HIDES COMPLETELY WHEN ALL STEPS ARE DONE */}
+        {completedSteps < onboardingSteps.length && (
+          <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                  <IconSparkles className="w-5 h-5 text-emerald-400" />
+                  დაწყების გზამკვლევი
+                </h2>
+                <p className="text-slate-400 text-sm">შეავსე ეს ნაბიჯები სრული ფუნქციონალის მისაღებად</p>
               </div>
-            ))}
-          </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white">{completedSteps}/{onboardingSteps.length}</div>
+                <div className="text-xs text-slate-500">ნაბიჯი შესრულებული</div>
+              </div>
+            </div>
 
-          {/* Progress Bar */}
-          <div className="mt-6 h-2 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000" style={{ width: progressWidth }} />
-          </div>
-        </div>
+            <div className="space-y-3">
+              {onboardingSteps.map((step, i) => (
+                <div 
+                  key={i}
+                  className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                    step.done 
+                      ? 'bg-emerald-500/10 border-emerald-500/30' 
+                      : step.link 
+                        ? 'bg-slate-900/50 border-white/10 hover:border-emerald-500/30 cursor-pointer group' 
+                        : 'bg-slate-900/50 border-white/10 opacity-50'
+                  }`}
+                  onClick={() => step.link && router.push(step.link)}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    step.done 
+                      ? 'bg-emerald-500 text-white' 
+                      : 'bg-white/10 text-slate-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-400'
+                  }`}>
+                    {step.done ? <IconCheck className="w-5 h-5" /> : <span className="font-bold">{i + 1}</span>}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white mb-0.5">{step.title}</div>
+                    <div className="text-sm text-slate-400 truncate">{step.desc}</div>
+                  </div>
 
-        {/* My Buildings Section */}
+                  {step.link && !step.done && (
+                    <IconArrowRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mt-6 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000" style={{ width: progressWidth }} />
+            </div>
+          </div>
+        )}
+
+        {/* My Buildings Section - COMPACT GRID LAYOUT */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <IconBuilding className="w-5 h-5 text-emerald-400" />
               ჩემი კორპუსები
@@ -389,37 +416,69 @@ export default function DashboardPage() {
           </div>
 
           {buildingsLoading ? (
-            <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-8 flex items-center justify-center">
+            <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-12 flex items-center justify-center">
               <IconLoader className="w-8 h-8 text-emerald-400 animate-spin" />
             </div>
           ) : buildings.length > 0 ? (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {buildings.map((building) => (
-                <div key={building.id} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-                        <IconBuilding className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white text-lg">{building.name || building.street}</h3>
-                        <p className="text-sm text-slate-400">{building.city}{building.district ? `, ${building.district}` : ''}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                          <span className="flex items-center gap-1"><IconCheck className="w-3 h-3 text-emerald-400" /> {building.apartments_count} ბინა</span>
-                          <span className="flex items-center gap-1"><IconCheck className="w-3 h-3 text-emerald-400" /> {building.entrances_count} სადარბაზო</span>
-                          {building.total_area && (
-                            <span className="flex items-center gap-1"><IconCheck className="w-3 h-3 text-emerald-400" /> {building.total_area} მ²</span>
-                          )}
-                        </div>
-                      </div>
+                <div key={building.id} className="group bg-slate-800/50 border border-white/10 rounded-xl p-4 hover:border-emerald-500/50 hover:bg-slate-800 transition-all duration-300 flex flex-col">
+                  {/* Building Icon & Name */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                      <IconBuilding className="w-5 h-5 text-white" />
                     </div>
+                  </div>
+                  
+                  <h3 className="font-bold text-white text-sm mb-1 truncate" title={building.name || building.street}>
+                    {building.name || building.street}
+                  </h3>
+                  
+                  <p className="text-xs text-slate-400 mb-3 truncate">
+                    {building.city}{building.district ? `, ${building.district}` : ''}
+                  </p>
+
+                  {/* Stats */}
+                  <div className="space-y-1 mb-4 flex-grow">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                      <span className="truncate">{building.apartments_count || 0} ბინა</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                      <span className="truncate">{building.entrances_count || 0} სადარბაზო</span>
+                    </div>
+                    {building.total_area && (
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                        <span className="truncate">{building.total_area} მ²</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-1.5 pt-3 border-t border-white/10 mt-auto">
+                    <Link 
+                      href={`/dashboard/building/${building.id}/edit`}
+                      className="w-full px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
+                    >
+                      <IconEdit className="w-3 h-3" />
+                      რედაქტირება
+                    </Link>
                     <Link 
                       href={`/dashboard/building/${building.id}`}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg transition-colors"
+                      className="w-full px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
                     >
+                      <IconBuilding className="w-3 h-3" />
                       მართვა
-                      <IconArrowRight className="w-4 h-4" />
                     </Link>
+                    <button 
+                      onClick={() => handleDeleteBuilding(building.id)}
+                      className="w-full px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
+                    >
+                      <IconTrash className="w-3 h-3" />
+                      წაშლა
+                    </button>
                   </div>
                 </div>
               ))}
