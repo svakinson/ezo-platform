@@ -65,6 +65,22 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+const IconCalendar = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+)
+
 // ============ STAT CARD ============
 function StatCard({ icon: Icon, label, value, sublabel, gradient, trend }: { 
   icon: any; 
@@ -97,6 +113,310 @@ function StatCard({ icon: Icon, label, value, sublabel, gradient, trend }: {
   )
 }
 
+// ============ GENERATE MODAL ============
+function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  buildingId: string;
+  onSuccess: () => void;
+}) {
+  const [selectedMonth, setSelectedMonth] = useState('')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [preview, setPreview] = useState<any>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      const today = new Date()
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+      setSelectedMonth(nextMonth.toISOString().slice(0, 7))
+      setPreview(null)
+    }
+  }, [isOpen])
+
+  const handlePreview = async () => {
+    if (!selectedMonth) return
+    setIsProcessing(true)
+
+    try {
+      // Load building settings
+      const { data: settings } = await supabase
+        .from('building_financial_settings')
+        .select('*')
+        .eq('building_id', buildingId)
+        .single()
+
+      // Load apartments
+      const { data: apartments } = await supabase
+        .from('apartments')
+        .select('*')
+        .eq('building_id', buildingId)
+
+      // Load special assessments for this month
+      const { data: assessments } = await supabase
+        .from('special_assessments')
+        .select('*')
+        .eq('building_id', buildingId)
+        .eq('is_active', true)
+
+      // Calculate preview
+      let totalAmount = 0
+      const breakdown = {
+        residential: { count: 0, amount: 0 },
+        commercial: { count: 0, amount: 0 },
+        other: { count: 0, amount: 0 },
+      }
+
+      apartments?.forEach(apt => {
+        let amount = 0
+        const propertyType = apt.property_type || 'residential'
+
+        // Check for custom override
+        if (apt.custom_monthly_fee) {
+          amount = apt.custom_monthly_fee
+        } else if (settings?.fee_calculation_method === 'per_sqm') {
+          const rate = propertyType === 'commercial' 
+            ? settings.commercial_rate_per_sqm 
+            : settings.residential_rate_per_sqm
+          amount = (apt.area_sqm || 0) * rate
+        } else if (settings?.fee_calculation_method === 'per_apartment') {
+          amount = settings.fixed_monthly_fee || 0
+        }
+
+        // Add special assessments
+        let specialAmount = 0
+        assessments?.forEach(assessment => {
+          if (assessment.calculation_method === 'per_unit') {
+            specialAmount += assessment.amount_per_unit || 0
+          } else if (assessment.calculation_method === 'per_sqm') {
+            specialAmount += (apt.area_sqm || 0) * (assessment.amount_per_sqm || 0)
+          } else if (assessment.calculation_method === 'fixed') {
+            specialAmount += assessment.fixed_amount || 0
+          }
+        })
+
+        amount += specialAmount
+        totalAmount += amount
+
+        if (propertyType === 'residential') {
+          breakdown.residential.count++
+          breakdown.residential.amount += amount
+        } else if (propertyType === 'commercial') {
+          breakdown.commercial.count++
+          breakdown.commercial.amount += amount
+        } else {
+          breakdown.other.count++
+          breakdown.other.amount += amount
+        }
+      })
+
+      setPreview({
+        totalApartments: apartments?.length || 0,
+        totalAmount,
+        breakdown,
+        settings,
+      })
+    } catch (error) {
+      console.error('Preview error:', error)
+      alert('შეცდომა პრევიუს შექმნისას')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleGenerate = async () => {
+    if (!selectedMonth || !preview) return
+    setIsProcessing(true)
+
+    try {
+      const { data: settings } = await supabase
+        .from('building_financial_settings')
+        .select('*')
+        .eq('building_id', buildingId)
+        .single()
+
+      const { data: apartments } = await supabase
+        .from('apartments')
+        .select('*')
+        .eq('building_id', buildingId)
+
+      const { data: assessments } = await supabase
+        .from('special_assessments')
+        .select('*')
+        .eq('building_id', buildingId)
+        .eq('is_active', true)
+
+      const feesToInsert = []
+      const dueDate = new Date(selectedMonth + '-01')
+      dueDate.setDate(settings?.payment_due_day || 15)
+
+      for (const apt of apartments || []) {
+        let baseAmount = 0
+        let calculationMethod = settings?.fee_calculation_method || 'per_apartment'
+        const propertyType = apt.property_type || 'residential'
+
+        if (apt.custom_monthly_fee) {
+          baseAmount = apt.custom_monthly_fee
+          calculationMethod = 'custom'
+        } else if (settings?.fee_calculation_method === 'per_sqm') {
+          const rate = propertyType === 'commercial' 
+            ? settings.commercial_rate_per_sqm 
+            : settings.residential_rate_per_sqm
+          baseAmount = (apt.area_sqm || 0) * rate
+        } else if (settings?.fee_calculation_method === 'per_apartment') {
+          baseAmount = settings.fixed_monthly_fee || 0
+        }
+
+        let specialAmount = 0
+        for (const assessment of assessments || []) {
+          if (assessment.calculation_method === 'per_unit') {
+            specialAmount += assessment.amount_per_unit || 0
+          } else if (assessment.calculation_method === 'per_sqm') {
+            specialAmount += (apt.area_sqm || 0) * (assessment.amount_per_sqm || 0)
+          } else if (assessment.calculation_method === 'fixed') {
+            specialAmount += assessment.fixed_amount || 0
+          }
+        }
+
+        feesToInsert.push({
+          building_id: buildingId,
+          apartment_id: apt.id,
+          fee_month: selectedMonth + '-01',
+          amount: baseAmount + specialAmount,
+          base_amount: baseAmount,
+          special_assessment_amount: specialAmount,
+          late_fee_amount: 0,
+          due_date: dueDate.toISOString().slice(0, 10),
+          grace_period_days: settings?.grace_period_days || 5,
+          late_fee_amount: settings?.late_fee_amount || 0,
+          late_fee_percentage: settings?.late_fee_percentage || 0,
+          status: 'pending',
+          calculation_method: calculationMethod,
+          property_type: propertyType,
+        })
+      }
+
+      if (feesToInsert.length > 0) {
+        const { error } = await supabase.from('monthly_fees').insert(feesToInsert)
+        if (error) throw error
+      }
+
+      alert(`წარმატებით შეიქმნა ${feesToInsert.length} ბინის გადასახადი ${selectedMonth}-ისთვის. ჯამური თანხა: ₾${preview.totalAmount.toLocaleString()}`)
+      onSuccess()
+      onClose()
+    } catch (error: any) {
+      console.error('Generate error:', error)
+      alert('შეცდომა: ' + error.message)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <IconCalendar className="w-6 h-6 text-emerald-400" />
+            ყოველთვიური გადასახადების გენერაცია
+          </h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+            <IconX className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Month Selection */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">აირჩიეთ თვე</label>
+            <input 
+              type="month" 
+              value={selectedMonth} 
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+            />
+          </div>
+
+          {/* Preview Button */}
+          <button 
+            onClick={handlePreview}
+            disabled={!selectedMonth || isProcessing}
+            className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+          >
+            {isProcessing ? 'ითვლის...' : 'პრევიუს ნახვა'}
+          </button>
+
+          {/* Preview Results */}
+          {preview && (
+            <div className="bg-slate-800/50 border border-white/10 rounded-xl p-6 space-y-4">
+              <div className="text-center">
+                <div className="text-sm text-slate-400 mb-1">ჯამური თანხა</div>
+                <div className="text-4xl font-bold text-emerald-400">{preview.totalAmount.toLocaleString()}</div>
+                <div className="text-sm text-slate-400 mt-2">{preview.totalApartments} ბინა</div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                <div className="text-center">
+                  <div className="text-xs text-slate-400 mb-1">საცხოვრებელი</div>
+                  <div className="text-lg font-bold text-white">{preview.breakdown.residential.count}</div>
+                  <div className="text-xs text-emerald-400">₾{preview.breakdown.residential.amount.toLocaleString()}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-slate-400 mb-1">სავაჭრო</div>
+                  <div className="text-lg font-bold text-white">{preview.breakdown.commercial.count}</div>
+                  <div className="text-xs text-blue-400">₾{preview.breakdown.commercial.amount.toLocaleString()}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-slate-400 mb-1">სხვა</div>
+                  <div className="text-lg font-bold text-white">{preview.breakdown.other.count}</div>
+                  <div className="text-xs text-slate-400">₾{preview.breakdown.other.amount.toLocaleString()}</div>
+                </div>
+              </div>
+
+              {preview.settings && (
+                <div className="text-xs text-slate-500 pt-4 border-t border-white/10">
+                  <div>გამოთვლის მეთოდი: <span className="text-slate-300">{preview.settings.fee_calculation_method}</span></div>
+                  {preview.settings.fee_calculation_method === 'per_sqm' && (
+                    <>
+                      <div>საცხოვრებელი ტარიფი: <span className="text-slate-300">{preview.settings.residential_rate_per_sqm}/მ²</span></div>
+                      <div>სავაჭრო ტარიფი: <span className="text-slate-300">₾{preview.settings.commercial_rate_per_sqm}/მ²</span></div>
+                    </>
+                  )}
+                  {preview.settings.fee_calculation_method === 'per_apartment' && (
+                    <div>ფიქსირებული თანხა: <span className="text-slate-300">₾{preview.settings.fixed_monthly_fee}</span></div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Generate Button */}
+          {preview && (
+            <button 
+              onClick={handleGenerate}
+              disabled={isProcessing}
+              className="w-full px-4 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              {isProcessing ? (
+                <>
+                  <IconLoader className="w-5 h-5" />
+                  გენერაცია...
+                </>
+              ) : (
+                <>
+                  <IconPlus className="w-5 h-5" />
+                  გენერაცია {preview.totalApartments} ბინისთვის
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ============ MAIN PAGE ============
 
 export default function FinancesPage() {
@@ -106,6 +426,7 @@ export default function FinancesPage() {
 
   const [loading, setLoading] = useState(true)
   const [building, setBuilding] = useState<any>(null)
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false)
   const [stats, setStats] = useState({
     totalIncome: 0,
     totalExpenses: 0,
@@ -114,89 +435,85 @@ export default function FinancesPage() {
   })
   const [recentTransactions, setRecentTransactions] = useState<any[]>([])
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!buildingId) return
-      try {
-        // Load building
-        const { data: buildingData, error: buildingError } = await supabase
-          .from('buildings')
-          .select('*')
-          .eq('id', buildingId)
-          .single()
-        
-        if (buildingError) throw buildingError
-        setBuilding(buildingData)
+  const loadData = async () => {
+    if (!buildingId) return
+    try {
+      const { data: buildingData, error: buildingError } = await supabase
+        .from('buildings')
+        .select('*')
+        .eq('id', buildingId)
+        .single()
+      
+      if (buildingError) throw buildingError
+      setBuilding(buildingData)
 
-        // Load current month's income (payments)
-        const currentMonth = new Date().toISOString().slice(0, 7) + '-01'
-        const { data: payments } = await supabase
-          .from('payments')
-          .select('amount')
-          .eq('building_id', buildingId)
-          .gte('payment_date', currentMonth)
-        
-        const totalIncome = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
+      const currentMonth = new Date().toISOString().slice(0, 7) + '-01'
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('amount')
+        .eq('building_id', buildingId)
+        .gte('payment_date', currentMonth)
+      
+      const totalIncome = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
 
-        // Load current month's expenses
-        const { data: expenses } = await supabase
-          .from('expenses')
-          .select('amount')
-          .eq('building_id', buildingId)
-          .gte('expense_date', currentMonth)
-        
-        const totalExpenses = expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0
+      const { data: expenses } = await supabase
+        .from('expenses')
+        .select('amount')
+        .eq('building_id', buildingId)
+        .gte('expense_date', currentMonth)
+      
+      const totalExpenses = expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0
 
-        // Load pending monthly fees
-        const { data: pendingFees } = await supabase
-          .from('monthly_fees')
-          .select('amount')
-          .eq('building_id', buildingId)
-          .eq('status', 'pending')
-        
-        const pendingPayments = pendingFees?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0
+      const { data: pendingFees } = await supabase
+        .from('monthly_fees')
+        .select('amount')
+        .eq('building_id', buildingId)
+        .eq('status', 'pending')
+      
+      const pendingPayments = pendingFees?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0
 
-        setStats({
-          totalIncome,
-          totalExpenses,
-          balance: totalIncome - totalExpenses,
-          pendingPayments,
-        })
+      setStats({
+        totalIncome,
+        totalExpenses,
+        balance: totalIncome - totalExpenses,
+        pendingPayments,
+      })
 
-        // Load recent transactions (mix of payments and expenses)
-        const { data: recentPayments } = await supabase
-          .from('payments')
-          .select('*, apartment_id')
-          .eq('building_id', buildingId)
-          .order('payment_date', { ascending: false })
-          .limit(5)
+      const { data: recentPayments } = await supabase
+        .from('payments')
+        .select('*, apartment_id')
+        .eq('building_id', buildingId)
+        .order('payment_date', { ascending: false })
+        .limit(5)
 
-        const { data: recentExpenses } = await supabase
-          .from('expenses')
-          .select('*, category_id')
-          .eq('building_id', buildingId)
-          .order('expense_date', { ascending: false })
-          .limit(5)
+      const { data: recentExpenses } = await supabase
+        .from('expenses')
+        .select('*, category_id')
+        .eq('building_id', buildingId)
+        .order('expense_date', { ascending: false })
+        .limit(5)
 
-        const transactions = [
-          ...(recentPayments || []).map(p => ({ ...p, type: 'income' })),
-          ...(recentExpenses || []).map(e => ({ ...e, type: 'expense' })),
-        ].sort((a, b) => {
-          const dateA = a.type === 'income' ? a.payment_date : a.expense_date
-          const dateB = b.type === 'income' ? b.payment_date : b.expense_date
-          return new Date(dateB).getTime() - new Date(dateA).getTime()
-        }).slice(0, 10)
+      const transactions = [
+        ...(recentPayments || []).map(p => ({ ...p, type: 'income' })),
+        ...(recentExpenses || []).map(e => ({ ...e, type: 'expense' })),
+      ].sort((a, b) => {
+        const dateA = a.type === 'income' ? a.payment_date : a.expense_date
+        const dateB = b.type === 'income' ? b.payment_date : b.expense_date
+        return new Date(dateB).getTime() - new Date(dateA).getTime()
+      }).slice(0, 10)
 
-        setRecentTransactions(transactions)
+      setRecentTransactions(transactions)
 
-      } catch (error) {
-        console.error('Error loading data:', error)
-        alert('მონაცემების ჩატვირთვის შეცდომა')
-        router.push('/dashboard')
-      } finally {
-        setLoading(false)
-      }
+    } catch (error) {
+      console.error('Error loading data:', error)
+      alert('მონაცემების ჩატვირთვის შეცდომა')
+      router.push('/dashboard')
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     loadData()
   }, [buildingId, router])
 
@@ -252,7 +569,6 @@ export default function FinancesPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Title */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">ფინანსები</h2>
           <p className="text-slate-400">
@@ -260,7 +576,6 @@ export default function FinancesPage() {
           </p>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             icon={IconTrendingUp}
@@ -273,7 +588,7 @@ export default function FinancesPage() {
           <StatCard
             icon={IconTrendingDown}
             label="ხარჯები"
-            value={`₾${stats.totalExpenses.toLocaleString()}`}
+            value={`${stats.totalExpenses.toLocaleString()}`}
             sublabel="ამ თვეში"
             gradient="from-rose-500 to-pink-600"
             trend="down"
@@ -296,8 +611,22 @@ export default function FinancesPage() {
           />
         </div>
 
-        {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <button 
+            onClick={() => setIsGenerateModalOpen(true)}
+            className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <IconCalendar className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="font-bold text-white text-lg">ყოველთვიური გენერაცია</div>
+                <div className="text-sm text-slate-400">ინვოისების შექმნა</div>
+              </div>
+            </div>
+          </button>
+
           <button className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 text-left group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -321,21 +650,8 @@ export default function FinancesPage() {
               </div>
             </div>
           </button>
-
-          <button className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 text-left group">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <IconTrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="font-bold text-white text-lg">ყოველთვიური გენერაცია</div>
-                <div className="text-sm text-slate-400">ინვოისები</div>
-              </div>
-            </div>
-          </button>
         </div>
 
-        {/* Recent Transactions */}
         <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-white">ბოლო ტრანზაქციები</h3>
@@ -400,7 +716,6 @@ export default function FinancesPage() {
           )}
         </div>
 
-        {/* Expense Categories Breakdown */}
         <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8 mt-8">
           <h3 className="text-2xl font-bold text-white mb-6">ხარჯები კატეგორიებით</h3>
           <div className="text-center py-12 text-slate-400">
@@ -408,6 +723,14 @@ export default function FinancesPage() {
           </div>
         </div>
       </main>
+
+      {/* Generate Modal */}
+      <GenerateModal 
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        buildingId={buildingId}
+        onSuccess={loadData}
+      />
     </div>
   )
 }
