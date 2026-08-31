@@ -81,6 +81,13 @@ const IconCalendar = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+)
+
 // ============ STAT CARD ============
 function StatCard({ icon: Icon, label, value, sublabel, gradient, trend }: { 
   icon: any; 
@@ -167,9 +174,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
         let calculationMethod = settings?.fee_calculation_method || 'per_apartment'
         const propertyType = apt.property_type || 'residential'
 
-        // ==========================================
-        // 1. შეამოწმე ბინის ინდივიდუალური წესი (OVERRIDE)
-        // ==========================================
         if (apt.fee_calculation_method_override === 'exempt') {
           amount = 0
           calculationMethod = 'exempt'
@@ -183,11 +187,7 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
         } else if (apt.fee_calculation_method_override === 'per_apartment') {
           amount = apt.fixed_fee_override || settings?.fixed_monthly_fee || 0
           calculationMethod = 'per_apartment (override)'
-        } 
-        // ==========================================
-        // 2. თუ ინდივიდუალური წესი არ არის, გამოიყენე კორპუსის ნაგულისხმევი
-        // ==========================================
-        else if (settings?.fee_calculation_method === 'per_sqm') {
+        } else if (settings?.fee_calculation_method === 'per_sqm') {
           const rate = propertyType === 'commercial' 
             ? settings.commercial_rate_per_sqm 
             : settings.residential_rate_per_sqm
@@ -196,7 +196,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
           amount = settings.fixed_monthly_fee || 0
         }
 
-        // დავამატოთ სპეციალური შენატანები
         let specialAmount = 0
         assessments?.forEach(assessment => {
           if (assessment.calculation_method === 'per_unit') {
@@ -268,7 +267,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
         let calculationMethod = settings?.fee_calculation_method || 'per_apartment'
         const propertyType = apt.property_type || 'residential'
 
-        // იგივე ლოგიკა, რაც პრევიუში
         if (apt.fee_calculation_method_override === 'exempt') {
           baseAmount = 0
           calculationMethod = 'exempt'
@@ -692,6 +690,122 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
   )
 }
 
+// ============ BANK ACCOUNT MODAL ============
+function BankAccountModal({ isOpen, onClose, form, setForm, onSubmit, editingAccount, isProcessing }: any) {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <IconWallet className="w-6 h-6 text-blue-400" />
+            {editingAccount ? 'ანგარიშის რედაქტირება' : 'ანგარიშის დამატება'}
+          </h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+            <IconX className="w-6 h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-300 mb-1">ბანკის სახელი *</label>
+              <input
+                required
+                value={form.bank_name}
+                onChange={(e) => setForm({...form, bank_name: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                placeholder="მაგ: თიბისი ბანკი"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-300 mb-1">ანგარიშის ნომერი *</label>
+              <input
+                required
+                value={form.account_number}
+                onChange={(e) => setForm({...form, account_number: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                placeholder="მაგ: GE12TB12345678901234"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-300 mb-1">ანგარიშის მფლობელი *</label>
+              <input
+                required
+                value={form.account_holder}
+                onChange={(e) => setForm({...form, account_holder: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                placeholder="მაგ: ვაკე 42 კორპუსი"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">ვალუტა</label>
+              <select
+                value={form.currency}
+                onChange={(e) => setForm({...form, currency: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+              >
+                <option value="GEL" className="bg-slate-800">GEL (₾)</option>
+                <option value="USD" className="bg-slate-800">USD ($)</option>
+                <option value="EUR" className="bg-slate-800">EUR (€)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">SWIFT კოდი</label>
+              <input
+                value={form.swift_code}
+                onChange={(e) => setForm({...form, swift_code: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                placeholder="მაგ: TBCBGE22"
+              />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.is_primary}
+              onChange={(e) => setForm({...form, is_primary: e.target.checked})}
+              className="w-5 h-5 rounded border-white/20 bg-slate-800 text-blue-500 focus:ring-blue-500/50"
+            />
+            <span className="text-sm text-slate-300">მთავარი ანგარიში (პირველად გამოჩნდება)</span>
+          </label>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">შენიშვნები</label>
+            <textarea
+              value={form.notes}
+              onChange={(e) => setForm({...form, notes: e.target.value})}
+              rows={3}
+              className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none resize-none"
+              placeholder="დამატებითი ინფორმაცია..."
+            ></textarea>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 text-slate-300 hover:text-white font-medium transition-colors"
+            >
+              გაუქმება
+            </button>
+            <button
+              type="submit"
+              disabled={isProcessing}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 text-white font-bold rounded-lg transition-colors"
+            >
+              {isProcessing ? <IconLoader className="w-5 h-5" /> : <IconPlus className="w-5 h-5" />}
+              {isProcessing ? 'ინახება...' : (editingAccount ? 'განახლება' : 'დამატება')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ============ MAIN PAGE ============
 
 export default function FinancesPage() {
@@ -710,6 +824,21 @@ export default function FinancesPage() {
     pendingPayments: 0,
   })
   const [recentTransactions, setRecentTransactions] = useState<any[]>([])
+  
+  // Bank Accounts State
+  const [bankAccounts, setBankAccounts] = useState<any[]>([])
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false)
+  const [editingBankAccount, setEditingBankAccount] = useState<any>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [bankForm, setBankForm] = useState({
+    bank_name: '',
+    account_number: '',
+    account_holder: '',
+    currency: 'GEL',
+    swift_code: '',
+    is_primary: false,
+    notes: '',
+  })
 
   const loadData = async () => {
     if (!buildingId) return
@@ -780,6 +909,16 @@ export default function FinancesPage() {
 
       setRecentTransactions(transactions)
 
+      // Load bank accounts
+      const { data: bankData } = await supabase
+        .from('building_bank_accounts')
+        .select('*')
+        .eq('building_id', buildingId)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: true })
+
+      setBankAccounts(bankData || [])
+
     } catch (error) {
       console.error('Error loading data:', error)
       alert('მონაცემების ჩატვირთვის შეცდომა')
@@ -792,6 +931,121 @@ export default function FinancesPage() {
   useEffect(() => {
     loadData()
   }, [buildingId, router])
+
+  // ============ BANK ACCOUNT HANDLERS ============
+  const handleOpenBankModal = (account?: any) => {
+    if (account) {
+      setEditingBankAccount(account)
+      setBankForm({
+        bank_name: account.bank_name || '',
+        account_number: account.account_number || '',
+        account_holder: account.account_holder || '',
+        currency: account.currency || 'GEL',
+        swift_code: account.swift_code || '',
+        is_primary: account.is_primary || false,
+        notes: account.notes || '',
+      })
+    } else {
+      setEditingBankAccount(null)
+      setBankForm({
+        bank_name: '',
+        account_number: '',
+        account_holder: '',
+        currency: 'GEL',
+        swift_code: '',
+        is_primary: false,
+        notes: '',
+      })
+    }
+    setIsBankModalOpen(true)
+  }
+
+  const handleBankSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsProcessing(true)
+
+    const payload = {
+      building_id: buildingId,
+      ...bankForm,
+    }
+
+    let error
+    if (editingBankAccount) {
+      const res = await supabase
+        .from('building_bank_accounts')
+        .update(payload)
+        .eq('id', editingBankAccount.id)
+      error = res.error
+    } else {
+      const res = await supabase
+        .from('building_bank_accounts')
+        .insert(payload)
+      error = res.error
+    }
+
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      const { data: bankData } = await supabase
+        .from('building_bank_accounts')
+        .select('*')
+        .eq('building_id', buildingId)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: true })
+      setBankAccounts(bankData || [])
+      setIsBankModalOpen(false)
+    }
+    setIsProcessing(false)
+  }
+
+  const handleDeleteBankAccount = async (id: string) => {
+    if (!confirm('დარწმუნებული ხარ, რომ გსურს ამ ანგარიშის წაშლა?')) return
+    setIsProcessing(true)
+    const { error } = await supabase.from('building_bank_accounts').delete().eq('id', id)
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      const { data: bankData } = await supabase
+        .from('building_bank_accounts')
+        .select('*')
+        .eq('building_id', buildingId)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: true })
+      setBankAccounts(bankData || [])
+    }
+    setIsProcessing(false)
+  }
+
+  const handleSetPrimary = async (id: string) => {
+    setIsProcessing(true)
+    await supabase
+      .from('building_bank_accounts')
+      .update({ is_primary: false })
+      .eq('building_id', buildingId)
+    
+    const { error } = await supabase
+      .from('building_bank_accounts')
+      .update({ is_primary: true })
+      .eq('id', id)
+      
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      const { data: bankData } = await supabase
+        .from('building_bank_accounts')
+        .select('*')
+        .eq('building_id', buildingId)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: true })
+      setBankAccounts(bankData || [])
+    }
+    setIsProcessing(false)
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    alert('ანგარიშის ნომერი დაკოპირდა!')
+  }
 
   if (loading) {
     return (
@@ -856,6 +1110,125 @@ export default function FinancesPage() {
           <StatCard icon={IconTrendingDown} label="ხარჯები" value={`₾${stats.totalExpenses.toLocaleString()}`} sublabel="ამ თვეში" gradient="from-rose-500 to-pink-600" trend="down" />
           <StatCard icon={IconWallet} label="ბალანსი" value={`₾${stats.balance.toLocaleString()}`} sublabel={stats.balance >= 0 ? 'პოზიტიური' : 'ნეგატიური'} gradient="from-blue-500 to-cyan-600" trend={stats.balance >= 0 ? 'up' : 'down'} />
           <StatCard icon={IconAlertCircle} label="გადაუხდელი" value={`₾${stats.pendingPayments.toLocaleString()}`} sublabel="მოლოდინში" gradient="from-amber-500 to-orange-600" trend="neutral" />
+        </div>
+
+        {/* Bank Accounts Section */}
+        <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-1">საბანკო რეკვიზიტები</h3>
+              <p className="text-sm text-slate-400">ანგარიშები, სადაც მაცხოვრებლები რიცხავენ თანხას</p>
+            </div>
+            <button
+              onClick={() => handleOpenBankModal()}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <IconPlus className="w-4 h-4" />
+              ანგარიშის დამატება
+            </button>
+          </div>
+
+          {bankAccounts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
+                <IconWallet className="w-8 h-8 text-slate-400" />
+              </div>
+              <h4 className="font-bold text-white text-lg mb-2">საბანკო ანგარიში არ არის დამატებული</h4>
+              <p className="text-sm text-slate-400 mb-6">დაამატე პირველი საბანკო ანგარიში, რათა მაცხოვრებლებმა შეძლონ თანხის ჩარიცხვა</p>
+              <button
+                onClick={() => handleOpenBankModal()}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+              >
+                <IconPlus className="w-5 h-5" />
+                ანგარიშის დამატება
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {bankAccounts.map((account) => (
+                <div
+                  key={account.id}
+                  className={`bg-slate-900/50 border rounded-2xl p-6 transition-all ${
+                    account.is_primary
+                      ? 'border-blue-500/50 bg-blue-500/5'
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        account.is_primary ? 'bg-blue-500/20' : 'bg-slate-700/50'
+                      }`}>
+                        <IconWallet className={`w-6 h-6 ${account.is_primary ? 'text-blue-400' : 'text-slate-400'}`} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-white text-lg">{account.bank_name}</div>
+                        <div className="text-sm text-slate-400">{account.account_holder}</div>
+                      </div>
+                    </div>
+                    {account.is_primary && (
+                      <span className="px-2.5 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-xs font-medium text-blue-400">
+                        მთავარი
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-3 mb-4">
+                    <div>
+                      <div className="text-xs text-slate-400 mb-1">ანგარიშის ნომერი</div>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono text-sm break-all">
+                          {account.account_number}
+                        </code>
+                        <button
+                          onClick={() => copyToClipboard(account.account_number)}
+                          className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded-lg transition-colors"
+                          title="კოპირება"
+                        >
+                          📋
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="text-xs text-slate-400 mb-1">ვალუტა</div>
+                        <div className="text-white font-medium">{account.currency}</div>
+                      </div>
+                      {account.swift_code && (
+                        <div>
+                          <div className="text-xs text-slate-400 mb-1">SWIFT</div>
+                          <div className="text-white font-medium">{account.swift_code}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-4 border-t border-white/10">
+                    {!account.is_primary && (
+                      <button
+                        onClick={() => handleSetPrimary(account.id)}
+                        className="flex-1 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-sm font-medium rounded-lg transition-colors"
+                      >
+                        მთავრად დაყენება
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleOpenBankModal(account)}
+                      className="flex-1 px-3 py-2 bg-slate-700/50 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                    >
+                      რედაქტირება
+                    </button>
+                    <button
+                      onClick={() => handleDeleteBankAccount(account.id)}
+                      className="px-3 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-sm font-medium rounded-lg transition-colors"
+                    >
+                      <IconTrash className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -957,6 +1330,17 @@ export default function FinancesPage() {
 
       <FinancialSettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} buildingId={buildingId} onSuccess={loadData} />
       <GenerateModal isOpen={isGenerateModalOpen} onClose={() => setIsGenerateModalOpen(false)} buildingId={buildingId} onSuccess={loadData} />
+      
+      {/* Bank Account Modal */}
+      <BankAccountModal
+        isOpen={isBankModalOpen}
+        onClose={() => setIsBankModalOpen(false)}
+        form={bankForm}
+        setForm={setBankForm}
+        onSubmit={handleBankSubmit}
+        editingAccount={editingBankAccount}
+        isProcessing={isProcessing}
+      />
     </div>
   )
 }
