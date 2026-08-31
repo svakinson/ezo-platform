@@ -120,16 +120,52 @@ export default function LedgerPage() {
     }
   }, [selectedMonth])
 
+  // განახლებული loadFees ფუნქცია უფრო საიმედო მონაცემთა მიღებისთვის
   const loadFees = async () => {
-    const { data: feesData } = await supabase
+    console.log('Loading fees for month:', selectedMonth + '-01')
+    
+    const { data: feesData, error } = await supabase
       .from('monthly_fees')
-      .select('*, apartments(apartment_number, floor, area_sqm), owners(full_name, phone)')
+      .select('*')
       .eq('building_id', buildingId)
       .eq('fee_month', selectedMonth + '-01')
-      .order('apartments(floor)', { ascending: false })
-      .order('apartments(apartment_number)', { ascending: true })
 
-    setFees(feesData || [])
+    if (error) {
+      console.error('Error loading fees:', error)
+      alert('შეცდომა: ' + error.message)
+      return
+    }
+
+    console.log('Fees loaded:', feesData)
+
+    if (feesData && feesData.length > 0) {
+      const apartmentIds = feesData.map(f => f.apartment_id)
+      
+      const { data: apartmentsData } = await supabase
+        .from('apartments')
+        .select('id, apartment_number, floor, area_sqm')
+        .in('id', apartmentIds)
+
+      const { data: ownersData } = await supabase
+        .from('owners')
+        .select('apartment_id, full_name, phone')
+        .in('apartment_id', apartmentIds)
+
+      const enrichedFees = feesData.map(fee => {
+        const apartment = apartmentsData?.find(a => a.id === fee.apartment_id)
+        const owners = ownersData?.filter(o => o.apartment_id === fee.apartment_id) || []
+        
+        return {
+          ...fee,
+          apartments: apartment ? [apartment] : [],
+          owners: owners
+        }
+      })
+
+      setFees(enrichedFees)
+    } else {
+      setFees([])
+    }
   }
 
   const handleVerify = async (feeId: string) => {
@@ -384,8 +420,8 @@ export default function LedgerPage() {
                     return (
                       <tr key={fee.id} className="border-b border-white/5 hover:bg-slate-800/50 transition-colors">
                         <td className="p-4">
-                          <div className="font-semibold text-white">ბინა {apartment?.apartment_number}</div>
-                          <div className="text-xs text-slate-400">სართული {apartment?.floor}</div>
+                          <div className="font-semibold text-white">ბინა {apartment?.apartment_number || '—'}</div>
+                          <div className="text-xs text-slate-400">სართული {apartment?.floor || '—'}</div>
                         </td>
                         <td className="p-4">
                           <div className="text-sm text-white">{owner?.full_name || '—'}</div>
@@ -394,7 +430,7 @@ export default function LedgerPage() {
                           )}
                         </td>
                         <td className="p-4">
-                          <div className="font-bold text-white">₾{fee.amount.toLocaleString()}</div>
+                          <div className="font-bold text-white">₾{Number(fee.amount || 0).toLocaleString()}</div>
                         </td>
                         <td className="p-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
