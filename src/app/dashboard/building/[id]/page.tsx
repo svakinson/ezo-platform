@@ -186,7 +186,7 @@ export default function BuildingPage() {
             <h1 className="text-lg font-bold text-white">{building.name || building.street}</h1>
           </div>
           
-          {/* UPDATED: Added Apartments button next to Edit button */}
+          {/* Header Buttons */}
           <div className="flex items-center gap-3">
             <Link 
               href={`/dashboard/building/${buildingId}/apartments`}
@@ -209,12 +209,20 @@ export default function BuildingPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={IconBuilding}
-            label="ბინები"
-            value={building.apartments_count?.toString() || '0'}
-            gradient="from-emerald-500 to-teal-600"
-          />
+          
+          {/* UPDATED: Wrapped in Link to make it clickable */}
+          <Link 
+            href={`/dashboard/building/${buildingId}/apartments`} 
+            className="block hover:-translate-y-1 transition-transform duration-300"
+          >
+            <StatCard
+              icon={IconBuilding}
+              label="ბინები"
+              value={building.apartments_count?.toString() || '0'}
+              gradient="from-emerald-500 to-teal-600"
+            />
+          </Link>
+
           <StatCard
             icon={IconBuilding}
             label="სადარბაზო"

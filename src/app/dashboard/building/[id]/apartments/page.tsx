@@ -28,6 +28,13 @@ const IconPlus = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
 const IconGrid = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" />
@@ -55,7 +62,7 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-// ============ STATUS CONFIG ============
+// ============ CONFIG ============
 const statusConfig = {
   owner_occupied: { label: 'მფლობელი ცხოვრობს', color: 'bg-emerald-500', textColor: 'text-emerald-400', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/30' },
   rented: { label: 'ქირავდება', color: 'bg-blue-500', textColor: 'text-blue-400', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/30' },
@@ -85,33 +92,42 @@ export default function ApartmentsPage() {
   const [building, setBuilding] = useState<any>(null)
   const [apartments, setApartments] = useState<any[]>([])
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    apartment_number: '',
+    floor: '',
+    area_sqm: '',
+    rooms: '',
+    bedrooms: '',
+    bathrooms: '',
+    unit_type: '1_bedroom',
+    status: 'vacant',
+    parking_spaces: '0',
+    storage_units: '0',
+    has_balcony: false,
+    has_elevator_access: true,
+    special_notes: '',
+  })
 
   useEffect(() => {
     const loadData = async () => {
       if (!buildingId) return
-
       try {
-        // 1. Load building
-        const { data: buildingData, error: buildingError } = await supabase
-          .from('buildings')
-          .select('*')
-          .eq('id', buildingId)
-          .single()
-
+        const { data: buildingData, error: buildingError } = await supabase.from('buildings').select('*').eq('id', buildingId).single()
         if (buildingError) throw buildingError
         setBuilding(buildingData)
 
-        // 2. Load apartments
         const { data: apartmentsData, error: apartmentsError } = await supabase
           .from('apartments')
           .select('*')
           .eq('building_id', buildingId)
           .order('floor', { ascending: false })
           .order('apartment_number', { ascending: true })
-
         if (apartmentsError) throw apartmentsError
         setApartments(apartmentsData || [])
-
       } catch (error) {
         console.error('Error loading data:', error)
         alert('მონაცემების ჩატვირთვის შეცდომა')
@@ -120,9 +136,63 @@ export default function ApartmentsPage() {
         setLoading(false)
       }
     }
-
     loadData()
   }, [buildingId, router])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    if (type === 'checkbox') {
+      setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    const payload = {
+      building_id: buildingId,
+      apartment_number: formData.apartment_number,
+      floor: parseInt(formData.floor) || 1,
+      area_sqm: parseFloat(formData.area_sqm) || 0,
+      rooms: parseInt(formData.rooms) || 1,
+      bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+      bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+      unit_type: formData.unit_type,
+      status: formData.status,
+      parking_spaces: parseInt(formData.parking_spaces) || 0,
+      storage_units: parseInt(formData.storage_units) || 0,
+      has_balcony: formData.has_balcony,
+      has_elevator_access: formData.has_elevator_access,
+      special_notes: formData.special_notes || null,
+    }
+
+    const { error } = await supabase.from('apartments').insert(payload)
+
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      // წარმატება: განვაახლოთ სია და დავხუროთ მოდალი
+      const { data } = await supabase.from('apartments').select('*').eq('building_id', buildingId).order('floor', { ascending: false }).order('apartment_number', { ascending: true })
+      setApartments(data || [])
+      setIsModalOpen(false)
+      setFormData({
+        apartment_number: '', floor: '', area_sqm: '', rooms: '', bedrooms: '', bathrooms: '',
+        unit_type: '1_bedroom', status: 'vacant', parking_spaces: '0', storage_units: '0',
+        has_balcony: false, has_elevator_access: true, special_notes: '',
+      })
+      
+      // ასევე განვაახლოთ მთავარი კორპუსის ბინების რაოდენობა (ოფციონალური, მაგრამ კარგი პრაქტიკაა)
+      if (building) {
+        const newCount = (building.apartments_count || 0) + 1
+        await supabase.from('buildings').update({ apartments_count: newCount }).eq('id', buildingId)
+        setBuilding({ ...building, apartments_count: newCount })
+      }
+    }
+    setIsSubmitting(false)
+  }
 
   if (loading) {
     return (
@@ -130,7 +200,6 @@ export default function ApartmentsPage() {
         <div className="text-center">
           <IconLoader className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
           <div className="text-white font-semibold mb-1">ბინები იტვირთება...</div>
-          <div className="text-slate-400 text-sm">გთხოვთ მოიცადოთ</div>
         </div>
       </div>
     )
@@ -141,9 +210,7 @@ export default function ApartmentsPage() {
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-white text-xl mb-4">კორპუსი ვერ მოიძებნა</div>
-          <Link href="/dashboard" className="text-emerald-400 hover:text-emerald-300">
-            ← Dashboard-ზე დაბრუნება
-          </Link>
+          <Link href="/dashboard" className="text-emerald-400 hover:text-emerald-300">← Dashboard-ზე დაბრუნება</Link>
         </div>
       </div>
     )
@@ -165,7 +232,10 @@ export default function ApartmentsPage() {
               <h1 className="text-lg font-bold text-white">{building.name || building.street}</h1>
             </div>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
             <IconPlus className="w-4 h-4" />
             ბინის დამატება
           </button>
@@ -184,26 +254,12 @@ export default function ApartmentsPage() {
               )}
             </p>
           </div>
-          
-          {/* View Mode Toggle */}
           <div className="flex items-center gap-2 bg-slate-800/50 border border-white/10 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'grid' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <IconGrid className="w-4 h-4" />
-              ბადე
+            <button onClick={() => setViewMode('grid')} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'grid' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'}`}>
+              <IconGrid className="w-4 h-4" /> ბადე
             </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'table' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <IconList className="w-4 h-4" />
-              სია
+            <button onClick={() => setViewMode('table')} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'table' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'}`}>
+              <IconList className="w-4 h-4" /> სია
             </button>
           </div>
         </div>
@@ -215,22 +271,21 @@ export default function ApartmentsPage() {
               <IconBuilding className="w-8 h-8 text-slate-400" />
             </div>
             <h3 className="font-bold text-white text-lg mb-2">ბინები ჯერ არ არის დამატებული</h3>
-            <p className="text-sm text-slate-400 mb-6 max-w-sm">
-              დაამატე პირველი ბინა, რათა დაიწყო კორპუსის სრულფასოვანი მართვა.
-            </p>
-            <button className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all">
+            <p className="text-sm text-slate-400 mb-6 max-w-sm">დაამატე პირველი ბინა, რათა დაიწყო კორპუსის სრულფასოვანი მართვა.</p>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all"
+            >
               <IconPlus className="w-5 h-5" />
               ბინის დამატება
             </button>
           </div>
         ) : viewMode === 'grid' ? (
-          /* GRID VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {apartments.map((apt) => {
               const status = statusConfig[apt.status as keyof typeof statusConfig] || statusConfig.vacant
               return (
                 <div key={apt.id} className={`group bg-slate-800/50 border ${status.borderColor} rounded-xl p-5 hover:bg-slate-800 transition-all duration-300`}>
-                  {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="font-bold text-white text-lg mb-1">ბინა {apt.apartment_number}</h3>
@@ -240,8 +295,6 @@ export default function ApartmentsPage() {
                       {status.label}
                     </span>
                   </div>
-
-                  {/* Stats */}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400">ფართობი</span>
@@ -251,12 +304,6 @@ export default function ApartmentsPage() {
                       <span className="text-slate-400">ოთახები</span>
                       <span className="text-white font-medium">{apt.rooms || '—'}</span>
                     </div>
-                    {apt.bedrooms && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-400">საძინებლები</span>
-                        <span className="text-white font-medium">{apt.bedrooms}</span>
-                      </div>
-                    )}
                     {apt.unit_type && (
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-slate-400">ტიპი</span>
@@ -264,25 +311,16 @@ export default function ApartmentsPage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Features */}
                   <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
-                    {apt.has_balcony && (
-                      <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">აივანი</span>
-                    )}
-                    {apt.parking_spaces > 0 && (
-                      <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">{apt.parking_spaces} პარკინგი</span>
-                    )}
-                    {apt.storage_units > 0 && (
-                      <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">{apt.storage_units} სათავსო</span>
-                    )}
+                    {apt.has_balcony && <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">აივანი</span>}
+                    {apt.parking_spaces > 0 && <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">{apt.parking_spaces} პარკინგი</span>}
+                    {apt.storage_units > 0 && <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">{apt.storage_units} სათავსო</span>}
                   </div>
                 </div>
               )
             })}
           </div>
         ) : (
-          /* TABLE VIEW */
           <div className="bg-slate-800/50 border border-white/10 rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -301,9 +339,7 @@ export default function ApartmentsPage() {
                     const status = statusConfig[apt.status as keyof typeof statusConfig] || statusConfig.vacant
                     return (
                       <tr key={apt.id} className="border-b border-white/5 hover:bg-slate-800/50 transition-colors">
-                        <td className="p-4">
-                          <div className="font-semibold text-white">ბინა {apt.apartment_number}</div>
-                        </td>
+                        <td className="p-4"><div className="font-semibold text-white">ბინა {apt.apartment_number}</div></td>
                         <td className="p-4 text-slate-300">{apt.floor}</td>
                         <td className="p-4 text-slate-300">{apt.area_sqm || '—'} მ²</td>
                         <td className="p-4 text-slate-300">{apt.rooms || '—'}</td>
@@ -322,6 +358,105 @@ export default function ApartmentsPage() {
           </div>
         )}
       </main>
+
+      {/* ============ ADD APARTMENT MODAL ============ */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
+              <h3 className="text-xl font-bold text-white">ახალი ბინის დამატება</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+                <IconX className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ნომერი *</label>
+                  <input required name="apartment_number" value={formData.apartment_number} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 14A" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">სართული *</label>
+                  <input required type="number" name="floor" value={formData.floor} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 3" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ფართობი (მ²) *</label>
+                  <input required type="number" step="0.1" name="area_sqm" value={formData.area_sqm} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 85.5" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ოთახების რაოდენობა *</label>
+                  <input required type="number" name="rooms" value={formData.rooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 3" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">საძინებლები</label>
+                  <input type="number" name="bedrooms" value={formData.bedrooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 2" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">სააბაზანოები</label>
+                  <input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 1" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ტიპი</label>
+                  <select name="unit_type" value={formData.unit_type} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none">
+                    <option value="studio">სტუდია</option>
+                    <option value="1_bedroom">1-ოთახიანი</option>
+                    <option value="2_bedroom">2-ოთახიანი</option>
+                    <option value="3_bedroom">3-ოთახიანი</option>
+                    <option value="4_bedroom">4-ოთახიანი</option>
+                    <option value="penthouse">პენტჰაუსი</option>
+                    <option value="duplex">დუპლექსი</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">სტატუსი</label>
+                  <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none">
+                    <option value="vacant">ცარიელია</option>
+                    <option value="owner_occupied">მფლობელი ცხოვრობს</option>
+                    <option value="rented">ქირავდება</option>
+                    <option value="under_maintenance">რემონტში</option>
+                    <option value="reserved">დაჯავშნილი</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">პარკინგის ადგილები</label>
+                  <input type="number" name="parking_spaces" value={formData.parking_spaces} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="0" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">სათავსოები</label>
+                  <input type="number" name="storage_units" value={formData.storage_units} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="0" />
+                </div>
+              </div>
+
+              <div className="flex gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" name="has_balcony" checked={formData.has_balcony} onChange={handleInputChange} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50" />
+                  <span className="text-sm text-slate-300">აქვს აივანი</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" name="has_elevator_access" checked={formData.has_elevator_access} onChange={handleInputChange} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50" />
+                  <span className="text-sm text-slate-300">აქვს ლიფტთან წვდომა</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">დამატებითი შენიშვნები</label>
+                <textarea name="special_notes" value={formData.special_notes} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none resize-none" placeholder="ნებისმიერი დამატებითი ინფორმაცია..."></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">
+                  გაუქმება
+                </button>
+                <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isSubmitting ? <IconLoader className="w-4 h-4" /> : <IconPlus className="w-4 h-4" />}
+                  {isSubmitting ? 'ინახება...' : 'დამატება'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
