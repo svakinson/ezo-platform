@@ -138,27 +138,23 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
     setIsProcessing(true)
 
     try {
-      // Load building settings
       const { data: settings } = await supabase
         .from('building_financial_settings')
         .select('*')
         .eq('building_id', buildingId)
         .single()
 
-      // Load apartments
       const { data: apartments } = await supabase
         .from('apartments')
         .select('*')
         .eq('building_id', buildingId)
 
-      // Load special assessments for this month
       const { data: assessments } = await supabase
         .from('special_assessments')
         .select('*')
         .eq('building_id', buildingId)
         .eq('is_active', true)
 
-      // Calculate preview
       let totalAmount = 0
       const breakdown = {
         residential: { count: 0, amount: 0 },
@@ -170,7 +166,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
         let amount = 0
         const propertyType = apt.property_type || 'residential'
 
-        // Check for custom override
         if (apt.custom_monthly_fee) {
           amount = apt.custom_monthly_fee
         } else if (settings?.fee_calculation_method === 'per_sqm') {
@@ -182,7 +177,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
           amount = settings.fixed_monthly_fee || 0
         }
 
-        // Add special assessments
         let specialAmount = 0
         assessments?.forEach(assessment => {
           if (assessment.calculation_method === 'per_unit') {
@@ -284,7 +278,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
           amount: baseAmount + specialAmount,
           base_amount: baseAmount,
           special_assessment_amount: specialAmount,
-          late_fee_amount: 0,
           due_date: dueDate.toISOString().slice(0, 10),
           grace_period_days: settings?.grace_period_days || 5,
           late_fee_amount: settings?.late_fee_amount || 0,
@@ -327,7 +320,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Month Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">აირჩიეთ თვე</label>
             <input 
@@ -338,7 +330,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
             />
           </div>
 
-          {/* Preview Button */}
           <button 
             onClick={handlePreview}
             disabled={!selectedMonth || isProcessing}
@@ -347,12 +338,11 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
             {isProcessing ? 'ითვლის...' : 'პრევიუს ნახვა'}
           </button>
 
-          {/* Preview Results */}
           {preview && (
             <div className="bg-slate-800/50 border border-white/10 rounded-xl p-6 space-y-4">
               <div className="text-center">
                 <div className="text-sm text-slate-400 mb-1">ჯამური თანხა</div>
-                <div className="text-4xl font-bold text-emerald-400">{preview.totalAmount.toLocaleString()}</div>
+                <div className="text-4xl font-bold text-emerald-400">₾{preview.totalAmount.toLocaleString()}</div>
                 <div className="text-sm text-slate-400 mt-2">{preview.totalApartments} ბინა</div>
               </div>
 
@@ -379,7 +369,7 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
                   <div>გამოთვლის მეთოდი: <span className="text-slate-300">{preview.settings.fee_calculation_method}</span></div>
                   {preview.settings.fee_calculation_method === 'per_sqm' && (
                     <>
-                      <div>საცხოვრებელი ტარიფი: <span className="text-slate-300">{preview.settings.residential_rate_per_sqm}/მ²</span></div>
+                      <div>საცხოვრებელი ტარიფი: <span className="text-slate-300">₾{preview.settings.residential_rate_per_sqm}/მ²</span></div>
                       <div>სავაჭრო ტარიფი: <span className="text-slate-300">₾{preview.settings.commercial_rate_per_sqm}/მ²</span></div>
                     </>
                   )}
@@ -391,7 +381,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
             </div>
           )}
 
-          {/* Generate Button */}
           {preview && (
             <button 
               onClick={handleGenerate}
@@ -588,7 +577,7 @@ export default function FinancesPage() {
           <StatCard
             icon={IconTrendingDown}
             label="ხარჯები"
-            value={`${stats.totalExpenses.toLocaleString()}`}
+            value={`₾${stats.totalExpenses.toLocaleString()}`}
             sublabel="ამ თვეში"
             gradient="from-rose-500 to-pink-600"
             trend="down"
