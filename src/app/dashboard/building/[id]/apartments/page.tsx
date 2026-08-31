@@ -28,14 +28,14 @@ const IconPlus = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconEdit = ({ className = "w-5 h-5" }: { className?: string }) => (
+const IconEdit = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 )
 
-const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
+const IconTrash = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6" />
     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -69,7 +69,20 @@ const IconList = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
+const IconUser = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+)
+
+const IconPhone = ({ className = "w-3 h-3" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+  </svg>
+)
+
+const IconLoader = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -77,15 +90,15 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
 )
 
 // ============ CONFIG ============
-const statusConfig = {
-  owner_occupied: { label: 'მფლობელი ცხოვრობს', color: 'bg-emerald-500', textColor: 'text-emerald-400', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/30' },
-  rented: { label: 'ქირავდება', color: 'bg-blue-500', textColor: 'text-blue-400', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/30' },
-  vacant: { label: 'ცარიელია', color: 'bg-slate-400', textColor: 'text-slate-400', bgColor: 'bg-slate-400/10', borderColor: 'border-slate-400/30' },
-  under_maintenance: { label: 'რემონტში', color: 'bg-amber-500', textColor: 'text-amber-400', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30' },
-  reserved: { label: 'დაჯავშნილი', color: 'bg-purple-500', textColor: 'text-purple-400', bgColor: 'bg-purple-500/10', borderColor: 'border-purple-500/30' },
+const statusConfig: Record<string, { label: string; bgColor: string; textColor: string; borderColor: string }> = {
+  owner_occupied: { label: 'მფლობელი ცხოვრობს', bgColor: 'bg-emerald-500/10', textColor: 'text-emerald-400', borderColor: 'border-emerald-500/30' },
+  rented: { label: 'ქირავდება', bgColor: 'bg-blue-500/10', textColor: 'text-blue-400', borderColor: 'border-blue-500/30' },
+  vacant: { label: 'ცარიელია', bgColor: 'bg-slate-400/10', textColor: 'text-slate-400', borderColor: 'border-slate-400/30' },
+  under_maintenance: { label: 'რემონტში', bgColor: 'bg-amber-500/10', textColor: 'text-amber-400', borderColor: 'border-amber-500/30' },
+  reserved: { label: 'დაჯავშნილი', bgColor: 'bg-purple-500/10', textColor: 'text-purple-400', borderColor: 'border-purple-500/30' },
 }
 
-const unitTypeLabels = {
+const unitTypeLabels: Record<string, string> = {
   studio: 'სტუდია',
   '1_bedroom': '1-ოთახიანი',
   '2_bedroom': '2-ოთახიანი',
@@ -113,10 +126,29 @@ export default function ApartmentsPage() {
   const [editingApartment, setEditingApartment] = useState<any>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
+  // Owner/Tenant Modal States
+  const [isOwnerModalOpen, setIsOwnerModalOpen] = useState(false)
+  const [isTenantModalOpen, setIsTenantModalOpen] = useState(false)
+  const [selectedAptId, setSelectedAptId] = useState<string | null>(null)
+  const [currentOwner, setCurrentOwner] = useState<any>(null)
+  const [currentTenant, setCurrentTenant] = useState<any>(null)
+
   const [formData, setFormData] = useState({
     apartment_number: '', floor: '', area_sqm: '', rooms: '', bedrooms: '', bathrooms: '',
     unit_type: '1_bedroom', status: 'vacant', parking_spaces: '0', storage_units: '0',
     has_balcony: false, has_elevator_access: true, special_notes: '',
+  })
+
+  const [ownerForm, setOwnerForm] = useState({
+    full_name: '', email: '', phone: '', personal_id: '',
+    ownership_percentage: '100', is_occupying: true,
+    emergency_contact_name: '', emergency_contact_phone: '', notes: '',
+  })
+
+  const [tenantForm, setTenantForm] = useState({
+    full_name: '', email: '', phone: '', personal_id: '',
+    lease_start_date: '', lease_end_date: '', monthly_rent: '',
+    notes: '',
   })
 
   useEffect(() => {
@@ -134,7 +166,18 @@ export default function ApartmentsPage() {
           .order('floor', { ascending: false })
           .order('apartment_number', { ascending: true })
         if (apartmentsError) throw apartmentsError
-        setApartments(apartmentsData || [])
+
+        // Load owners and tenants
+        const { data: ownersData } = await supabase.from('owners').select('*').eq('building_id', buildingId)
+        const { data: tenantsData } = await supabase.from('tenants').select('*').eq('building_id', buildingId).eq('is_active', true)
+
+        // Map to apartments
+        const enriched = (apartmentsData || []).map(apt => ({
+          ...apt,
+          owner: (ownersData || []).find(o => o.apartment_id === apt.id),
+          tenant: (tenantsData || []).find(t => t.apartment_id === apt.id && t.is_active),
+        }))
+        setApartments(enriched)
       } catch (error) {
         console.error('Error loading data:', error)
         alert('მონაცემების ჩატვირთვის შეცდომა')
@@ -181,8 +224,7 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
-      const { data } = await supabase.from('apartments').select('*').eq('building_id', buildingId).order('floor', { ascending: false }).order('apartment_number', { ascending: true })
-      setApartments(data || [])
+      await refreshApartments()
       setIsAddModalOpen(false)
       setFormData({
         apartment_number: '', floor: '', area_sqm: '', rooms: '', bedrooms: '', bathrooms: '',
@@ -239,8 +281,7 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა განახლებისას: ' + error.message)
     } else {
-      const { data } = await supabase.from('apartments').select('*').eq('building_id', buildingId).order('floor', { ascending: false }).order('apartment_number', { ascending: true })
-      setApartments(data || [])
+      await refreshApartments()
       setIsEditModalOpen(false)
       setEditingApartment(null)
     }
@@ -261,6 +302,186 @@ export default function ApartmentsPage() {
         }
       }
     }
+  }
+
+  const refreshApartments = async () => {
+    const { data: apartmentsData } = await supabase
+      .from('apartments')
+      .select('*')
+      .eq('building_id', buildingId)
+      .order('floor', { ascending: false })
+      .order('apartment_number', { ascending: true })
+    
+    const { data: ownersData } = await supabase.from('owners').select('*').eq('building_id', buildingId)
+    const { data: tenantsData } = await supabase.from('tenants').select('*').eq('building_id', buildingId).eq('is_active', true)
+
+    const enriched = (apartmentsData || []).map(apt => ({
+      ...apt,
+      owner: (ownersData || []).find(o => o.apartment_id === apt.id),
+      tenant: (tenantsData || []).find(t => t.apartment_id === apt.id && t.is_active),
+    }))
+    setApartments(enriched)
+  }
+
+  // ============ OWNER HANDLERS ============
+  const handleOpenOwnerModal = (apt: any) => {
+    setSelectedAptId(apt.id)
+    setCurrentOwner(apt.owner || null)
+    setCurrentTenant(apt.tenant || null)
+    if (apt.owner) {
+      setOwnerForm({
+        full_name: apt.owner.full_name || '',
+        email: apt.owner.email || '',
+        phone: apt.owner.phone || '',
+        personal_id: apt.owner.personal_id || '',
+        ownership_percentage: apt.owner.ownership_percentage?.toString() || '100',
+        is_occupying: apt.owner.is_occupying ?? true,
+        emergency_contact_name: apt.owner.emergency_contact_name || '',
+        emergency_contact_phone: apt.owner.emergency_contact_phone || '',
+        notes: apt.owner.notes || '',
+      })
+    } else {
+      setOwnerForm({
+        full_name: '', email: '', phone: '', personal_id: '',
+        ownership_percentage: '100', is_occupying: true,
+        emergency_contact_name: '', emergency_contact_phone: '', notes: '',
+      })
+    }
+    setIsOwnerModalOpen(true)
+  }
+
+  const handleOwnerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedAptId) return
+    setIsProcessing(true)
+
+    const payload = {
+      building_id: buildingId,
+      apartment_id: selectedAptId,
+      full_name: ownerForm.full_name,
+      email: ownerForm.email || null,
+      phone: ownerForm.phone || null,
+      personal_id: ownerForm.personal_id || null,
+      ownership_percentage: parseFloat(ownerForm.ownership_percentage) || 100,
+      is_occupying: ownerForm.is_occupying,
+      is_primary_owner: true,
+      emergency_contact_name: ownerForm.emergency_contact_name || null,
+      emergency_contact_phone: ownerForm.emergency_contact_phone || null,
+      notes: ownerForm.notes || null,
+    }
+
+    let error
+    if (currentOwner) {
+      const res = await supabase.from('owners').update(payload).eq('id', currentOwner.id)
+      error = res.error
+    } else {
+      const res = await supabase.from('owners').insert(payload)
+      error = res.error
+    }
+
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      await refreshApartments()
+      setIsOwnerModalOpen(false)
+    }
+    setIsProcessing(false)
+  }
+
+  const handleDeleteOwner = async () => {
+    if (!currentOwner) return
+    if (!confirm('დარწმუნებული ხარ, რომ გსურს მფლობელის წაშლა?')) return
+    setIsProcessing(true)
+    const { error } = await supabase.from('owners').delete().eq('id', currentOwner.id)
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      await refreshApartments()
+      setIsOwnerModalOpen(false)
+    }
+    setIsProcessing(false)
+  }
+
+  // ============ TENANT HANDLERS ============
+  const handleOpenTenantModal = (apt: any) => {
+    setSelectedAptId(apt.id)
+    setCurrentOwner(apt.owner || null)
+    setCurrentTenant(apt.tenant || null)
+    if (apt.tenant) {
+      setTenantForm({
+        full_name: apt.tenant.full_name || '',
+        email: apt.tenant.email || '',
+        phone: apt.tenant.phone || '',
+        personal_id: apt.tenant.personal_id || '',
+        lease_start_date: apt.tenant.lease_start_date || '',
+        lease_end_date: apt.tenant.lease_end_date || '',
+        monthly_rent: apt.tenant.monthly_rent?.toString() || '',
+        notes: apt.tenant.notes || '',
+      })
+    } else {
+      setTenantForm({
+        full_name: '', email: '', phone: '', personal_id: '',
+        lease_start_date: '', lease_end_date: '', monthly_rent: '', notes: '',
+      })
+    }
+    setIsTenantModalOpen(true)
+  }
+
+  const handleTenantSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedAptId || !currentOwner) {
+      alert('ჯერ უნდა დაამატოთ მფლობელი!')
+      return
+    }
+    setIsProcessing(true)
+
+    const payload = {
+      building_id: buildingId,
+      apartment_id: selectedAptId,
+      owner_id: currentOwner.id,
+      full_name: tenantForm.full_name,
+      email: tenantForm.email || null,
+      phone: tenantForm.phone || null,
+      personal_id: tenantForm.personal_id || null,
+      lease_start_date: tenantForm.lease_start_date || null,
+      lease_end_date: tenantForm.lease_end_date || null,
+      monthly_rent: tenantForm.monthly_rent ? parseFloat(tenantForm.monthly_rent) : null,
+      is_active: true,
+      notes: tenantForm.notes || null,
+    }
+
+    let error
+    if (currentTenant) {
+      const res = await supabase.from('tenants').update(payload).eq('id', currentTenant.id)
+      error = res.error
+    } else {
+      const res = await supabase.from('tenants').insert(payload)
+      error = res.error
+    }
+
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      // Update apartment status to 'rented'
+      await supabase.from('apartments').update({ status: 'rented' }).eq('id', selectedAptId)
+      await refreshApartments()
+      setIsTenantModalOpen(false)
+    }
+    setIsProcessing(false)
+  }
+
+  const handleDeleteTenant = async () => {
+    if (!currentTenant) return
+    if (!confirm('დარწმუნებული ხარ, რომ გსურს მქირავნობლის წაშლა?')) return
+    setIsProcessing(true)
+    const { error } = await supabase.from('tenants').delete().eq('id', currentTenant.id)
+    if (error) {
+      alert('შეცდომა: ' + error.message)
+    } else {
+      await refreshApartments()
+      setIsTenantModalOpen(false)
+    }
+    setIsProcessing(false)
   }
 
   if (loading) {
@@ -352,7 +573,7 @@ export default function ApartmentsPage() {
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {apartments.map((apt) => {
-              const status = statusConfig[apt.status as keyof typeof statusConfig] || statusConfig.vacant
+              const status = statusConfig[apt.status] || statusConfig.vacant
               return (
                 <div key={apt.id} className={`group bg-slate-800/50 border ${status.borderColor} rounded-xl p-5 hover:bg-slate-800 transition-all duration-300 flex flex-col`}>
                   <div className="flex items-start justify-between mb-4">
@@ -376,27 +597,98 @@ export default function ApartmentsPage() {
                     {apt.unit_type && (
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-slate-400">ტიპი</span>
-                        <span className="text-white font-medium">{unitTypeLabels[apt.unit_type as keyof typeof unitTypeLabels] || apt.unit_type}</span>
+                        <span className="text-white font-medium">{unitTypeLabels[apt.unit_type] || apt.unit_type}</span>
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10 mb-4">
-                    {apt.has_balcony && <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">აივანი</span>}
-                    {apt.parking_spaces > 0 && <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">{apt.parking_spaces} პარკინგი</span>}
-                    {apt.storage_units > 0 && <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">{apt.storage_units} სათავსო</span>}
+
+                  {/* Owner/Tenant Section */}
+                  <div className="pt-4 border-t border-white/10 mb-3">
+                    {apt.owner ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                            <IconUser className="w-3.5 h-3.5 text-emerald-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-slate-400">მფლობელი</div>
+                            <div className="text-sm font-medium text-white truncate">{apt.owner.full_name}</div>
+                          </div>
+                        </div>
+                        {apt.owner.phone && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                            <IconPhone className="w-3 h-3" />
+                            <span className="truncate">{apt.owner.phone}</span>
+                          </div>
+                        )}
+                        {apt.owner.is_occupying ? (
+                          <div className="text-xs text-emerald-400 font-medium">✓ თვითონ ცხოვრობს</div>
+                        ) : apt.tenant ? (
+                          <div className="pt-2 border-t border-white/5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <IconUser className="w-3.5 h-3.5 text-blue-400" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs text-slate-400">მქირავნობელი</div>
+                                <div className="text-sm font-medium text-white truncate">{apt.tenant.full_name}</div>
+                              </div>
+                            </div>
+                            {apt.tenant.phone && (
+                              <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
+                                <IconPhone className="w-3 h-3" />
+                                <span className="truncate">{apt.tenant.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-amber-400 font-medium">⚠ მქირავნობელი არ არის მითითებული</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-2">
+                        <div className="text-xs text-slate-500 mb-2">მფლობელი არ არის მითითებული</div>
+                        <button 
+                          onClick={() => handleOpenOwnerModal(apt)}
+                          className="text-xs text-emerald-400 hover:text-emerald-300 font-medium"
+                        >
+                          + მფლობელის დამატება
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex gap-2 pt-4 border-t border-white/10 mt-auto">
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-1.5 pt-3 border-t border-white/10 mt-auto flex-wrap">
+                    <button 
+                      onClick={() => handleOpenOwnerModal(apt)}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg transition-colors"
+                      title="მფლობელი"
+                    >
+                      <IconUser className="w-3 h-3" /> მფლობელი
+                    </button>
+                    {!apt.owner?.is_occupying && (
+                      <button 
+                        onClick={() => handleOpenTenantModal(apt)}
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors"
+                        title="მქირავნობელი"
+                      >
+                        <IconUser className="w-3 h-3" /> მქირავნ.
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleEditClick(apt)}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors"
+                      className="flex items-center justify-center px-2 py-1.5 bg-slate-500/20 hover:bg-slate-500/30 text-slate-400 rounded-lg transition-colors"
+                      title="რედაქტირება"
                     >
-                      <IconEdit className="w-3 h-3" /> რედაქტირება
+                      <IconEdit />
                     </button>
                     <button 
                       onClick={() => handleDeleteClick(apt.id)}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-medium rounded-lg transition-colors"
+                      className="flex items-center justify-center px-2 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-lg transition-colors"
+                      title="წაშლა"
                     >
-                      <IconTrash className="w-3 h-3" /> წაშლა
+                      <IconTrash />
                     </button>
                   </div>
                 </div>
@@ -415,27 +707,50 @@ export default function ApartmentsPage() {
                     <th className="text-left p-4 text-slate-400 font-medium text-sm">ოთახები</th>
                     <th className="text-left p-4 text-slate-400 font-medium text-sm">ტიპი</th>
                     <th className="text-left p-4 text-slate-400 font-medium text-sm">სტატუსი</th>
+                    <th className="text-left p-4 text-slate-400 font-medium text-sm">მფლობელი</th>
                     <th className="text-right p-4 text-slate-400 font-medium text-sm">მოქმედებები</th>
                   </tr>
                 </thead>
                 <tbody>
                   {apartments.map((apt) => {
-                    const status = statusConfig[apt.status as keyof typeof statusConfig] || statusConfig.vacant
+                    const status = statusConfig[apt.status] || statusConfig.vacant
                     return (
                       <tr key={apt.id} className="border-b border-white/5 hover:bg-slate-800/50 transition-colors">
                         <td className="p-4"><div className="font-semibold text-white">ბინა {apt.apartment_number}</div></td>
                         <td className="p-4 text-slate-300">{apt.floor}</td>
                         <td className="p-4 text-slate-300">{apt.area_sqm || '—'} მ²</td>
                         <td className="p-4 text-slate-300">{apt.rooms || '—'}</td>
-                        <td className="p-4 text-slate-300">{unitTypeLabels[apt.unit_type as keyof typeof unitTypeLabels] || apt.unit_type || '—'}</td>
+                        <td className="p-4 text-slate-300">{unitTypeLabels[apt.unit_type] || apt.unit_type || '—'}</td>
                         <td className="p-4">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor} border ${status.borderColor}`}>
                             {status.label}
                           </span>
                         </td>
                         <td className="p-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => handleEditClick(apt)} className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" title="რედაქტირება">
+                          {apt.owner ? (
+                            <div>
+                              <div className="text-sm text-white font-medium">{apt.owner.full_name}</div>
+                              <div className="text-xs text-slate-400">
+                                {apt.owner.is_occupying ? 'თვითონ ცხოვრობს' : apt.tenant ? `ქირა: ${apt.tenant.full_name}` : 'მქირავნობელი არ არის'}
+                              </div>
+                            </div>
+                          ) : (
+                            <button onClick={() => handleOpenOwnerModal(apt)} className="text-xs text-emerald-400 hover:text-emerald-300">
+                              + დამატება
+                            </button>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-1">
+                            <button onClick={() => handleOpenOwnerModal(apt)} className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors" title="მფლობელი">
+                              <IconUser className="w-4 h-4" />
+                            </button>
+                            {!apt.owner?.is_occupying && (
+                              <button onClick={() => handleOpenTenantModal(apt)} className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" title="მქირავნობელი">
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                              </button>
+                            )}
+                            <button onClick={() => handleEditClick(apt)} className="p-1.5 text-slate-400 hover:bg-slate-500/20 rounded-lg transition-colors" title="რედაქტირება">
                               <IconEdit className="w-4 h-4" />
                             </button>
                             <button onClick={() => handleDeleteClick(apt.id)} className="p-1.5 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors" title="წაშლა">
@@ -463,36 +778,35 @@ export default function ApartmentsPage() {
                 <IconX className="w-6 h-6" />
               </button>
             </div>
-            
             <form onSubmit={handleAddSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ნომერი *</label>
-                  <input required name="apartment_number" value={formData.apartment_number} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 14A" />
+                  <input required name="apartment_number" value={formData.apartment_number} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="მაგ: 14A" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სართული *</label>
-                  <input required type="number" name="floor" value={formData.floor} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 3" />
+                  <input required type="number" name="floor" value={formData.floor} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="მაგ: 3" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ფართობი (მ²) *</label>
-                  <input required type="number" step="0.1" name="area_sqm" value={formData.area_sqm} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 85.5" />
+                  <input required type="number" step="0.1" name="area_sqm" value={formData.area_sqm} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="მაგ: 85.5" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ოთახების რაოდენობა *</label>
-                  <input required type="number" name="rooms" value={formData.rooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 3" />
+                  <input required type="number" name="rooms" value={formData.rooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="მაგ: 3" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">საძინებლები</label>
-                  <input type="number" name="bedrooms" value={formData.bedrooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 2" />
+                  <input type="number" name="bedrooms" value={formData.bedrooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="მაგ: 2" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სააბაზანოები</label>
-                  <input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="მაგ: 1" />
+                  <input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="მაგ: 1" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ტიპი</label>
-                  <select name="unit_type" value={formData.unit_type} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none">
+                  <select name="unit_type" value={formData.unit_type} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none">
                     <option value="studio">სტუდია</option>
                     <option value="1_bedroom">1-ოთახიანი</option>
                     <option value="2_bedroom">2-ოთახიანი</option>
@@ -504,7 +818,7 @@ export default function ApartmentsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სტატუსი</label>
-                  <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none">
+                  <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none">
                     <option value="vacant">ცარიელია</option>
                     <option value="owner_occupied">მფლობელი ცხოვრობს</option>
                     <option value="rented">ქირავდება</option>
@@ -514,14 +828,13 @@ export default function ApartmentsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">პარკინგის ადგილები</label>
-                  <input type="number" name="parking_spaces" value={formData.parking_spaces} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="0" />
+                  <input type="number" name="parking_spaces" value={formData.parking_spaces} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="0" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სათავსოები</label>
-                  <input type="number" name="storage_units" value={formData.storage_units} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none" placeholder="0" />
+                  <input type="number" name="storage_units" value={formData.storage_units} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="0" />
                 </div>
               </div>
-
               <div className="flex gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" name="has_balcony" checked={formData.has_balcony} onChange={handleInputChange} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50" />
@@ -529,21 +842,17 @@ export default function ApartmentsPage() {
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" name="has_elevator_access" checked={formData.has_elevator_access} onChange={handleInputChange} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50" />
-                  <span className="text-sm text-slate-300">აქვს ლიფტთან წვდომა</span>
+                  <span className="text-sm text-slate-300">აქვს იფტთან წვდომა</span>
                 </label>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">დამატებითი შენიშვნები</label>
-                <textarea name="special_notes" value={formData.special_notes} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none resize-none" placeholder="ნებისმიერი დამატებითი ინფორმაცია..."></textarea>
+                <textarea name="special_notes" value={formData.special_notes} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none resize-none" placeholder="ნებისმიერი დამატებითი ინფორმაცია..."></textarea>
               </div>
-
               <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">
-                  გაუქმება
-                </button>
-                <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  {isProcessing ? <IconLoader className="w-4 h-4" /> : <IconPlus className="w-4 h-4" />}
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">გაუქმება</button>
+                <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                  {isProcessing ? <IconLoader /> : <IconPlus className="w-4 h-4" />}
                   {isProcessing ? 'ინახება...' : 'დამატება'}
                 </button>
               </div>
@@ -562,36 +871,35 @@ export default function ApartmentsPage() {
                 <IconX className="w-6 h-6" />
               </button>
             </div>
-            
             <form onSubmit={handleUpdateSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ნომერი *</label>
-                  <input required name="apartment_number" value={editingApartment.apartment_number} onChange={(e) => setEditingApartment({...editingApartment, apartment_number: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input required name="apartment_number" value={editingApartment.apartment_number} onChange={(e) => setEditingApartment({...editingApartment, apartment_number: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სართული *</label>
-                  <input required type="number" name="floor" value={editingApartment.floor} onChange={(e) => setEditingApartment({...editingApartment, floor: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input required type="number" name="floor" value={editingApartment.floor} onChange={(e) => setEditingApartment({...editingApartment, floor: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ფართობი (მ²) *</label>
-                  <input required type="number" step="0.1" name="area_sqm" value={editingApartment.area_sqm} onChange={(e) => setEditingApartment({...editingApartment, area_sqm: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input required type="number" step="0.1" name="area_sqm" value={editingApartment.area_sqm} onChange={(e) => setEditingApartment({...editingApartment, area_sqm: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ოთახების რაოდენობა *</label>
-                  <input required type="number" name="rooms" value={editingApartment.rooms} onChange={(e) => setEditingApartment({...editingApartment, rooms: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input required type="number" name="rooms" value={editingApartment.rooms} onChange={(e) => setEditingApartment({...editingApartment, rooms: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">საძინებლები</label>
-                  <input type="number" name="bedrooms" value={editingApartment.bedrooms || ''} onChange={(e) => setEditingApartment({...editingApartment, bedrooms: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input type="number" name="bedrooms" value={editingApartment.bedrooms || ''} onChange={(e) => setEditingApartment({...editingApartment, bedrooms: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სააბაზანოები</label>
-                  <input type="number" name="bathrooms" value={editingApartment.bathrooms || ''} onChange={(e) => setEditingApartment({...editingApartment, bathrooms: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input type="number" name="bathrooms" value={editingApartment.bathrooms || ''} onChange={(e) => setEditingApartment({...editingApartment, bathrooms: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ტიპი</label>
-                  <select name="unit_type" value={editingApartment.unit_type} onChange={(e) => setEditingApartment({...editingApartment, unit_type: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none">
+                  <select name="unit_type" value={editingApartment.unit_type} onChange={(e) => setEditingApartment({...editingApartment, unit_type: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none">
                     <option value="studio">სტუდია</option>
                     <option value="1_bedroom">1-ოთახიანი</option>
                     <option value="2_bedroom">2-ოთახიანი</option>
@@ -603,7 +911,7 @@ export default function ApartmentsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სტატუსი</label>
-                  <select name="status" value={editingApartment.status} onChange={(e) => setEditingApartment({...editingApartment, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none">
+                  <select name="status" value={editingApartment.status} onChange={(e) => setEditingApartment({...editingApartment, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none">
                     <option value="vacant">ცარიელია</option>
                     <option value="owner_occupied">მფლობელი ცხოვრობს</option>
                     <option value="rented">ქირავდება</option>
@@ -613,14 +921,13 @@ export default function ApartmentsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">პარკინგის ადგილები</label>
-                  <input type="number" name="parking_spaces" value={editingApartment.parking_spaces} onChange={(e) => setEditingApartment({...editingApartment, parking_spaces: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input type="number" name="parking_spaces" value={editingApartment.parking_spaces} onChange={(e) => setEditingApartment({...editingApartment, parking_spaces: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">სათავსოები</label>
-                  <input type="number" name="storage_units" value={editingApartment.storage_units} onChange={(e) => setEditingApartment({...editingApartment, storage_units: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none" />
+                  <input type="number" name="storage_units" value={editingApartment.storage_units} onChange={(e) => setEditingApartment({...editingApartment, storage_units: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
               </div>
-
               <div className="flex gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" name="has_balcony" checked={editingApartment.has_balcony} onChange={(e) => setEditingApartment({...editingApartment, has_balcony: e.target.checked})} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-blue-500 focus:ring-blue-500/50" />
@@ -631,20 +938,176 @@ export default function ApartmentsPage() {
                   <span className="text-sm text-slate-300">აქვს ლიფტთან წვდომა</span>
                 </label>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">დამატებითი შენიშვნები</label>
-                <textarea name="special_notes" value={editingApartment.special_notes || ''} onChange={(e) => setEditingApartment({...editingApartment, special_notes: e.target.value})} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none resize-none"></textarea>
+                <textarea name="special_notes" value={editingApartment.special_notes || ''} onChange={(e) => setEditingApartment({...editingApartment, special_notes: e.target.value})} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none resize-none"></textarea>
               </div>
-
               <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
-                <button type="button" onClick={() => { setIsEditModalOpen(false); setEditingApartment(null); }} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">
-                  გაუქმება
-                </button>
-                <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  {isProcessing ? <IconLoader className="w-4 h-4" /> : <IconEdit className="w-4 h-4" />}
+                <button type="button" onClick={() => { setIsEditModalOpen(false); setEditingApartment(null); }} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">გაუქმება</button>
+                <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                  {isProcessing ? <IconLoader /> : <IconEdit />}
                   {isProcessing ? 'ინახება...' : 'განახლება'}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============ OWNER MODAL ============ */}
+      {isOwnerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
+              <h3 className="text-xl font-bold text-white">{currentOwner ? 'მფლობელის რედაქტირება' : 'მფლობელის დამატება'}</h3>
+              <button onClick={() => setIsOwnerModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+                <IconX className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleOwnerSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">სრული სახელი *</label>
+                  <input required value={ownerForm.full_name} onChange={(e) => setOwnerForm({...ownerForm, full_name: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="მაგ: გიორგი სვანიძე" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ელ-ფოსტა</label>
+                  <input type="email" value={ownerForm.email} onChange={(e) => setOwnerForm({...ownerForm, email: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="email@example.com" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ტელეფონი *</label>
+                  <input required type="tel" value={ownerForm.phone} onChange={(e) => setOwnerForm({...ownerForm, phone: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="+995 599 123 456" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">პირადი ნომერი</label>
+                  <input value={ownerForm.personal_id} onChange={(e) => setOwnerForm({...ownerForm, personal_id: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="არასავალდებულო" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">მფლობელობის %</label>
+                  <input type="number" min="0" max="100" value={ownerForm.ownership_percentage} onChange={(e) => setOwnerForm({...ownerForm, ownership_percentage: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" />
+                </div>
+              </div>
+
+              {/* Occupying Toggle */}
+              <div className="bg-slate-800/50 border border-white/10 rounded-xl p-4">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <div className="font-medium text-white">თვითონ ცხოვრობს ბინაში?</div>
+                    <div className="text-xs text-slate-400 mt-1">თუ გამორთულია, შეგიძლია მქირავნობლის დამატება</div>
+                  </div>
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      checked={ownerForm.is_occupying} 
+                      onChange={(e) => setOwnerForm({...ownerForm, is_occupying: e.target.checked})} 
+                      className="sr-only peer" 
+                    />
+                    <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 transition-colors"></div>
+                    <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform"></div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Emergency Contact */}
+              <div>
+                <h4 className="text-sm font-semibold text-white mb-3">საგანგებო კონტაქტი</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1">სახელი</label>
+                    <input value={ownerForm.emergency_contact_name} onChange={(e) => setOwnerForm({...ownerForm, emergency_contact_name: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1">ტელეფონი</label>
+                    <input value={ownerForm.emergency_contact_phone} onChange={(e) => setOwnerForm({...ownerForm, emergency_contact_phone: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">შენიშვნები</label>
+                <textarea value={ownerForm.notes} onChange={(e) => setOwnerForm({...ownerForm, notes: e.target.value})} rows={2} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none resize-none"></textarea>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                {currentOwner ? (
+                  <button type="button" onClick={handleDeleteOwner} disabled={isProcessing} className="flex items-center gap-2 px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+                    <IconTrash className="w-4 h-4" /> წაშლა
+                  </button>
+                ) : <div></div>}
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setIsOwnerModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">გაუქმება</button>
+                  <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                    {isProcessing ? <IconLoader /> : <IconUser className="w-4 h-4" />}
+                    {isProcessing ? 'ინახება...' : (currentOwner ? 'განახლება' : 'დამატება')}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============ TENANT MODAL ============ */}
+      {isTenantModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
+              <h3 className="text-xl font-bold text-white">{currentTenant ? 'მქირავნობლის რედაქტირება' : 'მქირავნობლის დამატება'}</h3>
+              <button onClick={() => setIsTenantModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+                <IconX className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleTenantSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">სრული სახელი *</label>
+                  <input required value={tenantForm.full_name} onChange={(e) => setTenantForm({...tenantForm, full_name: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" placeholder="მაგ: ნინო კვარაცხელია" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ელ-ფოსტა</label>
+                  <input type="email" value={tenantForm.email} onChange={(e) => setTenantForm({...tenantForm, email: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" placeholder="email@example.com" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ტელეფონი *</label>
+                  <input required type="tel" value={tenantForm.phone} onChange={(e) => setTenantForm({...tenantForm, phone: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" placeholder="+995 599 123 456" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">პირადი ნომერი</label>
+                  <input value={tenantForm.personal_id} onChange={(e) => setTenantForm({...tenantForm, personal_id: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" placeholder="არასავალდებულო" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ყოველთვიური ქირა (₾)</label>
+                  <input type="number" step="0.01" value={tenantForm.monthly_rent} onChange={(e) => setTenantForm({...tenantForm, monthly_rent: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" placeholder="მაგ: 500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ქირავნობის დაწყება *</label>
+                  <input required type="date" value={tenantForm.lease_start_date} onChange={(e) => setTenantForm({...tenantForm, lease_start_date: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ქირავნობის დასრულება</label>
+                  <input type="date" value={tenantForm.lease_end_date} onChange={(e) => setTenantForm({...tenantForm, lease_end_date: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
+                  <p className="text-xs text-slate-500 mt-1">ცარიელი = უვადო</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">შენიშვნები</label>
+                <textarea value={tenantForm.notes} onChange={(e) => setTenantForm({...tenantForm, notes: e.target.value})} rows={2} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none resize-none"></textarea>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                {currentTenant ? (
+                  <button type="button" onClick={handleDeleteTenant} disabled={isProcessing} className="flex items-center gap-2 px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+                    <IconTrash className="w-4 h-4" /> წაშლა
+                  </button>
+                ) : <div></div>}
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setIsTenantModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">გაუქმება</button>
+                  <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                    {isProcessing ? <IconLoader /> : <IconUser className="w-4 h-4" />}
+                    {isProcessing ? 'ინახება...' : (currentTenant ? 'განახლება' : 'დამატება')}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
