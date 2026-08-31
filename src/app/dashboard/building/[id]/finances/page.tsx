@@ -164,11 +164,30 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
 
       apartments?.forEach(apt => {
         let amount = 0
+        let calculationMethod = settings?.fee_calculation_method || 'per_apartment'
         const propertyType = apt.property_type || 'residential'
 
-        if (apt.custom_monthly_fee) {
-          amount = apt.custom_monthly_fee
-        } else if (settings?.fee_calculation_method === 'per_sqm') {
+        // ==========================================
+        // 1. შეამოწმე ბინის ინდივიდუალური წესი (OVERRIDE)
+        // ==========================================
+        if (apt.fee_calculation_method_override === 'exempt') {
+          amount = 0
+          calculationMethod = 'exempt'
+        } else if (apt.fee_calculation_method_override === 'custom') {
+          amount = apt.custom_monthly_fee || 0
+          calculationMethod = 'custom'
+        } else if (apt.fee_calculation_method_override === 'per_sqm') {
+          const rate = apt.rate_per_sqm_override || settings?.residential_rate_per_sqm || 0
+          amount = (apt.area_sqm || 0) * rate
+          calculationMethod = 'per_sqm (override)'
+        } else if (apt.fee_calculation_method_override === 'per_apartment') {
+          amount = apt.fixed_fee_override || settings?.fixed_monthly_fee || 0
+          calculationMethod = 'per_apartment (override)'
+        } 
+        // ==========================================
+        // 2. თუ ინდივიდუალური წესი არ არის, გამოიყენე კორპუსის ნაგულისხმევი
+        // ==========================================
+        else if (settings?.fee_calculation_method === 'per_sqm') {
           const rate = propertyType === 'commercial' 
             ? settings.commercial_rate_per_sqm 
             : settings.residential_rate_per_sqm
@@ -177,6 +196,7 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
           amount = settings.fixed_monthly_fee || 0
         }
 
+        // დავამატოთ სპეციალური შენატანები
         let specialAmount = 0
         assessments?.forEach(assessment => {
           if (assessment.calculation_method === 'per_unit') {
@@ -248,9 +268,20 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
         let calculationMethod = settings?.fee_calculation_method || 'per_apartment'
         const propertyType = apt.property_type || 'residential'
 
-        if (apt.custom_monthly_fee) {
-          baseAmount = apt.custom_monthly_fee
+        // იგივე ლოგიკა, რაც პრევიუში
+        if (apt.fee_calculation_method_override === 'exempt') {
+          baseAmount = 0
+          calculationMethod = 'exempt'
+        } else if (apt.fee_calculation_method_override === 'custom') {
+          baseAmount = apt.custom_monthly_fee || 0
           calculationMethod = 'custom'
+        } else if (apt.fee_calculation_method_override === 'per_sqm') {
+          const rate = apt.rate_per_sqm_override || settings?.residential_rate_per_sqm || 0
+          baseAmount = (apt.area_sqm || 0) * rate
+          calculationMethod = 'per_sqm (override)'
+        } else if (apt.fee_calculation_method_override === 'per_apartment') {
+          baseAmount = apt.fixed_fee_override || settings?.fixed_monthly_fee || 0
+          calculationMethod = 'per_apartment (override)'
         } else if (settings?.fee_calculation_method === 'per_sqm') {
           const rate = propertyType === 'commercial' 
             ? settings.commercial_rate_per_sqm 
@@ -363,21 +394,6 @@ function GenerateModal({ isOpen, onClose, buildingId, onSuccess }: {
                   <div className="text-xs text-slate-400">₾{preview.breakdown.other.amount.toLocaleString()}</div>
                 </div>
               </div>
-
-              {preview.settings && (
-                <div className="text-xs text-slate-500 pt-4 border-t border-white/10">
-                  <div>გამოთვლის მეთოდი: <span className="text-slate-300">{preview.settings.fee_calculation_method}</span></div>
-                  {preview.settings.fee_calculation_method === 'per_sqm' && (
-                    <>
-                      <div>საცხოვრებელი ტარიფი: <span className="text-slate-300">₾{preview.settings.residential_rate_per_sqm}/მ²</span></div>
-                      <div>სავაჭრო ტარიფი: <span className="text-slate-300">₾{preview.settings.commercial_rate_per_sqm}/მ²</span></div>
-                    </>
-                  )}
-                  {preview.settings.fee_calculation_method === 'per_apartment' && (
-                    <div>ფიქსირებული თანხა: <span className="text-slate-300">₾{preview.settings.fixed_monthly_fee}</span></div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -536,7 +552,7 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
         ) : (
           <div className="p-6 space-y-6">
             <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
-              <h4 className="font-bold text-white mb-4">გამოთვლის მეთოდი</h4>
+              <h4 className="font-bold text-white mb-4">ნაგულისხმევი გამოთვლის მეთოდი</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button
                   onClick={() => setSettings({...settings, fee_calculation_method: 'per_apartment'})}
@@ -576,7 +592,7 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
 
             {settings.fee_calculation_method === 'per_sqm' && (
               <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
-                <h4 className="font-bold text-white mb-4">ტარიფები (₾/მ²)</h4>
+                <h4 className="font-bold text-white mb-4">ნაგულისხმევი ტარიფები (₾/მ²)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">საცხოვრებელი ტარიფი</label>
@@ -588,7 +604,6 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
                       className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
                       placeholder="მაგ: 1.5"
                     />
-                    <p className="text-xs text-slate-500 mt-1">მაგ: 1.5 ₾/მ² × 80მ² = 120 ₾</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">სავაჭრო ტარიფი</label>
@@ -600,7 +615,6 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
                       className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
                       placeholder="მაგ: 3.0"
                     />
-                    <p className="text-xs text-slate-500 mt-1">მაგ: 3.0 ₾/მ² × 50მ² = 150 ₾</p>
                   </div>
                 </div>
               </div>
@@ -608,7 +622,7 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
 
             {settings.fee_calculation_method === 'per_apartment' && (
               <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
-                <h4 className="font-bold text-white mb-4">ფიქსირებული თანხა</h4>
+                <h4 className="font-bold text-white mb-4">ნაგულისხმევი ფიქსირებული თანხა</h4>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">ყოველთვიური გადასახადი (₾)</label>
                   <input
@@ -619,7 +633,6 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
                     className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
                     placeholder="მაგ: 50"
                   />
-                  <p className="text-xs text-slate-500 mt-1">ყველა ბინა იხდის ამ თანხას</p>
                 </div>
               </div>
             )}
@@ -637,7 +650,6 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
                     onChange={(e) => setSettings({...settings, payment_due_day: parseInt(e.target.value) || 15})}
                     className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
                   />
-                  <p className="text-xs text-slate-500 mt-1">მაგ: 15 = თვის 15 რიცხვი</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">შეღავათის პერიოდი (დღე)</label>
@@ -648,7 +660,6 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
                     onChange={(e) => setSettings({...settings, grace_period_days: parseInt(e.target.value) || 0})}
                     className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
                   />
-                  <p className="text-xs text-slate-500 mt-1">ჯარიმა ამ ვადის შემდეგ</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">ვალუტა</label>
@@ -658,58 +669,13 @@ function FinancialSettingsModal({ isOpen, onClose, buildingId, onSuccess }: {
                     className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
                   >
                     <option value="GEL" className="bg-slate-800">GEL (₾)</option>
-                    <option value="USD" className="bg-slate-800">USD ($)</option>
-                    <option value="EUR" className="bg-slate-800">EUR (€)</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
-              <h4 className="font-bold text-white mb-4">ჯარიმები</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">ჯარიმა (₾)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={settings.late_fee_amount}
-                    onChange={(e) => setSettings({...settings, late_fee_amount: parseFloat(e.target.value) || 0})}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
-                    placeholder="მაგ: 10"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">ჯარიმა (%)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={settings.late_fee_percentage}
-                    onChange={(e) => setSettings({...settings, late_fee_percentage: parseFloat(e.target.value) || 0})}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
-                    placeholder="მაგ: 2"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">გადასახადის %-ით</p>
-                </div>
-              </div>
-              <label className="flex items-center gap-3 mt-4 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.auto_generate_late_fees}
-                  onChange={(e) => setSettings({...settings, auto_generate_late_fees: e.target.checked})}
-                  className="w-5 h-5 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50"
-                />
-                <span className="text-sm text-slate-300">ჯარიმების ავტომატური დამატება</span>
-              </label>
-            </div>
-
             <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
-              <button
-                onClick={onClose}
-                className="px-6 py-3 text-slate-300 hover:text-white font-medium transition-colors"
-              >
-                გაუქმება
-              </button>
+              <button onClick={onClose} className="px-6 py-3 text-slate-300 hover:text-white font-medium transition-colors">გაუქმება</button>
               <button
                 onClick={handleSave}
                 disabled={saving}
@@ -851,7 +817,6 @@ export default function FinancesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-slate-950/90 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -887,60 +852,26 @@ export default function FinancesPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={IconTrendingUp}
-            label="შემოსავალი"
-            value={`₾${stats.totalIncome.toLocaleString()}`}
-            sublabel="ამ თვეში"
-            gradient="from-emerald-500 to-teal-600"
-            trend="up"
-          />
-          <StatCard
-            icon={IconTrendingDown}
-            label="ხარჯები"
-            value={`₾${stats.totalExpenses.toLocaleString()}`}
-            sublabel="ამ თვეში"
-            gradient="from-rose-500 to-pink-600"
-            trend="down"
-          />
-          <StatCard
-            icon={IconWallet}
-            label="ბალანსი"
-            value={`₾${stats.balance.toLocaleString()}`}
-            sublabel={stats.balance >= 0 ? 'პოზიტიური' : 'ნეგატიური'}
-            gradient="from-blue-500 to-cyan-600"
-            trend={stats.balance >= 0 ? 'up' : 'down'}
-          />
-          <StatCard
-            icon={IconAlertCircle}
-            label="გადაუხდელი"
-            value={`₾${stats.pendingPayments.toLocaleString()}`}
-            sublabel="მოლოდინში"
-            gradient="from-amber-500 to-orange-600"
-            trend="neutral"
-          />
+          <StatCard icon={IconTrendingUp} label="შემოსავალი" value={`₾${stats.totalIncome.toLocaleString()}`} sublabel="ამ თვეში" gradient="from-emerald-500 to-teal-600" trend="up" />
+          <StatCard icon={IconTrendingDown} label="ხარჯები" value={`₾${stats.totalExpenses.toLocaleString()}`} sublabel="ამ თვეში" gradient="from-rose-500 to-pink-600" trend="down" />
+          <StatCard icon={IconWallet} label="ბალანსი" value={`₾${stats.balance.toLocaleString()}`} sublabel={stats.balance >= 0 ? 'პოზიტიური' : 'ნეგატიური'} gradient="from-blue-500 to-cyan-600" trend={stats.balance >= 0 ? 'up' : 'down'} />
+          <StatCard icon={IconAlertCircle} label="გადაუხდელი" value={`₾${stats.pendingPayments.toLocaleString()}`} sublabel="მოლოდინში" gradient="from-amber-500 to-orange-600" trend="neutral" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <button 
-            onClick={() => setIsSettingsModalOpen(true)}
-            className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300 text-left group"
-          >
+          <button onClick={() => setIsSettingsModalOpen(true)} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300 text-left group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <IconWallet className="w-6 h-6 text-white" />
               </div>
               <div>
                 <div className="font-bold text-white text-lg">ფინანსური პარამეტრები</div>
-                <div className="text-sm text-slate-400">ტარიფები და წესები</div>
+                <div className="text-sm text-slate-400">კორპუსის ზოგადი წესები</div>
               </div>
             </div>
           </button>
 
-          <button 
-            onClick={() => setIsGenerateModalOpen(true)}
-            className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 text-left group"
-          >
+          <button onClick={() => setIsGenerateModalOpen(true)} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 text-left group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <IconCalendar className="w-6 h-6 text-white" />
@@ -992,35 +923,19 @@ export default function FinancesPage() {
               </div>
               <h4 className="font-bold text-white text-lg mb-2">ტრანზაქციები არ არის</h4>
               <p className="text-sm text-slate-400 mb-6">დაამატე პირველი გადახდა ან ხარჯი</p>
-              <div className="flex gap-3 justify-center">
-                <button className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors">
-                  + გადახდა
-                </button>
-                <button className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-lg transition-colors">
-                  + ხარჯი
-                </button>
-              </div>
             </div>
           ) : (
             <div className="space-y-3">
               {recentTransactions.map((transaction, index) => {
                 const isIncome = transaction.type === 'income'
                 const date = isIncome ? transaction.payment_date : transaction.expense_date
-                const description = isIncome 
-                  ? `გადახდა - ${transaction.payer_name}`
-                  : transaction.description
+                const description = isIncome ? `გადახდა - ${transaction.payer_name}` : transaction.description
                 
                 return (
                   <div key={index} className="flex items-center justify-between p-4 bg-slate-900/50 border border-white/5 rounded-xl hover:border-white/10 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        isIncome ? 'bg-emerald-500/20' : 'bg-rose-500/20'
-                      }`}>
-                        {isIncome ? (
-                          <IconTrendingUp className="w-5 h-5 text-emerald-400" />
-                        ) : (
-                          <IconTrendingDown className="w-5 h-5 text-rose-400" />
-                        )}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isIncome ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
+                        {isIncome ? <IconTrendingUp className="w-5 h-5 text-emerald-400" /> : <IconTrendingDown className="w-5 h-5 text-rose-400" />}
                       </div>
                       <div>
                         <div className="font-medium text-white text-sm">{description}</div>
@@ -1029,9 +944,7 @@ export default function FinancesPage() {
                         </div>
                       </div>
                     </div>
-                    <div className={`font-bold text-lg ${
-                      isIncome ? 'text-emerald-400' : 'text-rose-400'
-                    }`}>
+                    <div className={`font-bold text-lg ${isIncome ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {isIncome ? '+' : '-'}₾{transaction.amount.toLocaleString()}
                     </div>
                   </div>
@@ -1040,30 +953,10 @@ export default function FinancesPage() {
             </div>
           )}
         </div>
-
-        <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8 mt-8">
-          <h3 className="text-2xl font-bold text-white mb-6">ხარჯები კატეგორიებით</h3>
-          <div className="text-center py-12 text-slate-400">
-            მონაცემები მალე დაემატება...
-          </div>
-        </div>
       </main>
 
-      {/* Financial Settings Modal */}
-      <FinancialSettingsModal 
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        buildingId={buildingId}
-        onSuccess={loadData}
-      />
-
-      {/* Generate Modal */}
-      <GenerateModal 
-        isOpen={isGenerateModalOpen}
-        onClose={() => setIsGenerateModalOpen(false)}
-        buildingId={buildingId}
-        onSuccess={loadData}
-      />
+      <FinancialSettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} buildingId={buildingId} onSuccess={loadData} />
+      <GenerateModal isOpen={isGenerateModalOpen} onClose={() => setIsGenerateModalOpen(false)} buildingId={buildingId} onSuccess={loadData} />
     </div>
   )
 }

@@ -89,6 +89,14 @@ const IconLoader = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconWallet = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+  </svg>
+)
+
 // ============ CONFIG ============
 const statusConfig: Record<string, { label: string; bgColor: string; textColor: string; borderColor: string }> = {
   owner_occupied: { label: 'მფლობელი ცხოვრობს', bgColor: 'bg-emerald-500/10', textColor: 'text-emerald-400', borderColor: 'border-emerald-500/30' },
@@ -108,9 +116,16 @@ const unitTypeLabels: Record<string, string> = {
   duplex: 'დუპლექსი',
 }
 
-// სპეციალური სტატუსები (ხელით დასაყენებელი)
+const propertyTypeLabels: Record<string, string> = {
+  residential: 'საცხოვრებელი',
+  commercial: 'სავაჭრო',
+  office: 'ოფისი',
+  storage: 'სათავსო',
+  parking: 'პარკინგი',
+  other: 'სხვა',
+}
+
 const SPECIAL_STATUSES = ['under_maintenance', 'reserved']
-const AUTO_STATUSES = ['vacant', 'owner_occupied', 'rented']
 
 // ============ MAIN PAGE ============
 
@@ -139,8 +154,14 @@ export default function ApartmentsPage() {
 
   const [formData, setFormData] = useState({
     apartment_number: '', floor: '', area_sqm: '', rooms: '', bedrooms: '', bathrooms: '',
-    unit_type: '1_bedroom', parking_spaces: '0', storage_units: '0',
+    unit_type: '1_bedroom', property_type: 'residential',
+    parking_spaces: '0', storage_units: '0',
     has_balcony: false, has_elevator_access: true, special_notes: '',
+    // Financial overrides
+    fee_calculation_method_override: '',
+    fixed_fee_override: '',
+    rate_per_sqm_override: '',
+    custom_monthly_fee: '',
   })
 
   const [ownerForm, setOwnerForm] = useState({
@@ -194,19 +215,11 @@ export default function ApartmentsPage() {
     setApartments(enriched)
   }
 
-  // სტატუსის ავტომატური განსაზღვრა
   const determineStatus = (apt: any): string => {
-    // თუ სპეციალური სტატუსია, არ შევცვალოთ
-    if (apt.status && SPECIAL_STATUSES.includes(apt.status)) {
-      return apt.status
-    }
-    // თუ მფლობელი არ არის → vacant
+    if (apt.status && SPECIAL_STATUSES.includes(apt.status)) return apt.status
     if (!apt.owner) return 'vacant'
-    // თუ მფლობელი ცხოვრობს → owner_occupied
     if (apt.owner.is_occupying) return 'owner_occupied'
-    // თუ მქირავნობელი არის → rented
     if (apt.tenant) return 'rented'
-    // სხვა შემთხვევაში → vacant (გასაქირავებელი)
     return 'vacant'
   }
 
@@ -232,12 +245,18 @@ export default function ApartmentsPage() {
       bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
       bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
       unit_type: formData.unit_type,
-      status: 'vacant', // ავტომატურად vacant
+      property_type: formData.property_type,
+      status: 'vacant',
       parking_spaces: parseInt(formData.parking_spaces) || 0,
       storage_units: parseInt(formData.storage_units) || 0,
       has_balcony: formData.has_balcony,
       has_elevator_access: formData.has_elevator_access,
       special_notes: formData.special_notes || null,
+      // Financial overrides
+      fee_calculation_method_override: formData.fee_calculation_method_override || null,
+      fixed_fee_override: formData.fixed_fee_override ? parseFloat(formData.fixed_fee_override) : null,
+      rate_per_sqm_override: formData.rate_per_sqm_override ? parseFloat(formData.rate_per_sqm_override) : null,
+      custom_monthly_fee: formData.custom_monthly_fee ? parseFloat(formData.custom_monthly_fee) : null,
     }
 
     const { error } = await supabase.from('apartments').insert(payload)
@@ -249,8 +268,10 @@ export default function ApartmentsPage() {
       setIsAddModalOpen(false)
       setFormData({
         apartment_number: '', floor: '', area_sqm: '', rooms: '', bedrooms: '', bathrooms: '',
-        unit_type: '1_bedroom', parking_spaces: '0', storage_units: '0',
+        unit_type: '1_bedroom', property_type: 'residential',
+        parking_spaces: '0', storage_units: '0',
         has_balcony: false, has_elevator_access: true, special_notes: '',
+        fee_calculation_method_override: '', fixed_fee_override: '', rate_per_sqm_override: '', custom_monthly_fee: '',
       })
       
       if (building) {
@@ -272,6 +293,10 @@ export default function ApartmentsPage() {
       bathrooms: apt.bathrooms?.toString() || '',
       parking_spaces: apt.parking_spaces?.toString() || '0',
       storage_units: apt.storage_units?.toString() || '0',
+      fee_calculation_method_override: apt.fee_calculation_method_override || '',
+      fixed_fee_override: apt.fixed_fee_override?.toString() || '',
+      rate_per_sqm_override: apt.rate_per_sqm_override?.toString() || '',
+      custom_monthly_fee: apt.custom_monthly_fee?.toString() || '',
     })
     setIsEditModalOpen(true)
   }
@@ -289,12 +314,18 @@ export default function ApartmentsPage() {
       bedrooms: editingApartment.bedrooms ? parseInt(editingApartment.bedrooms) : null,
       bathrooms: editingApartment.bathrooms ? parseInt(editingApartment.bathrooms) : null,
       unit_type: editingApartment.unit_type,
-      status: editingApartment.status, // სპეციალური სტატუსი (ან auto)
+      property_type: editingApartment.property_type,
+      status: editingApartment.status,
       parking_spaces: parseInt(editingApartment.parking_spaces) || 0,
       storage_units: parseInt(editingApartment.storage_units) || 0,
       has_balcony: editingApartment.has_balcony,
       has_elevator_access: editingApartment.has_elevator_access,
       special_notes: editingApartment.special_notes || null,
+      // Financial overrides
+      fee_calculation_method_override: editingApartment.fee_calculation_method_override || null,
+      fixed_fee_override: editingApartment.fixed_fee_override ? parseFloat(editingApartment.fixed_fee_override) : null,
+      rate_per_sqm_override: editingApartment.rate_per_sqm_override ? parseFloat(editingApartment.rate_per_sqm_override) : null,
+      custom_monthly_fee: editingApartment.custom_monthly_fee ? parseFloat(editingApartment.custom_monthly_fee) : null,
     }
 
     const { error } = await supabase.from('apartments').update(payload).eq('id', editingApartment.id)
@@ -384,7 +415,6 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
-      // ავტომატური სტატუსის განსაზღვრა
       const newStatus = ownerForm.is_occupying ? 'owner_occupied' : 'vacant'
       await supabase.from('apartments').update({ status: newStatus }).eq('id', selectedAptId)
       await refreshApartments()
@@ -401,7 +431,6 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
-      // სტატუსი → vacant
       await supabase.from('apartments').update({ status: 'vacant' }).eq('id', selectedAptId)
       await refreshApartments()
       setIsOwnerModalOpen(false)
@@ -469,7 +498,6 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
-      // ავტომატური სტატუსი → rented
       await supabase.from('apartments').update({ status: 'rented' }).eq('id', selectedAptId)
       await refreshApartments()
       setIsTenantModalOpen(false)
@@ -485,7 +513,6 @@ export default function ApartmentsPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
-      // სტატუსის განსაზღვრა: თუ მფლობელი ცხოვრობს → owner_occupied, თუ არა → vacant
       const newStatus = currentOwner?.is_occupying ? 'owner_occupied' : 'vacant'
       await supabase.from('apartments').update({ status: newStatus }).eq('id', selectedAptId)
       await refreshApartments()
@@ -589,7 +616,6 @@ export default function ApartmentsPage() {
               
               return (
                 <div key={apt.id} className={`group bg-slate-800/50 border ${statusInfo.borderColor} rounded-xl p-5 hover:bg-slate-800 transition-all duration-300 flex flex-col`}>
-                  {/* Header with status */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="font-bold text-white text-lg mb-1">ბინა {apt.apartment_number}</h3>
@@ -601,7 +627,6 @@ export default function ApartmentsPage() {
                     </span>
                   </div>
 
-                  {/* Basic Info */}
                   <div className="space-y-2 mb-4 flex-grow">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400">ფართობი</span>
@@ -622,7 +647,6 @@ export default function ApartmentsPage() {
                   {/* Owner/Tenant Section */}
                   <div className="pt-4 border-t border-white/10 mb-3">
                     {!apt.owner ? (
-                      // NO OWNER - Big prominent button
                       <button 
                         onClick={() => handleOpenOwnerModal(apt)}
                         className="w-full py-3 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 border-2 border-dashed border-emerald-500/40 hover:border-emerald-500/70 rounded-lg transition-all group/btn"
@@ -633,7 +657,6 @@ export default function ApartmentsPage() {
                         </div>
                       </button>
                     ) : (
-                      // OWNER EXISTS
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
@@ -654,7 +677,6 @@ export default function ApartmentsPage() {
                         {apt.owner.is_occupying ? (
                           <div className="text-xs text-emerald-400 font-medium pl-9">✓ თვითონ ცხოვრობს</div>
                         ) : apt.tenant ? (
-                          // TENANT EXISTS
                           <div className="pt-2 border-t border-white/5 mt-2">
                             <div className="flex items-center gap-2">
                               <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
@@ -676,7 +698,6 @@ export default function ApartmentsPage() {
                             )}
                           </div>
                         ) : (
-                          // NO TENANT - Show add tenant button
                           <div className="pt-2 border-t border-white/5 mt-2">
                             <div className="text-xs text-amber-400 font-medium mb-2"> მფლობელი არ ცხოვრობს</div>
                             <button 
@@ -800,10 +821,10 @@ export default function ApartmentsPage() {
         )}
       </main>
 
-      {/* ============ ADD APARTMENT MODAL (NO STATUS FIELD) ============ */}
+      {/* ============ ADD APARTMENT MODAL ============ */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
               <h3 className="text-xl font-bold text-white">ახალი ბინის დამატება</h3>
               <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">
@@ -814,6 +835,7 @@ export default function ApartmentsPage() {
               <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 text-sm text-emerald-400">
                 💡 ბინა ავტომატურად დაემატება <strong>"ცარიელია"</strong> სტატუსით. მფლობელის დამატების შემდეგ სტატუსი ავტომატურად განახლდება.
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">ბინის ნომერი *</label>
@@ -852,14 +874,76 @@ export default function ApartmentsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">პარკინგის ადგილები</label>
-                  <input type="number" name="parking_spaces" value={formData.parking_spaces} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="0" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">სათავსოები</label>
-                  <input type="number" name="storage_units" value={formData.storage_units} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" placeholder="0" />
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ფართის დანიშნულება</label>
+                  <select name="property_type" value={formData.property_type} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none">
+                    <option value="residential">საცხოვრებელი</option>
+                    <option value="commercial">სავაჭრო</option>
+                    <option value="office">ოფისი</option>
+                    <option value="storage">სათავსო</option>
+                    <option value="parking">პარკინგი</option>
+                    <option value="other">სხვა</option>
+                  </select>
                 </div>
               </div>
+
+              {/* FINANCIAL OVERRIDES SECTION */}
+              <div className="bg-slate-800/30 border border-white/10 rounded-xl p-5 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <IconWallet className="w-5 h-5 text-amber-400" />
+                  <h4 className="font-bold text-white">ფინანსური პირობები (არასავალდებულო)</h4>
+                </div>
+                <p className="text-xs text-slate-400 mb-4">თუ ველს დატოვებ ცარიელს, გამოყენებული იქნება კორპუსის ზოგადი წესი.</p>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">გადახდის წესი ამ ბინისთვის</label>
+                  <select 
+                    name="fee_calculation_method_override" 
+                    value={formData.fee_calculation_method_override} 
+                    onChange={handleInputChange} 
+                    className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                  >
+                    <option value="">🔄 კორპუსის ნაგულისხმევი წესი</option>
+                    <option value="per_sqm">📏 კვადრატულობით (მ²)</option>
+                    <option value="per_apartment">💵 ფიქსირებული თანხა</option>
+                    <option value="custom">✏️ ინდივიდუალური თანხა</option>
+                    <option value="exempt">🚫 განთავისუფლებულია (0 ₾)</option>
+                  </select>
+                </div>
+
+                {formData.fee_calculation_method_override === 'per_sqm' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">ინდივიდუალური ტარიფი (₾/მ²)</label>
+                    <input 
+                      type="number" step="0.01" name="rate_per_sqm_override" value={formData.rate_per_sqm_override} onChange={handleInputChange} 
+                      className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" 
+                      placeholder="მაგ: 2.0" 
+                    />
+                  </div>
+                )}
+
+                {formData.fee_calculation_method_override === 'per_apartment' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">ინდივიდუალური ფიქსირებული თანხა (₾)</label>
+                    <input 
+                      type="number" step="0.01" name="fixed_fee_override" value={formData.fixed_fee_override} onChange={handleInputChange} 
+                      className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" 
+                      placeholder="მაგ: 60" 
+                    />
+                  </div>
+                )}
+
+                {formData.fee_calculation_method_override === 'custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">ინდივიდუალური ყოველთვიური თანხა (₾)</label>
+                    <input 
+                      type="number" step="0.01" name="custom_monthly_fee" value={formData.custom_monthly_fee} onChange={handleInputChange} 
+                      className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none" 
+                      placeholder="მაგ: 45" 
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" name="has_balcony" checked={formData.has_balcony} onChange={handleInputChange} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50" />
@@ -867,13 +951,15 @@ export default function ApartmentsPage() {
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" name="has_elevator_access" checked={formData.has_elevator_access} onChange={handleInputChange} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50" />
-                  <span className="text-sm text-slate-300">აქვს იფტთან წვდომა</span>
+                  <span className="text-sm text-slate-300">აქვს ლიფტთან წვდომა</span>
                 </label>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">დამატებითი შენიშვნები</label>
                 <textarea name="special_notes" value={formData.special_notes} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-emerald-500/50 outline-none resize-none" placeholder="ნებისმიერი დამატებითი ინფორმაცია..."></textarea>
               </div>
+
               <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">გაუქმება</button>
                 <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
@@ -886,10 +972,10 @@ export default function ApartmentsPage() {
         </div>
       )}
 
-      {/* ============ EDIT APARTMENT MODAL (WITH SPECIAL STATUS) ============ */}
+      {/* ============ EDIT APARTMENT MODAL ============ */}
       {isEditModalOpen && editingApartment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
               <h3 className="text-xl font-bold text-white">ბინის რედაქტირება: {editingApartment.apartment_number}</h3>
               <button onClick={() => { setIsEditModalOpen(false); setEditingApartment(null); }} className="text-slate-400 hover:text-white transition-colors">
@@ -934,27 +1020,76 @@ export default function ApartmentsPage() {
                     <option value="duplex">დუპლექსი</option>
                   </select>
                 </div>
-                {/* SPECIAL STATUS DROPDOWN */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">სპეციალური სტატუსი</label>
-                  <select name="status" value={editingApartment.status || 'vacant'} onChange={(e) => setEditingApartment({...editingApartment, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none">
-                    <option value="vacant">ავტომატური (ცარიელია)</option>
-                    <option value="owner_occupied">ავტომატური (მფლობელი ცხოვრობს)</option>
-                    <option value="rented">ავტომატური (ქირავდება)</option>
-                    <option value="under_maintenance">🔧 რემონტში</option>
-                    <option value="reserved">🔒 დაჯავშნილი</option>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">ფართის დანიშნულება</label>
+                  <select name="property_type" value={editingApartment.property_type || 'residential'} onChange={(e) => setEditingApartment({...editingApartment, property_type: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none">
+                    <option value="residential">საცხოვრებელი</option>
+                    <option value="commercial">სავაჭრო</option>
+                    <option value="office">ოფისი</option>
+                    <option value="storage">სათავსო</option>
+                    <option value="parking">პარკინგი</option>
+                    <option value="other">სხვა</option>
                   </select>
-                  <p className="text-xs text-slate-500 mt-1">სპეციალური სტატუსი override-ს აკეთებს ავტომატურზე</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">პარკინგის ადგილები</label>
-                  <input type="number" name="parking_spaces" value={editingApartment.parking_spaces} onChange={(e) => setEditingApartment({...editingApartment, parking_spaces: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">სათავსოები</label>
-                  <input type="number" name="storage_units" value={editingApartment.storage_units} onChange={(e) => setEditingApartment({...editingApartment, storage_units: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" />
                 </div>
               </div>
+
+              {/* FINANCIAL OVERRIDES SECTION */}
+              <div className="bg-slate-800/30 border border-white/10 rounded-xl p-5 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <IconWallet className="w-5 h-5 text-amber-400" />
+                  <h4 className="font-bold text-white">ფინანსური პირობები</h4>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">გადახდის წესი ამ ბინისთვის</label>
+                  <select 
+                    name="fee_calculation_method_override" 
+                    value={editingApartment.fee_calculation_method_override || ''} 
+                    onChange={(e) => setEditingApartment({...editingApartment, fee_calculation_method_override: e.target.value})} 
+                    className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                  >
+                    <option value="">🔄 კორპუსის ნაგულისხმევი წესი</option>
+                    <option value="per_sqm">📏 კვადრატულობით (მ²)</option>
+                    <option value="per_apartment">💵 ფიქსირებული თანხა</option>
+                    <option value="custom">✏️ ინდივიდუალური თანხა</option>
+                    <option value="exempt">🚫 განთავისუფლებულია (0 ₾)</option>
+                  </select>
+                </div>
+
+                {editingApartment.fee_calculation_method_override === 'per_sqm' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">ინდივიდუალური ტარიფი (₾/მ²)</label>
+                    <input 
+                      type="number" step="0.01" name="rate_per_sqm_override" value={editingApartment.rate_per_sqm_override || ''} onChange={(e) => setEditingApartment({...editingApartment, rate_per_sqm_override: e.target.value})} 
+                      className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" 
+                      placeholder="მაგ: 2.0" 
+                    />
+                  </div>
+                )}
+
+                {editingApartment.fee_calculation_method_override === 'per_apartment' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">ინდივიდუალური ფიქსირებული თანხა (₾)</label>
+                    <input 
+                      type="number" step="0.01" name="fixed_fee_override" value={editingApartment.fixed_fee_override || ''} onChange={(e) => setEditingApartment({...editingApartment, fixed_fee_override: e.target.value})} 
+                      className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" 
+                      placeholder="მაგ: 60" 
+                    />
+                  </div>
+                )}
+
+                {editingApartment.fee_calculation_method_override === 'custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">ინდივიდუალური ყოველთვიური თანხა (₾)</label>
+                    <input 
+                      type="number" step="0.01" name="custom_monthly_fee" value={editingApartment.custom_monthly_fee || ''} onChange={(e) => setEditingApartment({...editingApartment, custom_monthly_fee: e.target.value})} 
+                      className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none" 
+                      placeholder="მაგ: 45" 
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-6 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" name="has_balcony" checked={editingApartment.has_balcony} onChange={(e) => setEditingApartment({...editingApartment, has_balcony: e.target.checked})} className="w-4 h-4 rounded border-white/20 bg-slate-800 text-blue-500 focus:ring-blue-500/50" />
@@ -965,10 +1100,12 @@ export default function ApartmentsPage() {
                   <span className="text-sm text-slate-300">აქვს ლიფტთან წვდომა</span>
                 </label>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">დამატებითი შენიშვნები</label>
                 <textarea name="special_notes" value={editingApartment.special_notes || ''} onChange={(e) => setEditingApartment({...editingApartment, special_notes: e.target.value})} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-blue-500/50 outline-none resize-none"></textarea>
               </div>
+
               <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                 <button type="button" onClick={() => { setIsEditModalOpen(false); setEditingApartment(null); }} className="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">გაუქმება</button>
                 <button type="submit" disabled={isProcessing} className="flex items-center gap-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
@@ -1015,7 +1152,6 @@ export default function ApartmentsPage() {
                 </div>
               </div>
 
-              {/* Occupying Toggle - PROMINENT */}
               <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5">
                 <label className="flex items-center justify-between cursor-pointer">
                   <div>
@@ -1039,7 +1175,6 @@ export default function ApartmentsPage() {
                 </label>
               </div>
 
-              {/* Emergency Contact */}
               <div>
                 <h4 className="text-sm font-semibold text-white mb-3">საგანგებო კონტაქტი</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
