@@ -88,6 +88,16 @@ const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconFileText = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+)
+
 // ============ STAT CARD ============
 function StatCard({ icon: Icon, label, value, sublabel, gradient, trend }: { 
   icon: any; 
@@ -936,7 +946,6 @@ export default function FinancesPage() {
   // ============ BANK ACCOUNT HANDLERS ============
   const handleOpenBankModal = (account?: any) => {
     if (account) {
-      // რედაქტირების რეჟიმი
       setEditingBankAccount(account)
       setBankForm({
         bank_name: account.bank_name || '',
@@ -948,10 +957,8 @@ export default function FinancesPage() {
         notes: account.notes || '',
       })
     } else {
-      // ახლის დამატების რეჟიმი - ავტომატური შევსება
       setEditingBankAccount(null)
       
-      // ავტომატურად ვქმნით მფლობელის სახელს კორპუსის მონაცემებიდან
       const defaultHolder = building.name 
         ? `${building.name} - ${building.street}` 
         : building.street
@@ -959,7 +966,7 @@ export default function FinancesPage() {
       setBankForm({
         bank_name: '',
         account_number: '',
-        account_holder: defaultHolder, // ავტომატურად შევსებული!
+        account_holder: defaultHolder,
         currency: 'GEL',
         swift_code: '',
         is_primary: false,
@@ -1240,7 +1247,26 @@ export default function FinancesPage() {
           )}
         </div>
 
+        {/* Quick Actions Grid - UPDATED WITH LEDGER AS FIRST ITEM */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          
+          {/* 1. აღრიცხვის ჟურნალი (LEDGER) - იდეალური პირველი ადგილი */}
+          <Link 
+            href={`/dashboard/building/${buildingId}/finances/ledger`}
+            className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <IconFileText className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="font-bold text-white text-lg">აღრიცხვის ჟურნალი</div>
+                <div className="text-sm text-slate-400">გადახდების კონტროლი</div>
+              </div>
+            </div>
+          </Link>
+
+          {/* 2. ფინანსური პარამეტრები */}
           <button onClick={() => setIsSettingsModalOpen(true)} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300 text-left group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -1253,6 +1279,7 @@ export default function FinancesPage() {
             </div>
           </button>
 
+          {/* 3. ყოველთვიური გენერაცია */}
           <button onClick={() => setIsGenerateModalOpen(true)} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 text-left group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -1265,26 +1292,15 @@ export default function FinancesPage() {
             </div>
           </button>
 
-          <button className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 text-left group">
+          {/* 4. ხარჯის დამატება (დროებით გათიშული) */}
+          <button className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 opacity-50 cursor-not-allowed text-left group">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <IconPlus className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="font-bold text-white text-lg">გადახდის დამატება</div>
-                <div className="text-sm text-slate-400">ხელით ჩაწერა</div>
-              </div>
-            </div>
-          </button>
-
-          <button className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-rose-500/50 transition-all duration-300 text-left group">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg">
                 <IconPlus className="w-6 h-6 text-white" />
               </div>
               <div>
                 <div className="font-bold text-white text-lg">ხარჯის დამატება</div>
-                <div className="text-sm text-slate-400">კატეგორიით</div>
+                <div className="text-sm text-slate-400">მალე დაემატება</div>
               </div>
             </div>
           </button>
@@ -1340,7 +1356,6 @@ export default function FinancesPage() {
       <FinancialSettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} buildingId={buildingId} onSuccess={loadData} />
       <GenerateModal isOpen={isGenerateModalOpen} onClose={() => setIsGenerateModalOpen(false)} buildingId={buildingId} onSuccess={loadData} />
       
-      {/* Bank Account Modal */}
       <BankAccountModal
         isOpen={isBankModalOpen}
         onClose={() => setIsBankModalOpen(false)}
