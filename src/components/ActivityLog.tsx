@@ -334,7 +334,7 @@ export function ActivityLogModal({ isOpen, onClose, buildingId }: { isOpen: bool
                       </div>
                     )}
                     
-                    {/* დამატებითი მეტა მონაცემები */}
+                    {/* დამატებითი მეტაა მონაცემები */}
                     {log.metadata && (
                       <div className="mt-3 pt-3 border-t border-white/10">
                         <div className="text-xs text-slate-500 mb-2">დამატებითი ინფორმაცია:</div>
