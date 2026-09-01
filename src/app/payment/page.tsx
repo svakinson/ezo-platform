@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -50,7 +50,8 @@ const IconAlertCircle = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-export default function PaymentPage() {
+// ============ შიდა კომპონენტი, რომელიც იყენებს useSearchParams-ს ============
+function PaymentContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const planId = searchParams.get('plan_id')
@@ -74,7 +75,6 @@ export default function PaymentPage() {
       }
       setUser(user)
 
-      // მივიღოთ კონკრეტული პაკეტი, ან ნაგულისხმევი თუ ID არ არის
       let query = supabase.from('subscription_plans').select('*').eq('is_active', true)
       if (planId) {
         query = query.eq('id', planId)
@@ -114,7 +114,6 @@ export default function PaymentPage() {
     setErrorMessage('')
 
     try {
-      // 1. ატვირთვა Storage-ში
       const fileExt = selectedFile.name.split('.').pop()
       const fileName = `${user.id}/${Date.now()}.${fileExt}`
 
@@ -126,7 +125,6 @@ export default function PaymentPage() {
 
       const { data: urlData } = supabase.storage.from('payment_proofs').getPublicUrl(fileName)
 
-      // 2. ჩანაწერის შექმნა ბაზაში
       const { error: dbError } = await supabase.from('payment_requests').insert({
         user_id: user.id,
         amount: plan.price,
@@ -139,7 +137,6 @@ export default function PaymentPage() {
       setSuccessMessage('ქვითარი წარმატებით აიტვირთა! ადმინისტრატორი შეამოწმებს მას 24 საათის განმავლობაში.')
       setSelectedFile(null)
       
-      // 3 წამში გადაყვანა Dashboard-ზე (ან pricing-ზე)
       setTimeout(() => {
         router.push('/pricing')
       }, 3000)
@@ -153,9 +150,7 @@ export default function PaymentPage() {
   }
 
   const handleOnlinePayment = () => {
-    // აქ მომავალში იქნება TBC / Bank of Georgia / Stripe API ინტეგრაცია
     alert('დემო რეჟიმი: აქ გადაგამისამართებთ ბანკის უსაფრთხო გადახდის გვერდზე. (ინტეგრაცია მალე დაემატება)')
-    // router.push('https://bank-payment-gateway.com/...')
   }
 
   if (loading || !plan) {
@@ -168,7 +163,6 @@ export default function PaymentPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Header */}
       <header className="border-b border-white/10 bg-slate-950/50 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/pricing" className="text-sm text-slate-400 hover:text-white flex items-center gap-2">
@@ -181,11 +175,9 @@ export default function PaymentPage() {
       <main className="max-w-6xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* მარცხენა მხარე: გადახდის მეთოდი */}
           <div className="lg:col-span-2 space-y-6">
             <h1 className="text-2xl font-bold text-white">გადახდის მეთოდის არჩევა</h1>
 
-            {/* მეთოდის არჩევა */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 onClick={() => setPaymentMethod('transfer')}
@@ -214,9 +206,7 @@ export default function PaymentPage() {
               </button>
             </div>
 
-            {/* შინაარსი მეთოდის მიხედვით */}
             <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sm:p-8">
-              
               {paymentMethod === 'transfer' ? (
                 <form onSubmit={handleSubmitTransfer} className="space-y-6">
                   <div>
@@ -296,7 +286,6 @@ export default function PaymentPage() {
                   )}
                 </form>
               ) : (
-                // ონლაინ გადახდის ბლოკი
                 <div className="text-center py-8 space-y-6">
                   <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
                     <IconCreditCard className="w-10 h-10 text-emerald-400" />
@@ -321,7 +310,6 @@ export default function PaymentPage() {
             </div>
           </div>
 
-          {/* მარჯვენა მხარე: შეკვეთის შეჯამება */}
           <div className="lg:col-span-1">
             <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sticky top-24">
               <h3 className="text-lg font-bold text-white mb-4">შეკვეთის შეჯამება</h3>
@@ -362,5 +350,19 @@ export default function PaymentPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+// ============ მთავარი ექსპორტი Suspense-ით ============
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+        <IconLoader className="w-10 h-10 text-emerald-400 mr-3" />
+        იტვირთება...
+      </div>
+    }>
+      <PaymentContent />
+    </Suspense>
   )
 }
