@@ -1247,10 +1247,10 @@ export default function FinancesPage() {
           )}
         </div>
 
-        {/* Quick Actions Grid - UPDATED WITH LEDGER AS FIRST ITEM */}
+        {/* Quick Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           
-          {/* 1. აღრიცხვის ჟურნალი (LEDGER) - იდეალური პირველი ადგილი */}
+          {/* 1. აღრიცხვის ჟურნალი */}
           <Link 
             href={`/dashboard/building/${buildingId}/finances/ledger`}
             className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 text-left group"
@@ -1292,18 +1292,21 @@ export default function FinancesPage() {
             </div>
           </button>
 
-          {/* 4. ხარჯის დამატება (დროებით გათიშული) */}
-          <button className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 opacity-50 cursor-not-allowed text-left group">
+          {/* 4. გადასახადების მართვა (ახალი აქტიური ბმული) */}
+          <Link 
+            href={`/dashboard/building/${buildingId}/finances/expenses`}
+            className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-rose-500/50 transition-all duration-300 text-left group"
+          >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <IconPlus className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="font-bold text-white text-lg">ხარჯის დამატება</div>
-                <div className="text-sm text-slate-400">მალე დაემატება</div>
+                <div className="font-bold text-white text-lg">გადასახადები</div>
+                <div className="text-sm text-slate-400">კორპუსის ხარჯები</div>
               </div>
             </div>
-          </button>
+          </Link>
         </div>
 
         <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8">
