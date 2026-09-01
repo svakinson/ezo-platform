@@ -75,6 +75,106 @@ const IconLoader = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+// ============ CUSTOM CONFIRM MODAL ============
+function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, confirmText = "დიახ", cancelText = "არა", variant = "default" }: {
+  isOpen: boolean
+  title: string
+  message: string
+  onConfirm: () => void
+  onCancel: () => void
+  confirmText?: string
+  cancelText?: string
+  variant?: "default" | "danger" | "warning"
+}) {
+  if (!isOpen) return null
+
+  const buttonStyles = {
+    default: "bg-emerald-500 hover:bg-emerald-600",
+    danger: "bg-rose-500 hover:bg-rose-600",
+    warning: "bg-amber-500 hover:bg-amber-600"
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="p-6">
+          <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+          <p className="text-slate-300 mb-6">{message}</p>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={onCancel}
+              className="px-5 py-2.5 text-slate-300 hover:text-white font-medium rounded-lg transition-colors"
+            >
+              {cancelText}
+            </button>
+            <button
+              onClick={onConfirm}
+              className={`px-5 py-2.5 text-white font-medium rounded-lg transition-colors ${buttonStyles[variant]}`}
+            >
+              {confirmText}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============ CUSTOM ALERT MODAL ============
+function AlertModal({ isOpen, title, message, onClose, variant = "info" }: {
+  isOpen: boolean
+  title: string
+  message: string
+  onClose: () => void
+  variant?: "info" | "success" | "error" | "warning"
+}) {
+  if (!isOpen) return null
+
+  const iconStyles = {
+    info: { bg: "bg-blue-500/20", icon: "text-blue-400", iconPath: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+    success: { bg: "bg-emerald-500/20", icon: "text-emerald-400", iconPath: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
+    error: { bg: "bg-rose-500/20", icon: "text-rose-400", iconPath: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" },
+    warning: { bg: "bg-amber-500/20", icon: "text-amber-400", iconPath: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" }
+  }
+
+  const style = iconStyles[variant]
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="p-6">
+          <div className="flex items-start gap-4 mb-4">
+            <div className={`w-12 h-12 rounded-xl ${style.bg} flex items-center justify-center flex-shrink-0`}>
+              <svg className={`w-6 h-6 ${style.icon}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d={style.iconPath} />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+              <p className="text-slate-300">{message}</p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ============ STATUS CONFIG ============
 const statusConfig: Record<string, { label: string; bgColor: string; textColor: string; borderColor: string; icon: any }> = {
   paid: { label: 'გადახდილი', bgColor: 'bg-emerald-500/10', textColor: 'text-emerald-400', borderColor: 'border-emerald-500/30', icon: IconCheck },
@@ -97,12 +197,35 @@ export default function LedgerPage() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [filter, setFilter] = useState<string>('all')
   
-  // ცალკე სტეითები ინდივიდუალური და ჯგუფური მოქმედებებისთვის
   const [processingFeeId, setProcessingFeeId] = useState<string | null>(null)
   const [isBulkProcessing, setIsBulkProcessing] = useState(false)
   
-  // მონიშვნის სტეითი
   const [selectedFees, setSelectedFees] = useState<Set<string>>(new Set())
+
+  // Custom Modal States
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+    variant?: "default" | "danger" | "warning"
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} })
+
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    variant?: "info" | "success" | "error" | "warning"
+  }>({ isOpen: false, title: '', message: '' })
+
+  // Helper functions to replace confirm() and alert()
+  const showConfirm = (title: string, message: string, onConfirm: () => void, variant: "default" | "danger" | "warning" = "default") => {
+    setConfirmModal({ isOpen: true, title, message, onConfirm, variant })
+  }
+
+  const showAlert = (title: string, message: string, variant: "info" | "success" | "error" | "warning" = "info") => {
+    setAlertModal({ isOpen: true, title, message, variant })
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -120,7 +243,7 @@ export default function LedgerPage() {
         await loadFees()
       } catch (error) {
         console.error('Error loading data:', error)
-        alert('მონაცემების ჩატვირთვის შეცდომა')
+        showAlert('შეცდომა', 'მონაცემების ჩატვირთვის შეცდომა', 'error')
         router.push('/dashboard')
       } finally {
         setLoading(false)
@@ -132,7 +255,7 @@ export default function LedgerPage() {
   useEffect(() => {
     if (buildingId && selectedMonth) {
       loadFees()
-      setSelectedFees(new Set()) // თვის შეცვლისას გავასუფთავოთ მონიშვნა
+      setSelectedFees(new Set())
     }
   }, [selectedMonth])
 
@@ -145,7 +268,7 @@ export default function LedgerPage() {
 
     if (error) {
       console.error('Error loading fees:', error)
-      alert('შეცდომა: ' + error.message)
+      showAlert('შეცდომა', 'შეცდომა: ' + error.message, 'error')
       return
     }
 
@@ -199,134 +322,168 @@ export default function LedgerPage() {
   }
 
   // ============ DELETE HANDLERS ============
-  const handleDeleteFee = async (feeId: string) => {
-    if (!confirm('დარწმუნებული ხარ, რომ გსურს ამ ჩანაწერის წაშლა?')) return
-    setProcessingFeeId(feeId)
+  const handleDeleteFee = (feeId: string) => {
+    showConfirm(
+      'ჩანაწერის წაშლა',
+      'დარწმუნებული ხარ, რომ გსურს ამ ჩანაწერის წაშლა? ეს მოქმედება შეუქცევადია.',
+      async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+        setProcessingFeeId(feeId)
 
-    const { error } = await supabase
-      .from('monthly_fees')
-      .delete()
-      .eq('id', feeId)
+        const { error } = await supabase
+          .from('monthly_fees')
+          .delete()
+          .eq('id', feeId)
 
-    if (error) {
-      alert('შეცდომა წაშლისას: ' + error.message)
-    } else {
-      await loadFees()
-      setSelectedFees(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(feeId)
-        return newSet
-      })
-    }
-    setProcessingFeeId(null)
+        if (error) {
+          showAlert('შეცდომა', 'შეცდომა წაშლისას: ' + error.message, 'error')
+        } else {
+          await loadFees()
+          setSelectedFees(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(feeId)
+            return newSet
+          })
+        }
+        setProcessingFeeId(null)
+      },
+      'danger'
+    )
   }
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedFees.size === 0) {
-      alert('არ არის მონიშნული ჩანაწერები')
+      showAlert('ყურადღება', 'არ არის მონიშნული ჩანაწერები', 'warning')
       return
     }
-    if (!confirm(`დარწმუნებული ხარ, რომ გსურს ${selectedFees.size} ჩანაწერის წაშლა?`)) return
-    setIsBulkProcessing(true)
+    showConfirm(
+      'ჩანაწერების წაშლა',
+      `დარწმუნებული ხარ, რომ გსურს ${selectedFees.size} ჩანაწერის წაშლა? ეს მოქმედება შეუქცევადია.`,
+      async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+        setIsBulkProcessing(true)
 
-    const feeIds = Array.from(selectedFees)
-    const { error } = await supabase
-      .from('monthly_fees')
-      .delete()
-      .in('id', feeIds)
+        const feeIds = Array.from(selectedFees)
+        const { error } = await supabase
+          .from('monthly_fees')
+          .delete()
+          .in('id', feeIds)
 
-    if (error) {
-      alert('შეცდომა წაშლისას: ' + error.message)
-    } else {
-      alert(`წარმატებით წაიშალა ${selectedFees.size} ჩანაწერი`)
-      await loadFees()
-      setSelectedFees(new Set())
-    }
-    setIsBulkProcessing(false)
+        if (error) {
+          showAlert('შეცდომა', 'შეცდომა წაშლისას: ' + error.message, 'error')
+        } else {
+          showAlert('წარმატება', `წარმატებით წაიშალა ${selectedFees.size} ჩანაწერი`, 'success')
+          await loadFees()
+          setSelectedFees(new Set())
+        }
+        setIsBulkProcessing(false)
+      },
+      'danger'
+    )
   }
 
   // ============ VERIFY & REMIND HANDLERS ============
-  const handleVerify = async (feeId: string) => {
-    if (!confirm('დაადასტურე გადახდა?')) return
-    setProcessingFeeId(feeId)
+  const handleVerify = (feeId: string) => {
+    showConfirm(
+      'გადახდის დადასტურება',
+      'დაადასტურე გადახდა? ეს მოქმედება შეცვლის სტატუსს "გადახდილი"-ზე.',
+      async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+        setProcessingFeeId(feeId)
 
-    const { error } = await supabase
-      .from('monthly_fees')
-      .update({ 
-        status: 'paid',
-        verified_by: (await supabase.auth.getUser()).data.user?.id,
-        verified_at: new Date().toISOString(),
-        payment_confirmed_at: new Date().toISOString()
-      })
-      .eq('id', feeId)
+        const { error } = await supabase
+          .from('monthly_fees')
+          .update({ 
+            status: 'paid',
+            verified_by: (await supabase.auth.getUser()).data.user?.id,
+            verified_at: new Date().toISOString(),
+            payment_confirmed_at: new Date().toISOString()
+          })
+          .eq('id', feeId)
 
-    if (error) {
-      alert('შეცდომა: ' + error.message)
-    } else {
-      // წარმატების შემთხვევაში ვხსნით მონიშვნას
-      setSelectedFees(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(feeId)
-        return newSet
-      })
-      await loadFees()
-    }
-    setProcessingFeeId(null)
+        if (error) {
+          showAlert('შეცდომა', 'შეცდომა: ' + error.message, 'error')
+        } else {
+          setSelectedFees(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(feeId)
+            return newSet
+          })
+          await loadFees()
+          showAlert('წარმატება', 'გადახდა წარმატებით დადასტურდა', 'success')
+        }
+        setProcessingFeeId(null)
+      },
+      'default'
+    )
   }
 
-  const handleSendReminder = async (feeId: string) => {
-    if (!confirm('გაუგზავნო შეხსენება მფლობელს?')) return
-    setProcessingFeeId(feeId)
+  const handleSendReminder = (feeId: string) => {
+    showConfirm(
+      'შეხსენების გაგზავნა',
+      'გაუგზავნო შეხსენება მფლობელს?',
+      async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+        setProcessingFeeId(feeId)
 
-    const { error } = await supabase
-      .from('monthly_fees')
-      .update({ 
-        reminder_sent: true,
-        reminder_count: (fees.find(f => f.id === feeId)?.reminder_count || 0) + 1,
-        reminder_last_sent: new Date().toISOString()
-      })
-      .eq('id', feeId)
+        const { error } = await supabase
+          .from('monthly_fees')
+          .update({ 
+            reminder_sent: true,
+            reminder_count: (fees.find(f => f.id === feeId)?.reminder_count || 0) + 1,
+            reminder_last_sent: new Date().toISOString()
+          })
+          .eq('id', feeId)
 
-    if (error) {
-      alert('შეცდომა: ' + error.message)
-    } else {
-      alert('შეხსენება გაიგზავნა!')
-      // წარმატების შემთხვევაში ვხსნით მონიშვნას
-      setSelectedFees(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(feeId)
-        return newSet
-      })
-      await loadFees()
-    }
-    setProcessingFeeId(null)
+        if (error) {
+          showAlert('შეცდომა', 'შეცდომა: ' + error.message, 'error')
+        } else {
+          setSelectedFees(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(feeId)
+            return newSet
+          })
+          await loadFees()
+          showAlert('წარმატება', 'შეხსენება გაიგზავნა!', 'success')
+        }
+        setProcessingFeeId(null)
+      },
+      'warning'
+    )
   }
 
-  const handleBulkRemind = async () => {
+  const handleBulkRemind = () => {
     const overdueFees = fees.filter(f => f.status === 'overdue' || f.status === 'pending')
     if (overdueFees.length === 0) {
-      alert('არ არის გადაუხდელი ბინები')
+      showAlert('ყურადღება', 'არ არის გადაუხდელი ბინები', 'warning')
       return
     }
-    if (!confirm(`გაუგზავნო შეხსენება ${overdueFees.length} ბინას?`)) return
-    setIsBulkProcessing(true)
+    showConfirm(
+      'შეხსენებების გაგზავნა',
+      `გაუგზავნო შეხსენება ${overdueFees.length} ბინას?`,
+      async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+        setIsBulkProcessing(true)
 
-    const feeIds = overdueFees.map(f => f.id)
-    const { error } = await supabase
-      .from('monthly_fees')
-      .update({ 
-        reminder_sent: true,
-        reminder_last_sent: new Date().toISOString()
-      })
-      .in('id', feeIds)
+        const feeIds = overdueFees.map(f => f.id)
+        const { error } = await supabase
+          .from('monthly_fees')
+          .update({ 
+            reminder_sent: true,
+            reminder_last_sent: new Date().toISOString()
+          })
+          .in('id', feeIds)
 
-    if (error) {
-      alert('შეცდომა: ' + error.message)
-    } else {
-      alert(`შეხსენება გაიგზავნა ${overdueFees.length} ბინისთვის!`)
-      await loadFees()
-    }
-    setIsBulkProcessing(false)
+        if (error) {
+          showAlert('შეცდომა', 'შეცდომა: ' + error.message, 'error')
+        } else {
+          showAlert('წარმატება', `შეხსენება გაიგზავნა ${overdueFees.length} ბინისთვის!`, 'success')
+          await loadFees()
+        }
+        setIsBulkProcessing(false)
+      },
+      'warning'
+    )
   }
 
   if (loading) {
@@ -634,6 +791,25 @@ export default function LedgerPage() {
           </div>
         </div>
       </main>
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        variant={confirmModal.variant}
+      />
+
+      {/* Custom Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        title={alertModal.title}
+        message={alertModal.message}
+        onClose={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
+        variant={alertModal.variant}
+      />
     </div>
   )
 }
