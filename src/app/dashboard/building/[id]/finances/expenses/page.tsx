@@ -75,7 +75,14 @@ const IconPin = ({ className = "w-4 h-4" }: { className?: string }) => (
 )
 
 // ============ CONFIRM MODAL ============
-function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, variant = "default" }: any) {
+function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, variant = "default" }: {
+  isOpen: boolean
+  title: string
+  message: string
+  onConfirm: () => void
+  onCancel: () => void
+  variant?: "default" | "danger" | "warning"
+}) {
   if (!isOpen) return null
   const btnStyle = variant === "danger" ? "bg-rose-500 hover:bg-rose-600" : variant === "warning" ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-500 hover:bg-emerald-600"
   return (
@@ -93,9 +100,20 @@ function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, variant = "
 }
 
 // ============ ALERT MODAL ============
-function AlertModal({ isOpen, title, message, onClose, variant = "info" }: any) {
+function AlertModal({ isOpen, title, message, onClose, variant = "info" }: {
+  isOpen: boolean
+  title: string
+  message: string
+  onClose: () => void
+  variant?: "info" | "success" | "error" | "warning"
+}) {
   if (!isOpen) return null
-  const colors = { info: "text-blue-400 bg-blue-500/20", success: "text-emerald-400 bg-emerald-500/20", error: "text-rose-400 bg-rose-500/20", warning: "text-amber-400 bg-amber-500/20" }
+  const colors: Record<string, string> = { 
+    info: "text-blue-400 bg-blue-500/20", 
+    success: "text-emerald-400 bg-emerald-500/20", 
+    error: "text-rose-400 bg-rose-500/20", 
+    warning: "text-amber-400 bg-amber-500/20" 
+  }
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6">
@@ -103,9 +121,14 @@ function AlertModal({ isOpen, title, message, onClose, variant = "info" }: any) 
           <div className={`w-10 h-10 rounded-xl ${colors[variant]} flex items-center justify-center flex-shrink-0`}>
             {variant === "success" ? <IconCheck className="w-5 h-5" /> : variant === "error" ? <IconX className="w-5 h-5" /> : <IconClock className="w-5 h-5" />}
           </div>
-          <div><h3 className="text-lg font-bold text-white mb-1">{title}</h3><p className="text-slate-300 text-sm">{message}</p></div>
+          <div>
+            <h3 className="text-lg font-bold text-white mb-1">{title}</h3>
+            <p className="text-slate-300 text-sm">{message}</p>
+          </div>
         </div>
-        <div className="flex justify-end"><button onClick={onClose} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">OK</button></div>
+        <div className="flex justify-end">
+          <button onClick={onClose} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">OK</button>
+        </div>
       </div>
     </div>
   )
@@ -135,8 +158,8 @@ export default function ExpensesPage() {
   // Form
   const [form, setForm] = useState({ description: '', amount: '', is_recurring: false, category_id: '' })
 
-  const showAlert = (title: string, message: string, variant = "info") => setAlertModal({ isOpen: true, title, message, variant })
-  const showConfirm = (title: string, message: string, onConfirm: () => void, variant = "default") => setConfirmModal({ isOpen: true, title, message, onConfirm, variant })
+  const showAlert = (title: string, message: string, variant: "info" | "success" | "error" | "warning" = "info") => setAlertModal({ isOpen: true, title, message, variant })
+  const showConfirm = (title: string, message: string, onConfirm: () => void, variant: "default" | "danger" | "warning" = "default") => setConfirmModal({ isOpen: true, title, message, onConfirm, variant })
 
   useEffect(() => {
     const init = async () => {
@@ -145,7 +168,7 @@ export default function ExpensesPage() {
         const { data: b } = await supabase.from('buildings').select('*').eq('id', buildingId).single()
         if (b) setBuilding(b)
 
-        const { data: cats } = await supabase.from('expense_categories').select('id, name').eq('building_id', buildingId).or('building_id.is.null')
+        const { data: cats } = await supabase.from('expense_categories').select('id, name').eq('building_id', buildingId)
         setCategories(cats || [])
 
         await loadTemplates()
