@@ -1,6 +1,49 @@
-// ... (წინა კოდი იგივე რჩება ემოთ) ...
+'use client'
 
-// რომელი ველები არ უნდა გამოჩნდეს ჟურნალში
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+
+// ============ ICONS ============
+const IconHistory = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+  </svg>
+)
+
+const IconChevronRight = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>
+)
+
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
+)
+
+// მოქმედების ტიპის მიხედვით იკონი და ფერი
+const getActionStyle = (actionType: string) => {
+  switch (actionType) {
+    case 'create': return { icon: '➕', color: 'text-emerald-400', bg: 'bg-emerald-500/10', label: 'დამატება' }
+    case 'update': return { icon: '✏️', color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'რედაქტირება' }
+    case 'delete': return { icon: '🗑️', color: 'text-rose-400', bg: 'bg-rose-500/10', label: 'წაშლა' }
+    case 'verify': return { icon: '✓', color: 'text-emerald-400', bg: 'bg-emerald-500/10', label: 'დადასტურება' }
+    case 'remind': return { icon: '🔔', color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'შეხსენება' }
+    case 'generate': return { icon: '⚙️', color: 'text-purple-400', bg: 'bg-purple-500/10', label: 'გენერაცია' }
+    case 'bulk_action': return { icon: '📦', color: 'text-indigo-400', bg: 'bg-indigo-500/10', label: 'ჯგუფური' }
+    default: return { icon: '•', color: 'text-slate-400', bg: 'bg-slate-500/10', label: actionType }
+  }
+}
+
+// რომელი ველები არ უნდა გამოჩნდეს ჟურნალში (ტექნიკური დეტალები)
 const HIDDEN_FIELDS = [
   'is_recurring',
   'category_id',
@@ -27,7 +70,7 @@ const HIDDEN_FIELDS = [
   'due_date'
 ]
 
-// მნიშვნელობების ამაზად ფორმატირება
+// მნიშვნელობების ლამაზად ფორმატირება
 const formatValue = (key: string, value: any): string => {
   if (key === 'amount') {
     return `₾${Number(value).toLocaleString('ka-GE')}`
@@ -80,7 +123,70 @@ const formatFieldName = (key: string): string => {
   return fieldNames[key] || key
 }
 
-// ... (დარჩენილი კოდი იგივე) ...
+// ============ COMPACT LOG LIST (ბოლო 10) ============
+export function ActivityLogList({ buildingId, onViewAll }: { buildingId: string, onViewAll: () => void }) {
+  const [logs, setLogs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      const { data } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('building_id', buildingId)
+        .order('created_at', { ascending: false })
+        .limit(10)
+      setLogs(data || [])
+      setLoading(false)
+    }
+    fetchLogs()
+  }, [buildingId])
+
+  if (loading) return <div className="flex items-center justify-center p-8"><IconLoader className="w-6 h-6 text-emerald-400" /></div>
+
+  return (
+    <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+          <IconHistory className="w-6 h-6 text-blue-400" />
+          ბოლო მოქმედებები
+        </h3>
+        <button onClick={onViewAll} className="flex items-center gap-1 text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
+          ყველას ნახვა <IconChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {logs.length === 0 ? (
+        <div className="text-center py-8 text-slate-400">
+          ჯერ არანაირი მოქმედება არ დაფიქსირებულა
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {logs.map((log) => {
+            const style = getActionStyle(log.action_type)
+            const date = new Date(log.created_at).toLocaleString('ka-GE', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            
+            return (
+              <div key={log.id} className="flex items-start gap-4 p-3 rounded-xl hover:bg-slate-700/30 transition-colors">
+                <div className={`w-8 h-8 rounded-lg ${style.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
+                  {style.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-white font-medium truncate">{log.description}</div>
+                  <div className="text-xs text-slate-400 flex items-center gap-2 mt-1">
+                    <span>{log.user_name || 'უცნობი'}</span>
+                    <span>•</span>
+                    <span>{date}</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ============ FULL LOG MODAL (სრული ისტორია) ============
 export function ActivityLogModal({ isOpen, onClose, buildingId }: { isOpen: boolean, onClose: () => void, buildingId: string }) {
