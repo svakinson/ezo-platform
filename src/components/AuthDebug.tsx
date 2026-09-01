@@ -3,8 +3,19 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+// დავამატოთ მკაფიო ტიპიზაცია TypeScript-ისთვის
+type DebugInfo = {
+  supabaseUrl: string | undefined
+  supabaseKey: string | undefined
+  user: any
+  profile: any
+  cookies: Record<string, string>
+  errors: string[]
+  logs: string[]
+}
+
 export default function AuthDebug() {
-  const [debugInfo, setDebugInfo] = useState<any>({
+  const [debugInfo, setDebugInfo] = useState<DebugInfo>({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 10) + '...',
     user: null,
@@ -23,7 +34,7 @@ export default function AuthDebug() {
         logs.push('🔍 დაიწყო დებაგერი...')
 
         // 1. შევამოწმოთ Supabase კლიენტი
-        logs.push(' Supabase კლიენტის შემოწმება...')
+        logs.push('📡 Supabase კლიენტის შემოწმება...')
         logs.push(`   URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`)
         logs.push(`   Key: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 10)}...`)
 
@@ -67,8 +78,8 @@ export default function AuthDebug() {
         }
 
         // 4. შევამოწმოთ cookies
-        logs.push(' Cookie-ების შემოწმება...')
-        const cookies: any = {}
+        logs.push('🍪 Cookie-ების შემოწმება...')
+        const cookies: Record<string, string> = {}
         document.cookie.split(';').forEach(cookie => {
           const [name, value] = cookie.trim().split('=')
           if (name.includes('sb-') || name.includes('auth')) {
@@ -103,11 +114,9 @@ export default function AuthDebug() {
         logs.push(`   კრიტიკული შეცდომა: ${error.message}`)
       }
 
-      setDebugInfo(prev => ({
+      // აქ დავამატეთ ტიპი (prev: DebugInfo) შეცდომის თავიდან ასაცილებლად
+      setDebugInfo((prev: DebugInfo) => ({
         ...prev,
-        user: debugInfo.user,
-        profile: debugInfo.profile,
-        cookies: debugInfo.cookies,
         logs,
         errors
       }))
