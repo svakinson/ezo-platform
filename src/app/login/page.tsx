@@ -70,8 +70,7 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-// ============ FORM COMPONENT (Wrapped in Suspense) ============
-
+// ============ FORM COMPONENT ============
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -90,24 +89,44 @@ function LoginForm() {
     setError('')
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
+      if (signInError) {
+        if (signInError.message.includes('Invalid login credentials')) {
           setError('არასწორი ელ-ფოსტა ან პაროლი')
-        } else if (error.message.includes('Email not confirmed')) {
-          setError('გთხოვთ დაადასტუროთ თქვენი ელ-ფოსტა')
         } else {
-          setError(error.message)
+          setError(signInError.message)
         }
         return
       }
 
-      router.push('/dashboard')
-    } catch (err) {
+      if (data.user) {
+        console.log('✅ Login successful! User ID:', data.user.id)
+        
+        // შევამოწმოთ მომხმარებლის როლი სწორი redirect-ისთვის
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single()
+
+        console.log('👤 User role:', profile?.role)
+
+        // ჭკვიანი redirect:
+        if (profile?.role === 'chairman') {
+          router.push('/dashboard')
+        } else if (profile?.role === 'admin') {
+          router.push('/admin/payments')
+        } else {
+          // ახალი მომხმარებელი ('user') მიდის Pricing გვერდზე
+          router.push('/pricing')
+        }
+      }
+    } catch (err: any) {
+      console.error('Login catch error:', err)
       setError('შესვლის დროს მოხდა შეცდომა. სცადეთ თავიდან.')
     } finally {
       setLoading(false)
@@ -238,8 +257,7 @@ function LoginForm() {
   )
 }
 
-// ============ MAIN PAGE (Wraps LoginForm in Suspense) ============
-
+// ============ MAIN PAGE ============
 export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
