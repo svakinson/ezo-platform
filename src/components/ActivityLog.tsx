@@ -203,7 +203,7 @@ export function ActivityLogModal({ isOpen, onClose, buildingId }: { isOpen: bool
                       </div>
                     </div>
                     
-                    {/* დეტალები (თუ არის old_value/new_value) */}
+                    {/* დეტალებიი (თუ არის old_value/new_value) */}
                     {(log.old_value || log.new_value) && (
                       <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-4 text-xs">
                         {log.old_value && (
