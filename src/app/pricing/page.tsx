@@ -19,6 +19,12 @@ const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
   </svg>
 )
 
+const IconShield = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+)
+
 export default function PricingPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -29,31 +35,30 @@ export default function PricingPage() {
 
   useEffect(() => {
     const init = async () => {
-      // მივიღოთ current user
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
         setUser(user)
         setUserName(user.email?.split('@')[0] || 'მომხმარებელი')
         
-        // მივიღოთ user-ის როლი
         const { data: profile } = await supabase
           .from('profiles')
           .select('role, subscription_status')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
 
         if (profile) {
           setUserRole(profile.role)
           
-          // თუ უკვე chairman-ია → dashboard-ზე
           if (profile.role === 'chairman' && profile.subscription_status === 'active') {
             router.push('/dashboard')
+          } else if (profile.role === 'admin') {
+            // თუ ადმინია, შეგიძლია პირდაპირ ადმინ პანელზეც გადაიყვანო, ან დატოვო pricing-ზე
+            // router.push('/admin/users') 
           }
         }
       }
 
-      // მივიღოთ პაკეტები
       const { data } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -88,19 +93,31 @@ export default function PricingPage() {
             <h1 className="text-xl font-bold text-white">EZO Platform</h1>
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {user ? (
-              // მომხმარებელი დალოგინებულია
               <>
+                {/* მომხმარებლის სახელი */}
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-white/10">
                   <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
                   <span className="text-sm text-slate-300">{userName}</span>
                 </div>
                 
+                {/* ⭐ ადმინის ღილაკი (ჩანს მხოლოდ თუ role === 'admin') ⭐ */}
+                {userRole === 'admin' && (
+                  <Link 
+                    href="/admin/users" 
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 text-sm font-medium rounded-lg transition-colors"
+                  >
+                    <IconShield className="w-4 h-4" />
+                    <span>ადმინ პანელი</span>
+                  </Link>
+                )}
+
+                {/* ჩვეულებრივი მომხმარებლის ლინკი */}
                 {userRole === 'user' && (
                   <Link 
                     href="/payment" 
-                    className="text-sm text-slate-300 hover:text-white transition-colors"
+                    className="text-sm text-slate-300 hover:text-white transition-colors px-2"
                   >
                     გადახდის ისტორია
                   </Link>
@@ -111,24 +128,17 @@ export default function PricingPage() {
                     await supabase.auth.signOut()
                     router.push('/')
                   }}
-                  className="text-sm text-rose-400 hover:text-rose-300 transition-colors font-medium"
+                  className="text-sm text-rose-400 hover:text-rose-300 transition-colors font-medium px-2"
                 >
                   გამოსვლა
                 </button>
               </>
             ) : (
-              // მომხმარებელი არ არის დალოგინებული
               <>
-                <Link 
-                  href="/login" 
-                  className="text-sm text-slate-300 hover:text-white transition-colors"
-                >
+                <Link href="/login" className="text-sm text-slate-300 hover:text-white transition-colors px-2">
                   შესვლა
                 </Link>
-                <Link 
-                  href="/register" 
-                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
-                >
+                <Link href="/register" className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors">
                   რეგისტრაცია
                 </Link>
               </>
@@ -139,7 +149,6 @@ export default function PricingPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Hero Section */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
             აირჩიეთ თქვენი პაკეტი
@@ -149,7 +158,6 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan) => (
             <div
@@ -177,7 +185,6 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              {/* განახლებული ლინკი, რომელიც გადასცემს plan_id-ს */}
               <Link
                 href={user ? `/payment?plan_id=${plan.id}` : '/register'}
                 className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-lg transition-colors"
@@ -188,7 +195,6 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Info Section */}
         <div className="mt-16 text-center">
           <div className="bg-slate-800/30 border border-white/10 rounded-2xl p-8 max-w-3xl mx-auto">
             <h3 className="text-xl font-bold text-white mb-4">როგორ მუშაობს?</h3>
