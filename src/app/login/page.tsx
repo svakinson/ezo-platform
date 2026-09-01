@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
+import AuthDebug from '@/components/AuthDebug' // დებაგერის იმპორტი
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -88,13 +89,21 @@ function LoginForm() {
     setLoading(true)
     setError('')
 
+    console.log('🔐 [LOGIN] დაიწყო შესვლის პროცესი...')
+    console.log('📧 Email:', email)
+    console.log('🔑 Password length:', password.length)
+
     try {
+      console.log('📡 Supabase signInWithPassword გამოძახება...')
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (signInError) {
+        console.error('❌ [LOGIN ERROR]:', signInError)
+        console.error('Error details:', signInError.message, signInError.status)
+        
         if (signInError.message.includes('Invalid login credentials')) {
           setError('არასწორი ელ-ფოსტა ან პაროლი')
         } else {
@@ -103,30 +112,44 @@ function LoginForm() {
         return
       }
 
+      console.log('✅ [LOGIN SUCCESS] მომხმარებელი წარმატებით შევიდა!')
+      console.log('👤 User data:', data)
+      console.log('User ID:', data.user?.id)
+      console.log('Email:', data.user?.email)
+
       if (data.user) {
-        console.log('✅ Login successful! User ID:', data.user.id)
-        
-        // შევამოწმოთ მომხმარებლის როლი სწორი redirect-ისთვის
-        const { data: profile } = await supabase
+        console.log('📋 პროფილის მიღება ბაზიდან...')
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, subscription_status, subscription_end_date')
           .eq('id', data.user.id)
           .single()
 
-        console.log('👤 User role:', profile?.role)
+        if (profileError) {
+          console.error('❌ [PROFILE ERROR]:', profileError)
+        } else {
+          console.log('✅ [PROFILE SUCCESS]:', profile)
+          console.log('Role:', profile?.role)
+          console.log('Status:', profile?.subscription_status)
+          console.log('End Date:', profile?.subscription_end_date)
+        }
 
-        // ჭკვიანი redirect:
+        // ჭკვიანი redirect
+        console.log('🔄 Redirect ლოგიკის შემოწმება...')
         if (profile?.role === 'chairman') {
+          console.log('➡️ გადასვლა: /dashboard (chairman)')
           router.push('/dashboard')
         } else if (profile?.role === 'admin') {
+          console.log('➡️ გადასვლა: /admin/payments (admin)')
           router.push('/admin/payments')
         } else {
-          // ახალი მომხმარებელი ('user') მიდის Pricing გვერდზე
+          console.log('➡️ გადასვლა: /pricing (user)')
           router.push('/pricing')
         }
       }
     } catch (err: any) {
-      console.error('Login catch error:', err)
+      console.error('💥 [CATCH ERROR]:', err)
+      console.error('Error stack:', err.stack)
       setError('შესვლის დროს მოხდა შეცდომა. სცადეთ თავიდან.')
     } finally {
       setLoading(false)
@@ -315,6 +338,9 @@ export default function LoginPage() {
           </Suspense>
         </div>
       </div>
+
+      {/* Debug Component - მხოლოდ development-ში გამოჩნდება */}
+      {process.env.NODE_ENV === 'development' && <AuthDebug />}
     </div>
   )
 }
