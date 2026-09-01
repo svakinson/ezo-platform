@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
-import { ActivityLogList, ActivityLogModal } from '@/components/ActivityLog' // ახალი იმპორტი
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -829,14 +828,13 @@ export default function FinancesPage() {
   const [building, setBuilding] = useState<any>(null)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false)
-  const [isLogModalOpen, setIsLogModalOpen] = useState(false) // ახალი სტეითი ლოგების მოდალისთვის
-  
   const [stats, setStats] = useState({
     totalIncome: 0,
     totalExpenses: 0,
     balance: 0,
     pendingPayments: 0,
   })
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([])
   
   // Bank Accounts State
   const [bankAccounts, setBankAccounts] = useState<any[]>([])
@@ -896,6 +894,31 @@ export default function FinancesPage() {
         balance: totalIncome - totalExpenses,
         pendingPayments,
       })
+
+      const { data: recentPayments } = await supabase
+        .from('payments')
+        .select('*, apartment_id')
+        .eq('building_id', buildingId)
+        .order('payment_date', { ascending: false })
+        .limit(5)
+
+      const { data: recentExpenses } = await supabase
+        .from('expenses')
+        .select('*, category_id')
+        .eq('building_id', buildingId)
+        .order('expense_date', { ascending: false })
+        .limit(5)
+
+      const transactions = [
+        ...(recentPayments || []).map(p => ({ ...p, type: 'income' })),
+        ...(recentExpenses || []).map(e => ({ ...e, type: 'expense' })),
+      ].sort((a, b) => {
+        const dateA = a.type === 'income' ? a.payment_date : a.expense_date
+        const dateB = b.type === 'income' ? b.payment_date : b.expense_date
+        return new Date(dateB).getTime() - new Date(dateA).getTime()
+      }).slice(0, 10)
+
+      setRecentTransactions(transactions)
 
       // Load bank accounts
       const { data: bankData } = await supabase
@@ -1226,6 +1249,7 @@ export default function FinancesPage() {
 
         {/* Quick Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          
           {/* 1. აღრიცხვის ჟურნალი */}
           <Link 
             href={`/dashboard/building/${buildingId}/finances/ledger`}
@@ -1268,7 +1292,7 @@ export default function FinancesPage() {
             </div>
           </button>
 
-          {/* 4. გადასახადების მართვა */}
+          {/* 4. გადასახადების მართვა (ახალი აქტიური ბმული) */}
           <Link 
             href={`/dashboard/building/${buildingId}/finances/expenses`}
             className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-rose-500/50 transition-all duration-300 text-left group"
@@ -1285,12 +1309,51 @@ export default function FinancesPage() {
           </Link>
         </div>
 
-        {/* Activity Log Section (ჩაანაცვლა ძველმა "ბოლო ტრანზაქციები" სექციამ) */}
-        <ActivityLogList 
-          buildingId={buildingId} 
-          onViewAll={() => setIsLogModalOpen(true)} 
-        />
+        <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-white">ბოლო ტრანზაქციები</h3>
+            <Link href={`/dashboard/building/${buildingId}/finances/transactions`} className="text-sm text-emerald-400 hover:text-emerald-300 font-medium">
+              ყველას ნახვა →
+            </Link>
+          </div>
 
+          {recentTransactions.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
+                <IconWallet className="w-8 h-8 text-slate-400" />
+              </div>
+              <h4 className="font-bold text-white text-lg mb-2">ტრანზაქციები არ არის</h4>
+              <p className="text-sm text-slate-400 mb-6">დაამატე პირველი გადახდა ან ხარჯი</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentTransactions.map((transaction, index) => {
+                const isIncome = transaction.type === 'income'
+                const date = isIncome ? transaction.payment_date : transaction.expense_date
+                const description = isIncome ? `გადახდა - ${transaction.payer_name}` : transaction.description
+                
+                return (
+                  <div key={index} className="flex items-center justify-between p-4 bg-slate-900/50 border border-white/5 rounded-xl hover:border-white/10 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isIncome ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
+                        {isIncome ? <IconTrendingUp className="w-5 h-5 text-emerald-400" /> : <IconTrendingDown className="w-5 h-5 text-rose-400" />}
+                      </div>
+                      <div>
+                        <div className="font-medium text-white text-sm">{description}</div>
+                        <div className="text-xs text-slate-400">
+                          {new Date(date).toLocaleDateString('ka-GE', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`font-bold text-lg ${isIncome ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {isIncome ? '+' : '-'}₾{transaction.amount.toLocaleString()}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </main>
 
       <FinancialSettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} buildingId={buildingId} onSuccess={loadData} />
@@ -1304,13 +1367,6 @@ export default function FinancesPage() {
         onSubmit={handleBankSubmit}
         editingAccount={editingBankAccount}
         isProcessing={isProcessing}
-      />
-
-      {/* ახალი აქტივობის ჟურნალის მოდალი */}
-      <ActivityLogModal 
-        isOpen={isLogModalOpen} 
-        onClose={() => setIsLogModalOpen(false)} 
-        buildingId={buildingId} 
       />
     </div>
   )
