@@ -1306,7 +1306,7 @@ export default function FinancesPage() {
         isProcessing={isProcessing}
       />
 
-      {/* ახალი აქტივობის ჟურნალის მოდალი */}
+      {/* ახალი აქტივობის ჟურნალის მოდალა */}
       <ActivityLogModal 
         isOpen={isLogModalOpen} 
         onClose={() => setIsLogModalOpen(false)} 
