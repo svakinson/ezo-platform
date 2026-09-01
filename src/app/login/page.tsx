@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
-import AuthDebug from '@/components/AuthDebug' // დებაგერის იმპორტი
+import AuthDebug from '@/components/AuthDebug'
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -119,33 +119,39 @@ function LoginForm() {
 
       if (data.user) {
         console.log('📋 პროფილის მიღება ბაზიდან...')
+        
+        // გამოვიყენოთ .maybeSingle() ნაცვლად .single()-ისა
+        // ეს აბრუნებს null-ს შეცდომის გარეშე, თუ 0 ჩანაწერია
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, email, role, subscription_status, subscription_end_date') // დავამატეთ id და email უფრო სრული ინფოსთვის
+          .select('id, email, role, subscription_status, subscription_end_date')
           .eq('id', data.user.id)
-          .single()
+          .maybeSingle()
 
-        if (profileError) {
-          // 🚨 დეტალური ლოგები 500 შეცდომის ზუსტი მიზეზის დასადგენად
-          console.error('❌ [PROFILE ERROR] FULL DETAILS:')
-          console.error('   Message:', profileError.message)
-          console.error('   Details:', profileError.details)
-          console.error('   Hint:', profileError.hint)
-          console.error('   Code:', profileError.code)
-          console.error('   Raw Object:', profileError)
-        } else {
+        let userRole = 'user' // ნაგულისხმევი როლი
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          // თუ შეცდომა არის "0 rows" (PGRST116), ეს ნორმალურია და უგულებელვყოთ
+          // ნებისმიერი სხვა შეცდომა კი დავალოგოთ
+          console.error('❌ [PROFILE ERROR]:', profileError)
+        }
+
+        if (profile) {
           console.log('✅ [PROFILE SUCCESS]:', profile)
-          console.log('Role:', profile?.role)
-          console.log('Status:', profile?.subscription_status)
-          console.log('End Date:', profile?.subscription_end_date)
+          console.log('Role:', profile.role)
+          console.log('Status:', profile.subscription_status)
+          console.log('End Date:', profile.subscription_end_date)
+          userRole = profile.role
+        } else {
+          console.log('⚠️ პროფილი ვერ მოიძებნა ბაზაში. გამოიყენება ნაგულისხმევი "user" როლი.')
         }
 
         // ჭკვიანი redirect
         console.log('🔄 Redirect ლოგიკის შემოწმება...')
-        if (profile?.role === 'chairman') {
+        if (userRole === 'chairman') {
           console.log('➡️ გადასვლა: /dashboard (chairman)')
           router.push('/dashboard')
-        } else if (profile?.role === 'admin') {
+        } else if (userRole === 'admin') {
           console.log('➡️ გადასვლა: /admin/payments (admin)')
           router.push('/admin/payments')
         } else {
