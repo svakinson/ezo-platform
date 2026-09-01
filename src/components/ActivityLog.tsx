@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
-// ============ ICONS (განსაზღვრულია აქვე, რომ არ დაგვჭირდეს ცალკე ფაილი) ============
+// ============ ICONS ============
 const IconHistory = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
@@ -32,15 +32,84 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
 // მოქმედების ტიპის მიხედვით იკონი და ფერი
 const getActionStyle = (actionType: string) => {
   switch (actionType) {
-    case 'create': return { icon: '➕', color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
-    case 'update': return { icon: '✏️', color: 'text-blue-400', bg: 'bg-blue-500/10' }
-    case 'delete': return { icon: '🗑️', color: 'text-rose-400', bg: 'bg-rose-500/10' }
-    case 'verify': return { icon: '✓', color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
-    case 'remind': return { icon: '🔔', color: 'text-amber-400', bg: 'bg-amber-500/10' }
-    case 'generate': return { icon: '⚙️', color: 'text-purple-400', bg: 'bg-purple-500/10' }
-    case 'bulk_action': return { icon: '📦', color: 'text-indigo-400', bg: 'bg-indigo-500/10' }
-    default: return { icon: '•', color: 'text-slate-400', bg: 'bg-slate-500/10' }
+    case 'create': return { icon: '➕', color: 'text-emerald-400', bg: 'bg-emerald-500/10', label: 'დამატება' }
+    case 'update': return { icon: '✏️', color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'რედაქტირება' }
+    case 'delete': return { icon: '🗑️', color: 'text-rose-400', bg: 'bg-rose-500/10', label: 'წაშლა' }
+    case 'verify': return { icon: '✓', color: 'text-emerald-400', bg: 'bg-emerald-500/10', label: 'დადასტურება' }
+    case 'remind': return { icon: '🔔', color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'შეხსენება' }
+    case 'generate': return { icon: '️', color: 'text-purple-400', bg: 'bg-purple-500/10', label: 'გენერაცია' }
+    case 'bulk_action': return { icon: '📦', color: 'text-indigo-400', bg: 'bg-indigo-500/10', label: 'ჯგუფური მოქმედება' }
+    default: return { icon: '•', color: 'text-slate-400', bg: 'bg-slate-500/10', label: actionType }
   }
+}
+
+// მნიშვნელობების ლამაზად ფორმატირება
+const formatValue = (key: string, value: any): string => {
+  if (key === 'amount') {
+    return `₾${Number(value).toLocaleString('ka-GE')}`
+  }
+  if (key === 'is_paid') {
+    return value ? 'გადახდილი' : 'გადაუხდელი'
+  }
+  if (key === 'is_recurring') {
+    return value ? 'ფიქსირებული (ყოველთვიური)' : 'ცვალებადი (ერთჯერადი)'
+  }
+  if (key === 'status') {
+    const statusMap: Record<string, string> = {
+      'paid': 'გადახდილი',
+      'pending': 'მოლოდინში',
+      'overdue': 'გადაუხდელი',
+      'pending_receipt': 'ქვითარი ატვირთულია',
+      'exempt': 'განთავისუფლებული'
+    }
+    return statusMap[value] || value
+  }
+  if (key === 'payment_due_day') {
+    return `${value}-ში`
+  }
+  if (key === 'grace_period_days') {
+    return `${value} დღე`
+  }
+  if (key === 'fee_calculation_method') {
+    const methodMap: Record<string, string> = {
+      'per_apartment': 'ფიქსირებული თანხა',
+      'per_sqm': 'კვადრატულობით',
+      'custom': 'ინდივიდუალური'
+    }
+    return methodMap[value] || value
+  }
+  if (key === 'is_primary') {
+    return value ? 'დიახ' : 'არა'
+  }
+  if (typeof value === 'number') {
+    return value.toString()
+  }
+  if (typeof value === 'boolean') {
+    return value ? 'დიახ' : 'არა'
+  }
+  return String(value)
+}
+
+// ველის სახელის ლამაზად დასახელება
+const formatFieldName = (key: string): string => {
+  const fieldNames: Record<string, string> = {
+    'amount': 'თანხა',
+    'description': 'აღწერა',
+    'is_paid': 'სტატუსი',
+    'is_recurring': 'გადასახადის ტიპი',
+    'status': 'სტატუსი',
+    'payment_due_day': 'გადახდის ვადა',
+    'grace_period_days': 'შეღავათის პერიოდი',
+    'fee_calculation_method': 'გამოთვლის მეთოდი',
+    'is_primary': 'მთავარი ანგარიში',
+    'bank_name': 'ბანკის სახელი',
+    'account_number': 'ანგარიშის ნომერი',
+    'account_holder': 'ანგარიშის მფლობელი',
+    'currency': 'ვალუტა',
+    'swift_code': 'SWIFT კოდი',
+    'notes': 'შენიშვნები'
+  }
+  return fieldNames[key] || key
 }
 
 // ============ COMPACT LOG LIST (ბოლო 10) ============
@@ -155,17 +224,26 @@ export function ActivityLogModal({ isOpen, onClose, buildingId }: { isOpen: bool
         {/* Filters */}
         <div className="p-4 border-b border-white/10 bg-slate-800/30">
           <div className="flex gap-2 overflow-x-auto pb-2">
-            {['all', 'create', 'update', 'delete', 'verify', 'remind', 'generate', 'bulk_action'].map((action) => (
+            {[
+              { key: 'all', label: 'ყველა', color: 'bg-emerald-500' },
+              { key: 'create', label: 'დამატება', color: 'bg-emerald-500' },
+              { key: 'update', label: 'რედაქტირება', color: 'bg-blue-500' },
+              { key: 'delete', label: 'წაშლა', color: 'bg-rose-500' },
+              { key: 'verify', label: 'დადასტურება', color: 'bg-emerald-500' },
+              { key: 'remind', label: 'შეხსენება', color: 'bg-amber-500' },
+              { key: 'generate', label: 'გენერაცია', color: 'bg-purple-500' },
+              { key: 'bulk_action', label: 'ჯგუფური', color: 'bg-indigo-500' }
+            ].map((action) => (
               <button
-                key={action}
-                onClick={() => setFilterAction(action)}
+                key={action.key}
+                onClick={() => setFilterAction(action.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                  filterAction === action 
-                    ? 'bg-emerald-500 text-white' 
+                  filterAction === action.key 
+                    ? `${action.color} text-white` 
                     : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                 }`}
               >
-                {action === 'all' ? 'ყველა' : action}
+                {action.label}
               </button>
             ))}
           </div>
@@ -191,37 +269,56 @@ export function ActivityLogModal({ isOpen, onClose, buildingId }: { isOpen: bool
                 
                 return (
                   <div key={log.id} className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-                    <div className="flex items-start gap-3 mb-2">
-                      <div className={`w-8 h-8 rounded-lg ${style.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className={`w-10 h-10 rounded-lg ${style.bg} flex items-center justify-center flex-shrink-0 text-xl`}>
                         {style.icon}
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm font-bold text-white">{log.description}</div>
-                        <div className="text-xs text-slate-400 mt-1">
-                          {log.user_name || 'უცნობი'} • {date}
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${style.bg} ${style.color}`}>
+                            {style.label}
+                          </span>
+                          <div className="text-sm font-bold text-white">{log.description}</div>
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          <span className="font-medium text-slate-300">{log.user_name || 'უცნობი'}</span>
+                          <span className="mx-2">•</span>
+                          <span>{date}</span>
                         </div>
                       </div>
                     </div>
                     
-                    {/* დეტალებიი (თუ არის old_value/new_value) */}
+                    {/* ლამაზად ფორმატირებული ცვლილებები */}
                     {(log.old_value || log.new_value) && (
-                      <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-4 text-xs">
-                        {log.old_value && (
-                          <div>
-                            <div className="text-slate-500 mb-1">წინა მნიშვნელობა:</div>
-                            <pre className="text-slate-300 bg-slate-900/50 p-2 rounded-lg overflow-x-auto">
-                              {JSON.stringify(log.old_value, null, 2)}
-                            </pre>
-                          </div>
-                        )}
-                        {log.new_value && (
-                          <div>
-                            <div className="text-slate-500 mb-1">ახალი მნიშვნელობა:</div>
-                            <pre className="text-emerald-300 bg-slate-900/50 p-2 rounded-lg overflow-x-auto">
-                              {JSON.stringify(log.new_value, null, 2)}
-                            </pre>
-                          </div>
-                        )}
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {log.old_value && Object.entries(log.old_value).map(([key, value]) => (
+                            <div key={key} className="bg-slate-900/50 rounded-lg p-3">
+                              <div className="text-xs text-slate-500 mb-1">{formatFieldName(key)}</div>
+                              <div className="text-sm text-slate-300 font-mono">{formatValue(key, value)}</div>
+                            </div>
+                          ))}
+                          {log.new_value && Object.entries(log.new_value).map(([key, value]) => (
+                            <div key={key} className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                              <div className="text-xs text-emerald-400/70 mb-1">{formatFieldName(key)}</div>
+                              <div className="text-sm text-emerald-300 font-mono font-medium">{formatValue(key, value)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* დამატებითი მეტა მონაცემები */}
+                    {log.metadata && (
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <div className="text-xs text-slate-500 mb-2">დამატებითი ინფორმაცია:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(log.metadata).map(([key, value]) => (
+                            <span key={key} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
+                              {formatFieldName(key)}: {formatValue(key, value)}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
