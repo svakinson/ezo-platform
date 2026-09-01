@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { logAction } from '@/lib/activityLogger'
 import Link from 'next/link'
 
 // ============ ICONS ============
@@ -217,7 +218,17 @@ export default function ExpensesPage() {
       }))
       const { error } = await supabase.from('expenses').insert(toInsert)
       if (error) showAlert('შეცდომა', error.message, 'error')
-      else { showAlert('წარმატება', `${missing.length} გადასახადი დაემატა`, 'success'); await loadExpenses() }
+      else {
+        await logAction({
+          buildingId,
+          actionType: 'generate',
+          entityType: 'expense_template',
+          description: `ავტო-გენერაცია: ${missing.length} ფიქსირებული გადასახადი`,
+          metadata: { count: missing.length, month: selectedMonth }
+        })
+        showAlert('წარმატება', `${missing.length} გადასახადი დაემატა`, 'success')
+        await loadExpenses()
+      }
     })
   }
 
@@ -238,9 +249,19 @@ export default function ExpensesPage() {
       category_id: form.category_id || null,
     }
 
-    const { error } = await supabase.from('expenses').insert(payload)
+    const { data, error } = await supabase.from('expenses').insert(payload).select().single()
     if (error) showAlert('შეცდომა', error.message, 'error')
     else {
+      await logAction({
+        buildingId,
+        actionType: 'create',
+        entityType: form.is_recurring ? 'expense_template' : 'expense',
+        entityId: data?.id,
+        entityName: form.description,
+        description: `დაამატა ${form.is_recurring ? 'ფიქსირებული' : 'ცვალებადი'} გადასახადი: "${form.description}"`,
+        newValue: { amount: parseFloat(form.amount), is_recurring: form.is_recurring }
+      })
+
       if (form.is_recurring) {
         await supabase.from('expense_templates').insert({
           building_id: buildingId,
@@ -265,6 +286,11 @@ export default function ExpensesPage() {
     if (!editingExpense) return
     setProcessingId(editingExpense.id)
 
+    const oldValue = {
+      description: editingExpense.description,
+      amount: Number(editingExpense.amount)
+    }
+
     const { error } = await supabase.from('expenses').update({
       description: editingExpense.description,
       amount: parseFloat(editingExpense.amount),
@@ -272,6 +298,20 @@ export default function ExpensesPage() {
 
     if (error) showAlert('შეცდომა', error.message, 'error')
     else {
+      await logAction({
+        buildingId,
+        actionType: 'update',
+        entityType: 'expense',
+        entityId: editingExpense.id,
+        entityName: editingExpense.description,
+        description: `შეცვალა გადასახადი: "${editingExpense.description}"`,
+        oldValue,
+        newValue: {
+          description: editingExpense.description,
+          amount: parseFloat(editingExpense.amount)
+        }
+      })
+
       if (editingExpense.template_id) {
         await supabase.from('expense_templates').update({
           description: editingExpense.description,
@@ -288,12 +328,25 @@ export default function ExpensesPage() {
 
   // Delete
   const handleDelete = (id: string) => {
+    const expense = expenses.find(e => e.id === id)
     showConfirm('წაშლა', 'დარწმუნებული ხარ, რომ გსურს ამ გადასახადის წაშლა?', async () => {
       setConfirmModal({ isOpen: false })
       setProcessingId(id)
       const { error } = await supabase.from('expenses').delete().eq('id', id)
       if (error) showAlert('შეცდომა', error.message, 'error')
-      else { await loadExpenses(); showAlert('წარმატება', 'გადასახადი წაიშალა', 'success') }
+      else {
+        await logAction({
+          buildingId,
+          actionType: 'delete',
+          entityType: 'expense',
+          entityId: id,
+          entityName: expense?.description,
+          description: `წაშალა გადასახადი: "${expense?.description}"`,
+          oldValue: { amount: Number(expense?.amount) }
+        })
+        await loadExpenses()
+        showAlert('წარმატება', 'გადასახადი წაიშალა', 'success')
+      }
       setProcessingId(null)
     }, 'danger')
   }
@@ -301,9 +354,22 @@ export default function ExpensesPage() {
   // Mark as paid
   const handleMarkPaid = async (id: string) => {
     setProcessingId(id)
+    const expense = expenses.find(e => e.id === id)
     const { error } = await supabase.from('expenses').update({ is_paid: true, paid_date: new Date().toISOString().slice(0, 10) }).eq('id', id)
     if (error) showAlert('შეცდომა', error.message, 'error')
-    else await loadExpenses()
+    else {
+      await logAction({
+        buildingId,
+        actionType: 'verify',
+        entityType: 'expense',
+        entityId: id,
+        entityName: expense?.description,
+        description: `დაადასტურა გადახდა: "${expense?.description}"`,
+        oldValue: { is_paid: false },
+        newValue: { is_paid: true, paid_date: new Date().toISOString().slice(0, 10) }
+      })
+      await loadExpenses()
+    }
     setProcessingId(null)
   }
 
@@ -311,13 +377,24 @@ export default function ExpensesPage() {
   const handlePayAll = () => {
     const unpaid = expenses.filter(e => !e.is_paid)
     if (unpaid.length === 0) { showAlert('ინფორმაცია', 'ყველა გადასახადი უკვე გადახდილია', 'info'); return }
-    showConfirm('ყველას გადახდა', `${unpaid.length} გადასახადი მოინიშნება გადახდილად. ჯამი: ₾${unpaid.reduce((s, e) => s + Number(e.amount), 0).toLocaleString()}`, async () => {
+    const totalAmount = unpaid.reduce((s, e) => s + Number(e.amount), 0)
+    showConfirm('ყველას გადახდა', `${unpaid.length} გადასახადი მოინიშნება გადახდილად. ჯამი: ₾${totalAmount.toLocaleString()}`, async () => {
       setConfirmModal({ isOpen: false })
       setIsBulkProcessing(true)
       const ids = unpaid.map(e => e.id)
       const { error } = await supabase.from('expenses').update({ is_paid: true, paid_date: new Date().toISOString().slice(0, 10) }).in('id', ids)
       if (error) showAlert('შეცდომა', error.message, 'error')
-      else { showAlert('წარმატება', `${unpaid.length} გადასახადი გადახდილად მოინიშნა`, 'success'); await loadExpenses() }
+      else {
+        await logAction({
+          buildingId,
+          actionType: 'bulk_action',
+          entityType: 'expense',
+          description: `ყველას გადახდა: ${unpaid.length} გადასახადი`,
+          metadata: { count: unpaid.length, total_amount: totalAmount }
+        })
+        showAlert('წარმატება', `${unpaid.length} გადასახადი გადახდილად მოინიშნა`, 'success')
+        await loadExpenses()
+      }
       setIsBulkProcessing(false)
     })
   }
