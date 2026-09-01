@@ -121,12 +121,18 @@ function LoginForm() {
         console.log('📋 პროფილის მიღება ბაზიდან...')
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('role, subscription_status, subscription_end_date')
+          .select('id, email, role, subscription_status, subscription_end_date') // დავამატეთ id და email უფრო სრული ინფოსთვის
           .eq('id', data.user.id)
           .single()
 
         if (profileError) {
-          console.error('❌ [PROFILE ERROR]:', profileError)
+          // 🚨 დეტალური ლოგები 500 შეცდომის ზუსტი მიზეზის დასადგენად
+          console.error('❌ [PROFILE ERROR] FULL DETAILS:')
+          console.error('   Message:', profileError.message)
+          console.error('   Details:', profileError.details)
+          console.error('   Hint:', profileError.hint)
+          console.error('   Code:', profileError.code)
+          console.error('   Raw Object:', profileError)
         } else {
           console.log('✅ [PROFILE SUCCESS]:', profile)
           console.log('Role:', profile?.role)
