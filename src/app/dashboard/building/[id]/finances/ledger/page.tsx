@@ -68,7 +68,7 @@ const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
+const IconLoader = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -96,7 +96,10 @@ export default function LedgerPage() {
   const [fees, setFees] = useState<any[]>([])
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [filter, setFilter] = useState<string>('all')
-  const [isProcessing, setIsProcessing] = useState(false)
+  
+  // ცალკე სტეითები ინდივიდუალური და ჯგუფური მოქმედებებისთვის
+  const [processingFeeId, setProcessingFeeId] = useState<string | null>(null)
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false)
   
   // მონიშვნის სტეითი
   const [selectedFees, setSelectedFees] = useState<Set<string>>(new Set())
@@ -134,8 +137,6 @@ export default function LedgerPage() {
   }, [selectedMonth])
 
   const loadFees = async () => {
-    console.log('Loading fees for month:', selectedMonth + '-01')
-    
     const { data: feesData, error } = await supabase
       .from('monthly_fees')
       .select('*')
@@ -147,8 +148,6 @@ export default function LedgerPage() {
       alert('შეცდომა: ' + error.message)
       return
     }
-
-    console.log('Fees loaded:', feesData)
 
     if (feesData && feesData.length > 0) {
       const apartmentIds = feesData.map(f => f.apartment_id)
@@ -202,7 +201,7 @@ export default function LedgerPage() {
   // ============ DELETE HANDLERS ============
   const handleDeleteFee = async (feeId: string) => {
     if (!confirm('დარწმუნებული ხარ, რომ გსურს ამ ჩანაწერის წაშლა?')) return
-    setIsProcessing(true)
+    setProcessingFeeId(feeId)
 
     const { error } = await supabase
       .from('monthly_fees')
@@ -219,7 +218,7 @@ export default function LedgerPage() {
         return newSet
       })
     }
-    setIsProcessing(false)
+    setProcessingFeeId(null)
   }
 
   const handleBulkDelete = async () => {
@@ -228,7 +227,7 @@ export default function LedgerPage() {
       return
     }
     if (!confirm(`დარწმუნებული ხარ, რომ გსურს ${selectedFees.size} ჩანაწერის წაშლა?`)) return
-    setIsProcessing(true)
+    setIsBulkProcessing(true)
 
     const feeIds = Array.from(selectedFees)
     const { error } = await supabase
@@ -243,12 +242,13 @@ export default function LedgerPage() {
       await loadFees()
       setSelectedFees(new Set())
     }
-    setIsProcessing(false)
+    setIsBulkProcessing(false)
   }
 
+  // ============ VERIFY & REMIND HANDLERS ============
   const handleVerify = async (feeId: string) => {
     if (!confirm('დაადასტურე გადახდა?')) return
-    setIsProcessing(true)
+    setProcessingFeeId(feeId)
 
     const { error } = await supabase
       .from('monthly_fees')
@@ -263,14 +263,20 @@ export default function LedgerPage() {
     if (error) {
       alert('შეცდომა: ' + error.message)
     } else {
+      // წარმატების შემთხვევაში ვხსნით მონიშვნას
+      setSelectedFees(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(feeId)
+        return newSet
+      })
       await loadFees()
     }
-    setIsProcessing(false)
+    setProcessingFeeId(null)
   }
 
   const handleSendReminder = async (feeId: string) => {
     if (!confirm('გაუგზავნო შეხსენება მფლობელს?')) return
-    setIsProcessing(true)
+    setProcessingFeeId(feeId)
 
     const { error } = await supabase
       .from('monthly_fees')
@@ -285,9 +291,15 @@ export default function LedgerPage() {
       alert('შეცდომა: ' + error.message)
     } else {
       alert('შეხსენება გაიგზავნა!')
+      // წარმატების შემთხვევაში ვხსნით მონიშვნას
+      setSelectedFees(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(feeId)
+        return newSet
+      })
       await loadFees()
     }
-    setIsProcessing(false)
+    setProcessingFeeId(null)
   }
 
   const handleBulkRemind = async () => {
@@ -297,7 +309,7 @@ export default function LedgerPage() {
       return
     }
     if (!confirm(`გაუგზავნო შეხსენება ${overdueFees.length} ბინას?`)) return
-    setIsProcessing(true)
+    setIsBulkProcessing(true)
 
     const feeIds = overdueFees.map(f => f.id)
     const { error } = await supabase
@@ -314,7 +326,7 @@ export default function LedgerPage() {
       alert(`შეხსენება გაიგზავნა ${overdueFees.length} ბინისთვის!`)
       await loadFees()
     }
-    setIsProcessing(false)
+    setIsBulkProcessing(false)
   }
 
   if (loading) {
@@ -460,20 +472,20 @@ export default function LedgerPage() {
           <div className="flex gap-2">
             <button
               onClick={handleBulkRemind}
-              disabled={isProcessing || stats.overdue + stats.pending === 0}
+              disabled={isBulkProcessing || stats.overdue + stats.pending === 0}
               className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
             >
-              <IconBell className="w-4 h-4" />
+              {isBulkProcessing ? <IconLoader className="w-4 h-4" /> : <IconBell className="w-4 h-4" />}
               ყველას შეხსენება
             </button>
             
             {selectedFees.size > 0 && (
               <button
                 onClick={handleBulkDelete}
-                disabled={isProcessing}
+                disabled={isBulkProcessing}
                 className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                <IconTrash className="w-4 h-4" />
+                {isBulkProcessing ? <IconLoader className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
                 წაშლა ({selectedFees.size})
               </button>
             )}
@@ -531,6 +543,7 @@ export default function LedgerPage() {
                     const owner = fee.owners?.[0]
                     const apartment = fee.apartments?.[0]
                     const isSelected = selectedFees.has(fee.id)
+                    const isProcessingThis = processingFeeId === fee.id
 
                     return (
                       <tr 
@@ -582,34 +595,33 @@ export default function LedgerPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
-                            {/* განახლებული ლოგიკა: დადასტურება ჩანს pending_receipt, pending და overdue სტატუსებზე */}
                             {(fee.status === 'pending_receipt' || fee.status === 'pending' || fee.status === 'overdue') && (
                               <button
                                 onClick={() => handleVerify(fee.id)}
-                                disabled={isProcessing}
+                                disabled={isProcessingThis}
                                 className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 text-white text-xs font-medium rounded-lg transition-colors"
                               >
-                                <IconCheck className="w-3 h-3" />
-                                დადასტურება
+                                {isProcessingThis ? <IconLoader className="w-3 h-3" /> : <IconCheck className="w-3 h-3" />}
+                                {isProcessingThis ? 'მუშავდება...' : 'დადასტურება'}
                               </button>
                             )}
                             {(fee.status === 'pending' || fee.status === 'overdue') && (
                               <button
                                 onClick={() => handleSendReminder(fee.id)}
-                                disabled={isProcessing}
+                                disabled={isProcessingThis}
                                 className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-700 text-white text-xs font-medium rounded-lg transition-colors"
                               >
-                                <IconBell className="w-3 h-3" />
-                                შეხსენება
+                                {isProcessingThis ? <IconLoader className="w-3 h-3" /> : <IconBell className="w-3 h-3" />}
+                                {isProcessingThis ? 'იგზავნება...' : 'შეხსენება'}
                               </button>
                             )}
                             <button
                               onClick={() => handleDeleteFee(fee.id)}
-                              disabled={isProcessing}
-                              className="flex items-center justify-center p-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-lg transition-colors"
+                              disabled={isProcessingThis}
+                              className="flex items-center justify-center p-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-lg transition-colors disabled:opacity-50"
                               title="წაშლა"
                             >
-                              <IconTrash className="w-4 h-4" />
+                              {isProcessingThis ? <IconLoader className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
                             </button>
                           </div>
                         </td>
