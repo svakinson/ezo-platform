@@ -37,18 +37,17 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // მივიღოთ user-ის როლი და subscription
-  const { data: profile, error } = await supabase
+  // მივიღოთ user-ის როლი (გამოვიყენოთ maybeSingle შეცდომის თავიდან ასაცილებლად)
+  const { data: profile } = await supabase
     .from('profiles')
     .select('role, subscription_status, subscription_end_date')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (error || !profile) {
-    // პროფილი ვერ მოიძებნა → logout
-    await supabase.auth.signOut()
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  // ნაგულისხმევი მნიშვნელობები, თუ პროფილი ჯერ არ არსებობს (მაგ. ძველი ანგარიში)
+  const userRole = profile?.role || 'user'
+  const subStatus = profile?.subscription_status || 'inactive'
+  const subEndDate = profile?.subscription_end_date
 
   const path = request.nextUrl.pathname
 
@@ -56,20 +55,18 @@ export async function middleware(request: NextRequest) {
   // DASHBOARD - მხოლოდ chairman-ისთვის
   // ============================================
   if (path.startsWith('/dashboard')) {
-    if (profile.role !== 'chairman') {
+    if (userRole !== 'chairman') {
       return NextResponse.redirect(new URL('/pricing', request.url))
     }
 
-    // შევამოწმოთ subscription ვადა
-    if (profile.subscription_status !== 'active') {
+    if (subStatus !== 'active') {
       return NextResponse.redirect(new URL('/pricing', request.url))
     }
 
-    if (profile.subscription_end_date) {
-      const endDate = new Date(profile.subscription_end_date)
+    if (subEndDate) {
+      const endDate = new Date(subEndDate)
       const today = new Date()
       if (today > endDate) {
-        // ვადა ამოიწურა → pricing-ზე
         return NextResponse.redirect(new URL('/pricing', request.url))
       }
     }
@@ -79,8 +76,8 @@ export async function middleware(request: NextRequest) {
   // ADMIN PANEL - მხოლოდ admin-ისთვის
   // ============================================
   if (path.startsWith('/admin')) {
-    if (profile.role !== 'admin') {
-      const redirectPath = profile.role === 'chairman' ? '/dashboard' : '/pricing'
+    if (userRole !== 'admin') {
+      const redirectPath = userRole === 'chairman' ? '/dashboard' : '/pricing'
       return NextResponse.redirect(new URL(redirectPath, request.url))
     }
   }
@@ -89,7 +86,7 @@ export async function middleware(request: NextRequest) {
   // PAYMENT UPLOAD - მხოლოდ user-ისთვის (არა chairman)
   // ============================================
   if (path === '/payment') {
-    if (profile.role === 'chairman') {
+    if (userRole === 'chairman') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
@@ -97,7 +94,7 @@ export async function middleware(request: NextRequest) {
   // ============================================
   // PRICING - chairman-ს არ სჭირდება
   // ============================================
-  if (path === '/pricing' && profile.role === 'chairman') {
+  if (path === '/pricing' && userRole === 'chairman') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
