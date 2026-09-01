@@ -59,6 +59,15 @@ const IconBell = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+)
+
 const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -88,6 +97,9 @@ export default function LedgerPage() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [filter, setFilter] = useState<string>('all')
   const [isProcessing, setIsProcessing] = useState(false)
+  
+  // მონიშვნის სტეითი
+  const [selectedFees, setSelectedFees] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const loadData = async () => {
@@ -117,10 +129,10 @@ export default function LedgerPage() {
   useEffect(() => {
     if (buildingId && selectedMonth) {
       loadFees()
+      setSelectedFees(new Set()) // თვის შეცვლისას გავასუფთავოთ მონიშვნა
     }
   }, [selectedMonth])
 
-  // განახლებული loadFees ფუნქცია უფრო საიმედო მონაცემთა მიღებისთვის
   const loadFees = async () => {
     console.log('Loading fees for month:', selectedMonth + '-01')
     
@@ -166,6 +178,72 @@ export default function LedgerPage() {
     } else {
       setFees([])
     }
+  }
+
+  // ============ SELECTION HANDLERS ============
+  const handleSelectFee = (feeId: string) => {
+    const newSelected = new Set(selectedFees)
+    if (newSelected.has(feeId)) {
+      newSelected.delete(feeId)
+    } else {
+      newSelected.add(feeId)
+    }
+    setSelectedFees(newSelected)
+  }
+
+  const handleSelectAll = () => {
+    if (selectedFees.size === filteredFees.length) {
+      setSelectedFees(new Set())
+    } else {
+      setSelectedFees(new Set(filteredFees.map(f => f.id)))
+    }
+  }
+
+  // ============ DELETE HANDLERS ============
+  const handleDeleteFee = async (feeId: string) => {
+    if (!confirm('დარწმუნებული ხარ, რომ გსურს ამ ჩანაწერის წაშლა?')) return
+    setIsProcessing(true)
+
+    const { error } = await supabase
+      .from('monthly_fees')
+      .delete()
+      .eq('id', feeId)
+
+    if (error) {
+      alert('შეცდომა წაშლისას: ' + error.message)
+    } else {
+      await loadFees()
+      setSelectedFees(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(feeId)
+        return newSet
+      })
+    }
+    setIsProcessing(false)
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedFees.size === 0) {
+      alert('არ არის მონიშნული ჩანაწერები')
+      return
+    }
+    if (!confirm(`დარწმუნებული ხარ, რომ გსურს ${selectedFees.size} ჩანაწერის წაშლა?`)) return
+    setIsProcessing(true)
+
+    const feeIds = Array.from(selectedFees)
+    const { error } = await supabase
+      .from('monthly_fees')
+      .delete()
+      .in('id', feeIds)
+
+    if (error) {
+      alert('შეცდომა წაშლისას: ' + error.message)
+    } else {
+      alert(`წარმატებით წაიშალა ${selectedFees.size} ჩანაწერი`)
+      await loadFees()
+      setSelectedFees(new Set())
+    }
+    setIsProcessing(false)
   }
 
   const handleVerify = async (feeId: string) => {
@@ -379,15 +457,43 @@ export default function LedgerPage() {
             </button>
           </div>
 
-          <button
-            onClick={handleBulkRemind}
-            disabled={isProcessing || stats.overdue + stats.pending === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <IconBell className="w-4 h-4" />
-            ყველას შეხსენება
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleBulkRemind}
+              disabled={isProcessing || stats.overdue + stats.pending === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <IconBell className="w-4 h-4" />
+              ყველას შეხსენება
+            </button>
+            
+            {selectedFees.size > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                disabled={isProcessing}
+                className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <IconTrash className="w-4 h-4" />
+                წაშლა ({selectedFees.size})
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Bulk Action Bar */}
+        {selectedFees.size > 0 && (
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-4 flex items-center justify-between">
+            <div className="text-sm text-blue-400">
+              მონიშნულია <span className="font-bold">{selectedFees.size}</span> ჩანაწერი
+            </div>
+            <button
+              onClick={() => setSelectedFees(new Set())}
+              className="text-sm text-slate-400 hover:text-white transition-colors"
+            >
+              გასუფთავება
+            </button>
+          </div>
+        )}
 
         {/* Table */}
         <div className="bg-slate-800/50 border border-white/10 rounded-2xl overflow-hidden">
@@ -395,6 +501,14 @@ export default function LedgerPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/10 bg-slate-900/50">
+                  <th className="text-left p-4 w-12">
+                    <input
+                      type="checkbox"
+                      checked={filteredFees.length > 0 && selectedFees.size === filteredFees.length}
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50"
+                    />
+                  </th>
                   <th className="text-left p-4 text-slate-400 font-medium text-sm">ბინა</th>
                   <th className="text-left p-4 text-slate-400 font-medium text-sm">მფლობელი</th>
                   <th className="text-left p-4 text-slate-400 font-medium text-sm">თანხა</th>
@@ -406,7 +520,7 @@ export default function LedgerPage() {
               <tbody>
                 {filteredFees.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-12 text-center text-slate-400">
+                    <td colSpan={7} className="p-12 text-center text-slate-400">
                       ამ თვისთვის გადასახადები არ არის გენერირებული
                     </td>
                   </tr>
@@ -416,9 +530,23 @@ export default function LedgerPage() {
                     const StatusIcon = status.icon
                     const owner = fee.owners?.[0]
                     const apartment = fee.apartments?.[0]
+                    const isSelected = selectedFees.has(fee.id)
 
                     return (
-                      <tr key={fee.id} className="border-b border-white/5 hover:bg-slate-800/50 transition-colors">
+                      <tr 
+                        key={fee.id} 
+                        className={`border-b border-white/5 transition-colors ${
+                          isSelected ? 'bg-blue-500/10' : 'hover:bg-slate-800/50'
+                        }`}
+                      >
+                        <td className="p-4">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleSelectFee(fee.id)}
+                            className="w-4 h-4 rounded border-white/20 bg-slate-800 text-emerald-500 focus:ring-emerald-500/50"
+                          />
+                        </td>
                         <td className="p-4">
                           <div className="font-semibold text-white">ბინა {apartment?.apartment_number || '—'}</div>
                           <div className="text-xs text-slate-400">სართული {apartment?.floor || '—'}</div>
@@ -474,6 +602,14 @@ export default function LedgerPage() {
                                 შეხსენება
                               </button>
                             )}
+                            <button
+                              onClick={() => handleDeleteFee(fee.id)}
+                              disabled={isProcessing}
+                              className="flex items-center justify-center p-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-lg transition-colors"
+                              title="წაშლა"
+                            >
+                              <IconTrash className="w-4 h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
