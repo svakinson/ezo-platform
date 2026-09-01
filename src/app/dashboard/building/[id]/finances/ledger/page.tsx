@@ -582,7 +582,8 @@ export default function LedgerPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
-                            {fee.status === 'pending_receipt' && (
+                            {/* განახლებული ლოგიკა: დადასტურება ჩანს pending_receipt, pending და overdue სტატუსებზე */}
+                            {(fee.status === 'pending_receipt' || fee.status === 'pending' || fee.status === 'overdue') && (
                               <button
                                 onClick={() => handleVerify(fee.id)}
                                 disabled={isProcessing}
