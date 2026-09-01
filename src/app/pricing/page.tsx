@@ -25,14 +25,17 @@ export default function PricingPage() {
   const [plans, setPlans] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
   const [userRole, setUserRole] = useState<string>('user')
+  const [userName, setUserName] = useState<string>('')
 
   useEffect(() => {
     const init = async () => {
       // მივიღოთ current user
       const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-
+      
       if (user) {
+        setUser(user)
+        setUserName(user.email?.split('@')[0] || 'მომხმარებელი')
+        
         // მივიღოთ user-ის როლი
         const { data: profile } = await supabase
           .from('profiles')
@@ -78,34 +81,54 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 border-b border-white/10">
+      <header className="sticky top-0 z-40 bg-slate-950/90 border-b border-white/10 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <IconBuilding className="w-6 h-6 text-emerald-400" />
             <h1 className="text-xl font-bold text-white">EZO Platform</h1>
-          </div>
+          </Link>
+          
           <div className="flex items-center gap-4">
             {user ? (
+              // მომხმარებელი დალოგინებულია
               <>
-                <Link href="/payment" className="text-sm text-slate-300 hover:text-white transition-colors">
-                  გადახდის ისტორია
-                </Link>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-white/10">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                  <span className="text-sm text-slate-300">{userName}</span>
+                </div>
+                
+                {userRole === 'user' && (
+                  <Link 
+                    href="/payment" 
+                    className="text-sm text-slate-300 hover:text-white transition-colors"
+                  >
+                    გადახდის ისტორია
+                  </Link>
+                )}
+                
                 <button
                   onClick={async () => {
                     await supabase.auth.signOut()
                     router.push('/')
                   }}
-                  className="text-sm text-rose-400 hover:text-rose-300 transition-colors"
+                  className="text-sm text-rose-400 hover:text-rose-300 transition-colors font-medium"
                 >
                   გამოსვლა
                 </button>
               </>
             ) : (
+              // მომხმარებელი არ არის დალოგინებული
               <>
-                <Link href="/login" className="text-sm text-slate-300 hover:text-white transition-colors">
+                <Link 
+                  href="/login" 
+                  className="text-sm text-slate-300 hover:text-white transition-colors"
+                >
                   შესვლა
                 </Link>
-                <Link href="/register" className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors">
+                <Link 
+                  href="/register" 
+                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
+                >
                   რეგისტრაცია
                 </Link>
               </>
