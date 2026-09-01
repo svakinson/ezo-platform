@@ -2,14 +2,31 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { IconClock, IconCheck, IconEdit, IconTrash, IconRefresh, IconX, IconLoader } from '@/components/Icons' // შენიშვნა: თუ Icons ცალკე გაქვს, გამოიყენე ის, თუ არა - ქვემოთ მოცემულს გამოვიყენებთ
 
-// მარტივი იკონები კომპონენტის შიგნით (თუ ცალკე ფაილში არ გაქვს)
+// ============ ICONS (განსაზღვრულია აქვე, რომ არ დაგვჭირდეს ცალკე ფაილი) ============
 const IconHistory = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>
+  </svg>
 )
+
 const IconChevronRight = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>
+)
+
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
 )
 
 // მოქმედების ტიპის მიხედვით იკონი და ფერი
@@ -45,7 +62,7 @@ export function ActivityLogList({ buildingId, onViewAll }: { buildingId: string,
     fetchLogs()
   }, [buildingId])
 
-  if (loading) return <div className="flex items-center justify-center p-8"><IconLoader className="w-6 h-6 text-emerald-400 animate-spin" /></div>
+  if (loading) return <div className="flex items-center justify-center p-8"><IconLoader className="w-6 h-6 text-emerald-400" /></div>
 
   return (
     <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8">
@@ -158,7 +175,7 @@ export function ActivityLogModal({ isOpen, onClose, buildingId }: { isOpen: bool
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <IconLoader className="w-8 h-8 text-emerald-400 animate-spin" />
+              <IconLoader className="w-8 h-8 text-emerald-400" />
             </div>
           ) : logs.length === 0 ? (
             <div className="text-center py-12 text-slate-400">
