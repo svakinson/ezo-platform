@@ -177,8 +177,9 @@ export default function PricingPage() {
                 ))}
               </ul>
 
+              {/* განახლებული ლინკი, რომელიც გადასცემს plan_id-ს */}
               <Link
-                href={user ? '/payment' : '/register'}
+                href={user ? `/payment?plan_id=${plan.id}` : '/register'}
                 className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-lg transition-colors"
               >
                 {user ? 'პაკეტის შეძენა' : 'რეგისტრაცია'}
