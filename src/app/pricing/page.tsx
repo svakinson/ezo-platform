@@ -6,12 +6,6 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 // ============ ICONS ============
-const IconCheck = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-)
-
 const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <rect x="4" y="2" width="16" height="20" rx="2" />
@@ -19,9 +13,23 @@ const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
   </svg>
 )
 
-const IconZap = ({ className = "w-6 h-6" }: { className?: string }) => (
+const IconCheck = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+const IconArrowRight = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
   </svg>
 )
 
@@ -40,281 +48,585 @@ const IconUsers = ({ className = "w-6 h-6" }: { className?: string }) => (
   </svg>
 )
 
-const IconArrowRight = ({ className = "w-5 h-5" }: { className?: string }) => (
+const IconZap = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+)
+
+const IconLogOut = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+)
+
+const IconAlertCircle = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+)
+
+const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9" />
   </svg>
 )
 
 export default function PricingPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [plans, setPlans] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
-  const [userRole, setUserRole] = useState<string>('user')
-  const [userName, setUserName] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        setUser(user)
-        setUserName(user.email?.split('@')[0] || 'მომხმარებელი')
-        
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, subscription_status')
-          .eq('id', user.id)
-          .maybeSingle()
-
-        if (profile) {
-          setUserRole(profile.role)
-          if (profile.role === 'chairman' && profile.subscription_status === 'active') {
-            router.push('/dashboard')
-          }
-        }
+      if (!user) {
+        router.push('/login')
+        return
       }
-
-      const { data } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('price', { ascending: true })
-
-      setPlans(data || [])
+      setUser(user)
       setLoading(false)
     }
-
     init()
   }, [router])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-white text-lg">იტვირთება...</div>
-        </div>
+        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
+  const userName = user?.email?.split('@')[0] || 'მომხმარებელი'
+
+  const problems = [
+    {
+      title: "ვინმემ არ გადაიხადა? ვერ გაიგებ ვინ.",
+      desc: "ხელით ცხრილები ან საერთოდ არაფერი — ყოველ თვე თავიდან უნდა გამოარკვიო ვინ არის ვალში."
+    },
+    {
+      title: "ქვითრები WhatsApp-ში იკარგება.",
+      desc: "ბანკის ქვითარი გამოგზავნილია, მაგრამ ერთი კვირის შემდეგ ვეღარ პოულობ ჩატის ისტორიაში."
+    },
+    {
+      title: "თავმჯდომარე იცვლება — ყველა ინფორმაცია იკარგება.",
+      desc: "ახალ თავმჯდომარეს არაფერი გადაეცემა. ისტორია, ვალები, ხარჯები — ყველაფერი თავიდან."
+    },
+    {
+      title: "შეკრებები უშედეგოა, რადგან არ არის მონაცემები.",
+      desc: "კითხვას სვამენ 'სად წავიდა ფული?' და კონკრეტული პასუხი არავის აქვს."
+    }
+  ]
+
+  const solutions = [
+    {
+      problem: "ვინმემ არ გადაიხადა?",
+      solution: "ბინების რეესტრი რეალურ დროში",
+      practical: "ერთი შეხედვით ხედავ ვინ არის ვალში და რამდენი"
+    },
+    {
+      problem: "ქვითრები იკარგება",
+      solution: "ცენტრალიზებული არქივი",
+      practical: "ყველა ქვითარი ერთ ადგილას, ძებნა წამებში"
+    },
+    {
+      problem: "ინფორმაცია იკარგება თავმჯდომარის შეცვლისას",
+      solution: "მუდმივი არქივი",
+      practical: "ახალი თავმჯდომარე ერთ წუთში ხედავს მთელ ისტორიას"
+    },
+    {
+      problem: "შეკრებები უშედეგოა",
+      solution: "მზა ფინანსური ანგარიშები",
+      practical: "შეკრებაზე მიდიხარ ციფრებით, არა ვარაუდებით"
+    }
+  ]
+
+  const features = [
+    {
+      icon: IconBuilding,
+      title: "კორპუსის რეესტრი",
+      desc: "ბინები, მფლობელები, საკონტაქტო ინფორმაცია ერთ ადგილას",
+      detail: "დაამატებ ბინებს — სისტემა ავტომატურად ააწყობს რეესტრს"
+    },
+    {
+      icon: IconZap,
+      title: "გადახდების მართვა",
+      desc: "ავტომატურად ხედავ ვინ გადაიხადა, ვინ არა, რამდენი ვალია",
+      detail: "პირველი გადახდის ჩანაწერი — 5 წუთში მზადია"
+    },
+    {
+      icon: IconShield,
+      title: "ქვითრების არქივი",
+      desc: "ატვირთე ქვითარი, იპოვე წამებში, ვეღარასდროს დაკარგო",
+      detail: "ყველა ქვითარი ციფრულად, ძიება წამებში"
+    },
+    {
+      icon: IconUsers,
+      title: "ფინანსური ანგარიშები",
+      desc: "შემოსავალი, ხარჯი, ბალანსი — მზა, საჩვენებელი ფორმატში",
+      detail: "შეკრებაზე მიდიხარ მზა ანგარიშით"
+    }
+  ]
+
+  const faqs = [
+    {
+      q: "რა მოხდება პაკეტის არჩევის შემდეგ?",
+      a: "მალევე მიიღებ თავმჯდომარის წვდომას და შეძლებ კორპუსის დამატებას."
+    },
+    {
+      q: "ბარათი საჭიროა საცდელის დასაწყებად?",
+      a: "არა. 14 დღე სრულად უფასოა, ბარათის გარეშე."
+    },
+    {
+      q: "14 დღის შემდეგ რა ხდება?",
+      a: "თუ პაკეტს არ გააგრძელებ, წვდომა შეიზღუდება, მონაცემები 30 დღე შენარჩუნდება."
+    },
+    {
+      q: "შემიძლია გავაუქმო?",
+      a: "დიახ, ნებისმიერ დროს."
+    },
+    {
+      q: "თუ ჯერ ზუსტად არ ვიცი რამდენი ბინაა/ადმინისტრატორი მჭირდება?",
+      a: "შეგიძლია ნებისმიერ დროს განაახლო."
+    },
+    {
+      q: "სად ინახება ჩემი მონაცემები?",
+      a: "დაცულ Supabase სერვერებზე, SSL დაშიფვრით."
+    },
+    {
+      q: "თუ არ გავაგრძელებ, შემიძლია მონაცემების გატანა?",
+      a: "დიახ, ნებისმიერ დროს შეგიძლია მონაცემების ექსპორტი."
+    }
+  ]
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 border-b border-white/10 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      {/* ===== HEADER ===== */}
+      <header className="sticky top-0 z-50 bg-slate-950/90 border-b border-white/10 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <IconBuilding className="w-6 h-6 text-emerald-400" />
-            <h1 className="text-xl font-bold text-white">EZO Platform</h1>
+            <span className="text-xl font-bold text-white">EZO</span>
           </Link>
-          
+
           <div className="flex items-center gap-4">
-            {user ? (
-              <>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-white/10">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                  <span className="text-sm text-slate-300">{userName}</span>
-                </div>
-                
-                {userRole === 'user' && (
-                  <Link href="/payment" className="text-sm text-slate-300 hover:text-white transition-colors">
-                    გადახდის ისტორია
-                  </Link>
-                )}
-                
-                <button
-                  onClick={async () => {
-                    await supabase.auth.signOut()
-                    router.push('/')
-                  }}
-                  className="text-sm text-rose-400 hover:text-rose-300 transition-colors font-medium"
-                >
-                  გამოსვლა
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="text-sm text-slate-300 hover:text-white transition-colors">
-                  შესვლა
-                </Link>
-                <Link href="/register" className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors">
-                  რეგისტრაცია
-                </Link>
-              </>
-            )}
+            {/* Status Badge */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span className="text-xs font-medium text-amber-300">პაკეტი არჩეული არ არის</span>
+            </div>
+
+            {/* User Menu */}
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:block text-right">
+                <div className="text-sm font-medium text-white">{userName}</div>
+                <div className="text-xs text-slate-400">{user?.email}</div>
+              </div>
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                {userName.charAt(0).toUpperCase()}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-slate-400 hover:text-rose-400 transition-colors"
+                title="გამოსვლა"
+              >
+                <IconLogOut className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* CTA Button */}
+            <Link
+              href="#pricing"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              აირჩიე პაკეტი
+            </Link>
           </div>
         </div>
       </header>
 
       <main>
-        {/* 1. HERO SECTION: პრობლემის გადაჭრა და ღირებულება */}
+        {/* ===== HERO SECTION ===== */}
         <section className="relative pt-20 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-6">
-              <IconZap className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-300">კორპუსის მართვა ახალ დონეზე</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-              დაივიწყეთ ქაღალდის ჟურნალები და <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">გაუგებრობები</span>
-            </h1>
-            
-            <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              EZO გთავაზობთ სრულად ავტომატიზირებულ, გამჭვირვალე და უსაფრთხო პლატფორმას თქვენი საცხოვრებელი კომპლექსის ეფექტური მართვისთვის. ყველაფერი ერთ სივრცეში.
-            </p>
+          <div className="max-w-5xl mx-auto px-4 relative z-10">
+            <div className="text-center mb-12">
+              <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
+                თქვენს კორპუსში 47 ბინაა. 12-მა არ გადაიხადა კომუნალური.
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                  თქვენ არ იცით — ვის რა ვალი აქვს, ვინ გადაიხადა და ვინ არა.
+                </span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
+                EZO აგროვებს ყველა ბინის, გადახდისა და ქვითრის ინფორმაციას ერთ ადგილას — 
+                რომ თავმჯდომარემ იცოდეს უსტად რა ხდება, ყოველგვარი ჩანაწერების და WhatsApp-ის ძებნის გარეშე.
+              </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
-                href="#pricing" 
-                className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group"
-              >
-                პაკეტის ნახვა
-                <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link 
-                href="/register" 
-                className="w-full sm:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl border border-white/10 transition-all"
-              >
-                უფასო რეგისტრაცია
-              </Link>
+              <div className="flex flex-col items-center gap-4">
+                <Link
+                  href="#pricing"
+                  className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center gap-2 group text-lg"
+                >
+                  დაიწყე უფასოდ 14 დღით
+                  <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <p className="text-sm text-slate-500">
+                  ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
+                </p>
+              </div>
+            </div>
+
+            {/* Dashboard Mockup */}
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 rounded-full bg-rose-500" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="ml-2 text-xs text-slate-500">EZO Dashboard — Demo</span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-slate-800 rounded-lg p-4">
+                    <div className="text-xs text-slate-400 mb-1">სულ ბინები</div>
+                    <div className="text-2xl font-bold text-white">47</div>
+                  </div>
+                  <div className="bg-slate-800 rounded-lg p-4">
+                    <div className="text-xs text-slate-400 mb-1">გადაიხადეს</div>
+                    <div className="text-2xl font-bold text-emerald-400">35</div>
+                  </div>
+                  <div className="bg-slate-800 rounded-lg p-4">
+                    <div className="text-xs text-slate-400 mb-1">ვალი</div>
+                    <div className="text-2xl font-bold text-rose-400">12</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    { name: "ბინა 12", status: "გადახდილი", amount: "150", color: "emerald" },
+                    { name: "ბინა 23", status: "ვალი", amount: "₾150", color: "rose" },
+                    { name: "ბინა 34", status: "გადახდილი", amount: "₾150", color: "emerald" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between bg-slate-800/50 rounded-lg px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-slate-700 flex items-center justify-center text-xs font-bold">
+                          {item.name.split(' ')[1]}
+                        </div>
+                        <span className="text-sm font-medium text-white">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          item.color === 'emerald' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                        }`}>
+                          {item.status}
+                        </span>
+                        <span className="text-sm font-medium text-white">{item.amount}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* 2. FEATURES SECTION: რატომ EZO? */}
+        {/* ===== PROBLEM SECTION ===== */}
         <section className="py-20 bg-slate-900/50 border-y border-white/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-white mb-4">რატომ უნდა აირჩიოთ EZO?</h2>
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">ეს ნაცნობია?</h2>
               <p className="text-slate-400 max-w-2xl mx-auto">
-                ჩვენი პლატფორმა შექმნილია სპეციალურად ქართული რეალობის გათვალისწინებით, რათა მაქსიმალურად გაგიმარტივოთ ყოველდღიური ოპერაციები.
+                თუ თქვენ ხართ კორპუსის თავმჯდომარე ან წარმომადგენელი, ეს ალბათ ნაცნობია:
               </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {problems.map((problem, i) => (
+                <div key={i} className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-6 hover:border-rose-500/40 transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                      <IconX className="w-5 h-5 text-rose-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white mb-2">{problem.title}</h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">{problem.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== SOLUTION SECTION ===== */}
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">EZO ამას ასე აგვარებს</h2>
+              <p className="text-slate-400 max-w-2xl mx-auto">
+                თითოეულ პრობლემას — კონკრეტული გადაწყვეტა
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {solutions.map((item, i) => (
+                <div key={i} className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-6 hover:border-emerald-500/40 transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                      <IconCheck className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs text-slate-500 mb-1">პრობლემა: {item.problem}</div>
+                      <h3 className="text-lg font-bold text-white mb-2">{item.solution}</h3>
+                      <p className="text-emerald-400 text-sm font-medium">
+                        პრაქტიკულად: {item.practical}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== PROCESS SECTION ===== */}
+        <section className="py-20 bg-slate-900/50 border-y border-white/5">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">რა ხდება პაკეტის არჩევის შემდეგ?</h2>
+              <p className="text-slate-400">3 მარტივი ნაბიჯი</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 {
-                  icon: IconShield,
-                  title: 'სრული ფინანსური კონტროლი',
-                  desc: 'ყველა შემოსავალი და ხარჯი ფიქსირდება რეალურ დროში. ავტომატური ანგარიშგება და გადახდების გამჭვირვალე ისტორია.'
+                  step: "01",
+                  title: "აირჩიე პაკეტი",
+                  desc: "14 დღით სრულად უფასოდ, ბარათის გარეშე."
                 },
                 {
-                  icon: IconUsers,
-                  title: 'მარტივი კომუნიკაცია',
-                  desc: 'პირდაპირი კავშირი თავმჯდომარესა და მაცხოვრებლებს შორის. შეტყობინებები, განცხადებები და ხმის მიცემა ერთ სივრცეში.'
+                  step: "02",
+                  title: "ავტომატურად ეხსნება თავმჯდომარის წვდომა",
+                  desc: "რამდენიმე წამში მიიღებ სრულ ფუნქციონალს — არანაირი ლოდინი, არანაირი დამტკიცება."
                 },
                 {
-                  icon: IconZap,
-                  title: 'ავტომატიზებული პროცესები',
-                  desc: 'დაივიწყეთ ხელით შევსება. ქვითრების ატვირთვა, ვადების კონტროლი და შეხსენებები სისტემას ავტომატურად მიჰყავს.'
+                  step: "03",
+                  title: "დაამატე შენი კორპუსი",
+                  desc: "შეიყვანე ბინები, მაცხოვრებლები, დაიწყე პირველი გადახდის ჩანაწერი — 5 წუთში მზად ხარ."
                 }
-              ].map((feature, i) => (
-                <div key={i} className="bg-slate-800/50 border border-white/10 rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300 group">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors">
-                    <feature.icon className="w-6 h-6 text-emerald-400" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-                  <p className="text-slate-400 leading-relaxed">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 3. HOW IT WORKS: 3 მარტივი ნაბიჯი */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-white mb-4">როგორ მუშაობს პლატფორმა?</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto">
-                სრული ფუნქციონალით სარგებლობა მხოლოდ 3 მარტივ ნაბიჯშია შესაძლებელი.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 relative">
-              {/* Connecting line for desktop */}
-              <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
-              
-              {[
-                { step: '01', title: 'რეგისტრაცია', desc: 'შექმენით ანგარიში რამდენიმე წამში და მიიღეთ "მომხმარებლის" საწყისი სტატუსი.' },
-                { step: '02', title: 'პაკეტის შერჩევა', desc: 'აირჩიეთ შესაფერისი გეგმა, გადაიხადეთ ბანკში ან ონლაინ და ატვირთეთ ქვითარი.' },
-                { step: '03', title: 'მართვის დაწყება', desc: 'ადმინისტრატორის დამტკიცების შემდეგ, მიიღეთ "თავმჯდომარის" სტატუსი და სრული წვდომა.' }
               ].map((item, i) => (
-                <div key={i} className="relative text-center">
-                  <div className="w-24 h-24 rounded-full bg-slate-900 border-2 border-emerald-500/30 flex items-center justify-center mx-auto mb-6 relative z-10">
-                    <span className="text-3xl font-bold text-emerald-400">{item.step}</span>
+                <div key={i} className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-slate-800 border-2 border-emerald-500/30 flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl font-bold text-emerald-400">{item.step}</span>
                   </div>
                   <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                  <p className="text-slate-400 max-w-xs mx-auto">{item.desc}</p>
+                  <p className="text-slate-400 text-sm">{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* 4. PRICING SECTION: კონკრეტული შეთავაზება */}
-        <section id="pricing" className="py-20 bg-slate-900/50 border-t border-white/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-white mb-4">აირჩიეთ თქვენი პაკეტი</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto">
-                გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე. აირჩიეთ ის, რაც საუკეთესოდ შეესაბამება თქვენს კორპუსს.
-              </p>
+        {/* ===== FEATURES SECTION ===== */}
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">ყველაფერი, რაც კორპუსის მართვას გჭირდება</h2>
+              <p className="text-slate-400 max-w-2xl mx-auto">ერთ სისტემაში:</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {plans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className="relative bg-slate-800/50 border border-white/10 rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-300 flex flex-col"
-                >
-                  {/* Popular Badge (optional, if you want to highlight one) */}
-                  {plan.price === 50 && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
-                      ყველაზე პოპულარული
-                    </div>
-                  )}
-
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                    <p className="text-slate-400 text-sm">{plan.description}</p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {features.map((feature, i) => (
+                <div key={i} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4">
+                    <feature.icon className="w-6 h-6 text-emerald-400" />
                   </div>
-
-                  <div className="mb-8">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-5xl font-bold text-white">₾{plan.price}</span>
-                      <span className="text-slate-400">/{plan.duration_days} დღე</span>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-4 mb-8 flex-grow">
-                    {Array.isArray(plan.features) && plan.features.map((feature: string, index: number) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-slate-300 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link
-                    href={user ? `/payment?plan_id=${plan.id}` : '/register'}
-                    className="block w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
-                  >
-                    {user ? 'პაკეტის შეძენა' : 'უფასო რეგისტრაცია'}
-                  </Link>
+                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                  <p className="text-slate-400 text-sm mb-3">{feature.desc}</p>
+                  <p className="text-emerald-400 text-xs font-medium">{feature.detail}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* ===== TRUST SECTION ===== */}
+        <section className="py-16 bg-slate-900/50 border-y border-white/5">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-6">
+              <IconShield className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm font-medium text-emerald-300">უსაფრთხო და დაცული</span>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-4">
+              მონაცემები დაცულია SSL დაშიფვრით
+            </h3>
+            <p className="text-slate-400">
+              ინახება უსაფრთხო Supabase სერვერებზე. შენი ფინანსური ინფორმაცია დაცულია.
+            </p>
+          </div>
+        </section>
+
+        {/* ===== PRICING SECTION ===== */}
+        <section id="pricing" className="py-20">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">აირჩიე პაკეტი შენი კორპუსისთვის</h2>
+              <p className="text-slate-400">გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Basic Plan */}
+              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-8 hover:border-emerald-500/50 transition-all">
+                <h3 className="text-2xl font-bold text-white mb-2">ბაზის პაკეტი</h3>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-bold text-white">₾50</span>
+                    <span className="text-slate-400">/ 30 დღე</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "კორპუსის რეესტრი (უსაზღვრო ბინა)",
+                    "გადახდების მართვა",
+                    "ქვითრების არქივი (10GB)",
+                    "ფინანსური ანგარიშები",
+                    "1 ადმინისტრატორი"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-300 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                  {[
+                    "ავტომატური შეხსენებები",
+                    "მრავალადმინისტრატორიანი წვდომა"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 opacity-50">
+                      <IconX className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-500 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/payment"
+                  className="block w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
+                >
+                  დაიწყე უფასო საცდელი
+                </Link>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="bg-slate-800/50 border-2 border-emerald-500/50 rounded-2xl p-8 relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
+                  რეკომენდებული
+                </div>
+
+                <h3 className="text-2xl font-bold text-white mb-2">პრემიუმ პაკეტი</h3>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-bold text-white">₾100</span>
+                    <span className="text-slate-400">/ 30 დღე</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "ყველაფერი ბაზისიდან",
+                    "ავტომატური შეხსენებები",
+                    "ულიმიტო არქივი",
+                    "5 ადმინისტრატორი",
+                    "პრიორიტეტული მხარდაჭერა"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-300 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/payment"
+                  className="block w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
+                >
+                  დაიწყე უფასო საცდელი
+                </Link>
+              </div>
+            </div>
+
+            <div className="text-center mt-8">
+              <p className="text-sm text-slate-400">
+                🎁 14 დღე სრულად უფასო · ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== FAQ SECTION ===== */}
+        <section className="py-20 bg-slate-900/50 border-y border-white/5">
+          <div className="max-w-3xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">ხშირად დასმული კითხვები</h2>
+            </div>
+
+            <div className="space-y-4">
+              {faqs.map((faq, i) => (
+                <div key={i} className="bg-slate-800/50 border border-white/10 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800 transition-colors"
+                  >
+                    <span className="font-medium text-white">{faq.q}</span>
+                    <IconChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openFaq === i && (
+                    <div className="px-6 pb-4">
+                      <p className="text-slate-400 text-sm leading-relaxed">{faq.a}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== FINAL CTA ===== */}
+        <section className="py-20">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              მზად ხარ კორპუსის ეფექტური მართვისთვის?
+            </h2>
+            <p className="text-slate-400 mb-8">
+              14 დღე სრულად უფასო — ბარათის გარეშე.
+            </p>
+            <Link
+              href="#pricing"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all text-lg group"
+            >
+              დაიწყე უფასოდ
+              <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </section>
       </main>
 
-      {/* Simple Footer */}
+      {/* ===== FOOTER ===== */}
       <footer className="border-t border-white/10 bg-slate-950 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
           © {new Date().getFullYear()} EZO Platform. ყველა უფლება დაცულია.
