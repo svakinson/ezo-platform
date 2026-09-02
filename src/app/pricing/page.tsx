@@ -98,8 +98,7 @@ function AnimatedDashboard() {
   const [visiblePayments, setVisiblePayments] = useState<number[]>([])
 
   useEffect(() => {
-    // ანიმაცია: გადახდები ერთმანეთის მიყოლებით ჩნდება
-    payments.forEach((payment, index) => {
+    payments.forEach((payment) => {
       setTimeout(() => {
         setVisiblePayments(prev => [...prev, payment.id])
         if (payment.status === 'paid') {
@@ -108,12 +107,11 @@ function AnimatedDashboard() {
       }, payment.delay)
     })
 
-    // ციკლური განახლება
     const interval = setInterval(() => {
       setVisiblePayments([])
       setTotalCollected(0)
       setTimeout(() => {
-        payments.forEach((payment, index) => {
+        payments.forEach((payment) => {
           setTimeout(() => {
             setVisiblePayments(prev => [...prev, payment.id])
             if (payment.status === 'paid') {
@@ -129,7 +127,6 @@ function AnimatedDashboard() {
 
   return (
     <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-      {/* Window Controls */}
       <div className="flex items-center gap-2 mb-6">
         <div className="w-3 h-3 rounded-full bg-rose-500" />
         <div className="w-3 h-3 rounded-full bg-amber-500" />
@@ -137,7 +134,6 @@ function AnimatedDashboard() {
         <span className="ml-3 text-xs text-slate-500 font-medium">EZO Dashboard — რეალურ დროში</span>
       </div>
       
-      {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-slate-800/50 rounded-lg p-3 border border-white/5">
           <div className="text-xs text-slate-400 mb-1">სულ ბინები</div>
@@ -153,7 +149,6 @@ function AnimatedDashboard() {
         </div>
       </div>
 
-      {/* Animated Payments List */}
       <div className="space-y-2">
         <div className="text-xs text-slate-500 mb-2 font-medium">ბოლო გადახდები:</div>
         {payments.map((payment) => (
@@ -194,7 +189,6 @@ function AnimatedDashboard() {
         ))}
       </div>
 
-      {/* Live Indicator */}
       <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         <span className="text-[10px] text-slate-500">რეალურ დროში განახლება</span>
@@ -307,34 +301,13 @@ export default function PricingPage() {
   ]
 
   const faqs = [
-    {
-      q: "რა მოხდება პაკეტის არჩევის შემდეგ?",
-      a: "მალევე მიიღებ თავმჯდომარის წვდომას და შეძლებ კორპუსის დამატებას."
-    },
-    {
-      q: "ბარათი საჭიროა საცდელის დასაწყებად?",
-      a: "არა. 14 დღე სრულად უფასოა, ბარათის გარეშე."
-    },
-    {
-      q: "14 დღის შემდეგ რა ხდება?",
-      a: "თუ პაკეტს არ გააგრძელებ, წვდომა შეიზღუდება, მონაცემები 30 დღე შენარჩუნდება."
-    },
-    {
-      q: "შემიძლია გავაუქმო?",
-      a: "დიახ, ნებისმიერ დროს."
-    },
-    {
-      q: "თუ ჯერ ზუსტად არ ვიცი რამდენი ბინაა/ადმინისტრატორი მჭირდება?",
-      a: "შეგიძლია ნებისმიერ დროს განაახლო."
-    },
-    {
-      q: "სად ინახება ჩემი მონაცემები?",
-      a: "დაცულ Supabase სერვერებზე, SSL დაშიფვრით."
-    },
-    {
-      q: "თუ არ გავაგრძელებ, შემიძლია მონაცემების გატანა?",
-      a: "დიახ, ნებისმიერ დროს შეგიძლია მონაცემების ექსპორტი."
-    }
+    { q: "რა მოხდება პაკეტის არჩევის შემდეგ?", a: "მალევე მიიღებ თავმჯდომარის წვდომას და შეძლებ კორპუსის დამატებას." },
+    { q: "ბარათი საჭიროა საცდელის დასაწყებად?", a: "არა. 14 დღე სრულად უფასოა, ბარათის გარეშე." },
+    { q: "14 დღის შემდეგ რა ხდება?", a: "თუ პაკეტს არ გააგრძელებ, წვდომა შეიზღუდება, მონაცემები 30 დღე შენარჩუნდება." },
+    { q: "შემიძლია გავაუქმო?", a: "დიახ, ნებისმიერ დროს." },
+    { q: "თუ ჯერ უსტად არ ვიცი რამდენი ბინაა/ადმინისტრატორი მჭირდება?", a: "შეგიძლია ნებისმიერ დროს განაახლო." },
+    { q: "სად ინახება ჩემი მონაცემები?", a: "დაცულ Supabase სერვერებზე, SSL დაშიფვრით." },
+    { q: "თუ არ გავაგრძელებ, შემიძლია მონაცემების გატანა?", a: "დიახ, ნებისმიერ დროს შეგიძლია მონაცემების ექსპორტი." }
   ]
 
   return (
@@ -349,13 +322,11 @@ export default function PricingPage() {
           </Link>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            {/* Status Badge - Mobile Hidden */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg">
               <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               <span className="text-xs font-medium text-amber-300">პაკეტი არჩეული არ არის</span>
             </div>
 
-            {/* User Menu */}
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="hidden sm:block text-right">
                 <div className="text-sm font-medium text-white">{userName}</div>
@@ -364,20 +335,12 @@ export default function PricingPage() {
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm">
                 {userName.charAt(0).toUpperCase()}
               </div>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-slate-400 hover:text-rose-400 transition-colors"
-                title="გამოსვლა"
-              >
+              <button onClick={handleLogout} className="text-sm text-slate-400 hover:text-rose-400 transition-colors" title="გამოსვლა">
                 <IconLogOut className="w-5 h-5" />
               </button>
             </div>
 
-            {/* CTA Button */}
-            <Link
-              href="#pricing"
-              className="px-3 sm:px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
-            >
+            <Link href="#pricing" className="px-3 sm:px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors">
               <span className="hidden sm:inline">აირჩიე პაკეტი</span>
               <span className="sm:hidden">პაკეტი</span>
             </Link>
@@ -394,7 +357,6 @@ export default function PricingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               
-              {/* LEFT: Text Content */}
               <div className="order-2 lg:order-1">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-6">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -415,10 +377,7 @@ export default function PricingPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Link
-                    href="#pricing"
-                    className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group text-base"
-                  >
+                  <Link href="#pricing" className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group text-base">
                     დაიწყე უფასოდ 14 დღით
                     <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
@@ -428,7 +387,6 @@ export default function PricingPage() {
                 </div>
               </div>
 
-              {/* RIGHT: Animated Dashboard */}
               <div className="order-1 lg:order-2">
                 <AnimatedDashboard />
               </div>
@@ -437,67 +395,72 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ===== PROBLEM SECTION ===== */}
-        <section className="py-16 lg:py-20 bg-slate-900/50 border-y border-white/5">
+        {/* ===== PROBLEM & SOLUTION — SPLIT LAYOUT ===== */}
+        <section className="py-16 lg:py-24 bg-slate-900/30 border-y border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ეს ნაცნობია?</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
-                თუ თქვენ ხართ კორპუსის თავმჯდომარე ან წარმომადგენელი, ეს ალბათ ნაცნობია:
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
-              {problems.map((problem, i) => (
-                <div key={i} className="bg-rose-950/20 border border-rose-500/20 rounded-xl p-5 lg:p-6 hover:border-rose-500/40 transition-all">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center flex-shrink-0">
-                      <IconX className="w-5 h-5 text-rose-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base lg:text-lg font-bold text-white mb-2">{problem.title}</h3>
-                      <p className="text-slate-400 text-sm leading-relaxed">{problem.desc}</p>
-                    </div>
-                  </div>
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+              
+              {/* LEFT: Problems */}
+              <div>
+                <div className="mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">ეს ნაცნობია?</h2>
+                  <p className="text-slate-400 text-sm sm:text-base">
+                    თუ თქვენ ხართ კორპუსის თავმჯდომარე ან წარმომადგენელი, ეს ალბათ ნაცნობია:
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* ===== SOLUTION SECTION ===== */}
-        <section className="py-16 lg:py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">EZO ამას ასე აგვარებს</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
-                თითოეულ პრობლემას — კონკრეტული გადაწყვეტა
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
-              {solutions.map((item, i) => (
-                <div key={i} className="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-5 lg:p-6 hover:border-emerald-500/40 transition-all">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                      <IconCheck className="w-5 h-5 text-emerald-400" />
+                <div className="space-y-4">
+                  {problems.map((problem, i) => (
+                    <div key={i} className="bg-rose-950/20 border border-rose-500/20 rounded-xl p-5 hover:border-rose-500/40 transition-all">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                          <IconX className="w-4 h-4 text-rose-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-white mb-1.5">{problem.title}</h3>
+                          <p className="text-slate-400 text-sm leading-relaxed">{problem.desc}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-xs text-slate-500 mb-1">პრობლემა: {item.problem}</div>
-                      <h3 className="text-base lg:text-lg font-bold text-white mb-2">{item.solution}</h3>
-                      <p className="text-emerald-400 text-sm font-medium">
-                        პრაქტიკულად: {item.practical}
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* RIGHT: Solutions */}
+              <div>
+                <div className="mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">EZO ამას ასე აგვარებს</h2>
+                  <p className="text-slate-400 text-sm sm:text-base">
+                    თითოეულ პრობლემას — კონკრეტული გადაწყვეტა
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {solutions.map((item, i) => (
+                    <div key={i} className="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-5 hover:border-emerald-500/40 transition-all">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                          <IconCheck className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-xs text-slate-500 mb-1">პრობლემა: {item.problem}</div>
+                          <h3 className="text-base font-bold text-white mb-1.5">{item.solution}</h3>
+                          <p className="text-emerald-400 text-sm font-medium">
+                            პრაქტიკულად: {item.practical}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
 
         {/* ===== PROCESS SECTION ===== */}
-        <section className="py-16 lg:py-20 bg-slate-900/50 border-y border-white/5">
+        <section className="py-16 lg:py-20">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">რა ხდება პაკეტის არჩევის შემდეგ?</h2>
@@ -506,21 +469,9 @@ export default function PricingPage() {
 
             <div className="grid sm:grid-cols-3 gap-6 lg:gap-8">
               {[
-                {
-                  step: "01",
-                  title: "აირჩიე პაკეტი",
-                  desc: "14 დღით სრულად უფასოდ, ბარათის გარეშე."
-                },
-                {
-                  step: "02",
-                  title: "ავტომატურად ეხსნება წვდომა",
-                  desc: "რამდენიმე წამში მიიღებ სრულ ფუნქციონალს — არანაირი ლოდინი."
-                },
-                {
-                  step: "03",
-                  title: "დაამატე კორპუსი",
-                  desc: "შეიყვანე ბინები, მაცხოვრებლები — 5 წუთში მზად ხარ."
-                }
+                { step: "01", title: "აირჩიე პაკეტი", desc: "14 დღით სრულად უფასოდ, ბარათის გარეშე." },
+                { step: "02", title: "ავტომატურად ეხსნება წვდომა", desc: "რამდენიმე წამში მიიღებ სრულ ფუნქციონალს — არანაირი ლოდინი." },
+                { step: "03", title: "დაამატე კორპუსი", desc: "შეიყვანე ბინები, მაცხოვრებლები — 5 წუთში მზად ხარ." }
               ].map((item, i) => (
                 <div key={i} className="text-center">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-800 border-2 border-emerald-500/30 flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -534,22 +485,22 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ===== FEATURES SECTION ===== */}
-        <section className="py-16 lg:py-20">
+        {/* ===== FEATURES SECTION — 4 IN ONE ROW ===== */}
+        <section className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ყველაფერი, რაც გჭირდება</h2>
               <p className="text-slate-400 text-sm sm:text-base">ერთ სისტემაში:</p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {features.map((feature, i) => (
-                <div key={i} className="bg-slate-800/50 border border-white/10 rounded-xl p-5 lg:p-6 hover:border-emerald-500/30 transition-all">
+                <div key={i} className="bg-slate-800/50 border border-white/10 rounded-xl p-5 lg:p-6 hover:border-emerald-500/30 transition-all flex flex-col">
                   <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6 text-emerald-400" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-slate-400 text-sm mb-3">{feature.desc}</p>
+                  <h3 className="text-base lg:text-lg font-bold text-white mb-2">{feature.title}</h3>
+                  <p className="text-slate-400 text-sm mb-3 flex-grow">{feature.desc}</p>
                   <p className="text-emerald-400 text-xs font-medium">{feature.detail}</p>
                 </div>
               ))}
@@ -558,7 +509,7 @@ export default function PricingPage() {
         </section>
 
         {/* ===== TRUST SECTION ===== */}
-        <section className="py-12 lg:py-16 bg-slate-900/50 border-y border-white/5">
+        <section className="py-12 lg:py-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-4 sm:mb-6">
               <IconShield className="w-4 h-4 text-emerald-400" />
@@ -574,7 +525,7 @@ export default function PricingPage() {
         </section>
 
         {/* ===== PRICING SECTION ===== */}
-        <section id="pricing" className="py-16 lg:py-20">
+        <section id="pricing" className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">აირჩიე პაკეტი</h2>
@@ -593,22 +544,13 @@ export default function PricingPage() {
                 </div>
 
                 <ul className="space-y-3 mb-8">
-                  {[
-                    "კორპუსის რეესტრი (უსაზღვრო ბინა)",
-                    "გადახდების მართვა",
-                    "ქვითრების არქივი (10GB)",
-                    "ფინანსური ანგარიშები",
-                    "1 ადმინისტრატორი"
-                  ].map((feature, i) => (
+                  {["კორპუსის რეესტრი (უსაზღვრო ბინა)", "გადახდების მართვა", "ქვითრების არქივი (10GB)", "ფინანსური ანგარიშები", "1 ადმინისტრატორი"].map((feature, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                       <span className="text-slate-300 text-sm">{feature}</span>
                     </li>
                   ))}
-                  {[
-                    "ავტომატური შეხსენებები",
-                    "მრავალადმინისტრატორიანი წვდომა"
-                  ].map((feature, i) => (
+                  {["ავტომატური შეხსენებები", "მრავალადმინისტრატორიანი წვდომა"].map((feature, i) => (
                     <li key={i} className="flex items-start gap-3 opacity-50">
                       <IconX className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
                       <span className="text-slate-500 text-sm">{feature}</span>
@@ -616,10 +558,7 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link
-                  href="/payment"
-                  className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
-                >
+                <Link href="/payment" className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors">
                   დაიწყე უფასო საცდელი
                 </Link>
               </div>
@@ -639,13 +578,7 @@ export default function PricingPage() {
                 </div>
 
                 <ul className="space-y-3 mb-8">
-                  {[
-                    "ყველაფერი ბაზისიდან",
-                    "ავტომატური შეხსენებები",
-                    "ულიმიტო არქივი",
-                    "5 ადმინისტრატორი",
-                    "პრიორიტეტული მხარდაჭერა"
-                  ].map((feature, i) => (
+                  {["ყველაფერი ბაზისიდან", "ავტომატური შეხსენებები", "ულიმიტო არქივი", "5 ადმინისტრატორი", "პრიორიტეტული მხარდაჭერა"].map((feature, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                       <span className="text-slate-300 text-sm">{feature}</span>
@@ -653,10 +586,7 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link
-                  href="/payment"
-                  className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
-                >
+                <Link href="/payment" className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors">
                   დაიწყე უფასო საცდელი
                 </Link>
               </div>
@@ -671,7 +601,7 @@ export default function PricingPage() {
         </section>
 
         {/* ===== FAQ SECTION ===== */}
-        <section className="py-16 lg:py-20 bg-slate-900/50 border-y border-white/5">
+        <section className="py-16 lg:py-20">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ხშირად დასმული კითხვები</h2>
@@ -680,10 +610,7 @@ export default function PricingPage() {
             <div className="space-y-3 lg:space-y-4">
               {faqs.map((faq, i) => (
                 <div key={i} className="bg-slate-800/50 border border-white/10 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full px-4 sm:px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800 transition-colors"
-                  >
+                  <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full px-4 sm:px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800 transition-colors">
                     <span className="font-medium text-white text-sm sm:text-base pr-4">{faq.q}</span>
                     <IconChevronDown className={`w-5 h-5 text-slate-400 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                   </button>
@@ -699,7 +626,7 @@ export default function PricingPage() {
         </section>
 
         {/* ===== FINAL CTA ===== */}
-        <section className="py-16 lg:py-20">
+        <section className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
               მზად ხარ კორპუსის ეფექტური მართვისთვის?
@@ -707,10 +634,7 @@ export default function PricingPage() {
             <p className="text-slate-400 mb-8 text-sm sm:text-base">
               14 დღე სრულად უფასო — ბარათის გარეშე.
             </p>
-            <Link
-              href="#pricing"
-              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all text-base sm:text-lg group"
-            >
+            <Link href="#pricing" className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all text-base sm:text-lg group">
               დაიწყე უფასოდ
               <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
