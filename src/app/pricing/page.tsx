@@ -158,7 +158,7 @@ function AnimatedDashboard() {
         </div>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20">
           <div className="text-xs text-slate-400 mb-1">შემოსული</div>
-          <div className="text-xl font-bold text-emerald-400">{totalCollected}</div>
+          <div className="text-xl font-bold text-emerald-400">₾{totalCollected}</div>
         </div>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-white/5">
           <div className="text-xs text-slate-400 mb-1">ლოდინში</div>
@@ -198,7 +198,7 @@ function AnimatedDashboard() {
                   ? 'bg-emerald-500/20 text-emerald-400' 
                   : 'bg-amber-500/20 text-amber-400'
               }`}>
-                {payment.status === 'paid' ? '✓' : ''}
+                {payment.status === 'paid' ? '✓' : '⏳'}
               </span>
               <span className="text-xs font-semibold text-white">₾{payment.amount}</span>
             </div>
@@ -355,7 +355,7 @@ export default function PricingPage() {
     { q: "ბარათი საჭიროა საცდელის დასაწყებად?", a: "არა. 14 დღე სრულად უფასოა, ბარათის გარეშე." },
     { q: "14 დღის შემდეგ რა ხდება?", a: "თუ პაკეტს არ გააგრძელებ, წვდომა შეიზღუდება, მონაცემები 30 დღე შენარჩუნდება." },
     { q: "შემიძლია გავაუქმო?", a: "დიახ, ნებისმიერ დროს." },
-    { q: "თუ ჯერ უსტად არ ვიცი რამდენი ბინაა/ადმინისტრატორი მჭირდება?", a: "შეგიძლია ნებისმიერ დროს განაახლო." },
+    { q: "თუ ჯერ ზუსტად არ ვიცი რამდენი ბინაა/ადმინისტრატორი მჭირდება?", a: "შეგიძლია ნებისმიერ დროს განაახლო." },
     { q: "სად ინახება ჩემი მონაცემები?", a: "დაცულ Supabase სერვერებზე, SSL დაშიფვრით." },
     { q: "თუ არ გავაგრძელებ, შემიძლია მონაცემების გატანა?", a: "დიახ, ნებისმიერ დროს შეგიძლია მონაცემების ექსპორტი." }
   ]
