@@ -87,6 +87,23 @@ const IconConcierge = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconCopy = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+)
+
+const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 12 20 22 4 22 4 12" />
+    <rect x="2" y="7" width="20" height="5" />
+    <line x1="12" y1="22" x2="12" y2="7" />
+    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+  </svg>
+)
+
 // ============ ANIMATED DASHBOARD MOCKUP ============
 function AnimatedDashboard() {
   const [payments, setPayments] = useState([
@@ -141,7 +158,7 @@ function AnimatedDashboard() {
         </div>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20">
           <div className="text-xs text-slate-400 mb-1">შემოსული</div>
-          <div className="text-xl font-bold text-emerald-400">₾{totalCollected}</div>
+          <div className="text-xl font-bold text-emerald-400">{totalCollected}</div>
         </div>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-white/5">
           <div className="text-xs text-slate-400 mb-1">ლოდინში</div>
@@ -181,7 +198,7 @@ function AnimatedDashboard() {
                   ? 'bg-emerald-500/20 text-emerald-400' 
                   : 'bg-amber-500/20 text-amber-400'
               }`}>
-                {payment.status === 'paid' ? '✓' : '⏳'}
+                {payment.status === 'paid' ? '✓' : ''}
               </span>
               <span className="text-xs font-semibold text-white">₾{payment.amount}</span>
             </div>
@@ -202,6 +219,10 @@ export default function PricingPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  const [plans, setPlans] = useState<any[]>([])
+  const [referralCode, setReferralCode] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -211,6 +232,27 @@ export default function PricingPage() {
         return
       }
       setUser(user)
+
+      // მივიღოთ პაკეტები ბაზიდან
+      const { data: plansData } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_monthly', { ascending: true })
+
+      setPlans(plansData || [])
+
+      // მივიღოთ referral code
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('referral_code')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (profile?.referral_code) {
+        setReferralCode(profile.referral_code)
+      }
+
       setLoading(false)
     }
     init()
@@ -219,6 +261,14 @@ export default function PricingPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  const copyReferralCode = () => {
+    if (referralCode) {
+      navigator.clipboard.writeText(referralCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   if (loading) {
@@ -310,6 +360,27 @@ export default function PricingPage() {
     { q: "თუ არ გავაგრძელებ, შემიძლია მონაცემების გატანა?", a: "დიახ, ნებისმიერ დროს შეგიძლია მონაცემების ექსპორტი." }
   ]
 
+  const getPlanPrice = (plan: any) => {
+    if (billingCycle === 'yearly') {
+      return plan.price_yearly || (plan.price_monthly * 10)
+    }
+    return plan.price_monthly || plan.price || 0
+  }
+
+  const getPlanFeatures = (plan: any) => {
+    const baseFeatures = [
+      `${plan.max_buildings >= 999999 ? 'უსაზღვრო' : plan.max_buildings} ბინა`,
+      `${plan.max_admins >= 999999 ? 'უსაზღვრო' : plan.max_admins} ადმინისტრატორი`,
+      `${plan.storage_limit_gb >= 999999 ? 'უსაზღვრო' : plan.storage_limit_gb} GB არქივი`,
+    ]
+
+    if (plan.features && Array.isArray(plan.features)) {
+      return [...baseFeatures, ...plan.features]
+    }
+
+    return baseFeatures
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       
@@ -349,7 +420,7 @@ export default function PricingPage() {
       </header>
 
       <main>
-        {/* ===== HERO SECTION — SPLIT LAYOUT ===== */}
+        {/* ===== HERO SECTION ===== */}
         <section className="relative py-12 lg:py-20 overflow-hidden">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -400,7 +471,6 @@ export default function PricingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
               
-              {/* LEFT: Problems */}
               <div>
                 <div className="mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">ეს ნაცნობია?</h2>
@@ -426,7 +496,6 @@ export default function PricingPage() {
                 </div>
               </div>
 
-              {/* RIGHT: Solutions */}
               <div>
                 <div className="mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">EZO ამას ასე აგვარებს</h2>
@@ -485,7 +554,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ===== FEATURES SECTION — 4 IN ONE ROW ===== */}
+        {/* ===== FEATURES SECTION ===== */}
         <section className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -508,88 +577,110 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ===== TRUST SECTION ===== */}
-        <section className="py-12 lg:py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-4 sm:mb-6">
-              <IconShield className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs sm:text-sm font-medium text-emerald-300">უსაფრთხო და დაცული</span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">
-              მონაცემები დაცულია SSL დაშიფვრით
-            </h3>
-            <p className="text-slate-400 text-sm sm:text-base">
-              ინახება უსაფრთხო Supabase სერვერებზე. შენი ფინანსური ინფორმაცია დაცულია.
-            </p>
-          </div>
-        </section>
-
         {/* ===== PRICING SECTION ===== */}
-        <section id="pricing" className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="pricing" className="py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">აირჩიე პაკეტი</h2>
-              <p className="text-slate-400 text-sm sm:text-base">გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე</p>
+              <p className="text-slate-400 text-sm sm:text-base mb-8">გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე</p>
+
+              {/* Billing Cycle Toggle */}
+              <div className="inline-flex items-center gap-2 p-1 bg-slate-800/50 border border-white/10 rounded-xl">
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    billingCycle === 'monthly'
+                      ? 'bg-emerald-500 text-white'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  ყოველთვიური
+                </button>
+                <button
+                  onClick={() => setBillingCycle('yearly')}
+                  className={`px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                    billingCycle === 'yearly'
+                      ? 'bg-emerald-500 text-white'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  ყოველწლიური
+                  <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">-17%</span>
+                </button>
+              </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
-              {/* Basic Plan */}
-              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 lg:p-8 hover:border-emerald-500/50 transition-all">
-                <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">ბაზის პაკეტი</h3>
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl lg:text-5xl font-bold text-white">₾50</span>
-                    <span className="text-slate-400 text-sm">/ 30 დღე</span>
+            {/* Plans Grid */}
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+              {plans.map((plan, index) => {
+                const isPro = plan.name === 'Pro'
+                const isBasic = plan.name === 'Basic'
+                const price = getPlanPrice(plan)
+                const features = getPlanFeatures(plan)
+
+                return (
+                  <div
+                    key={plan.id}
+                    className={`relative rounded-2xl p-6 lg:p-8 transition-all ${
+                      isPro
+                        ? 'bg-slate-800/80 border-2 border-emerald-500/50 scale-105'
+                        : 'bg-slate-800/50 border border-white/10 hover:border-emerald-500/50'
+                    }`}
+                  >
+                    {isPro && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
+                        რეკომენდებული
+                      </div>
+                    )}
+
+                    {isBasic && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                        <IconGift className="w-3 h-3" />
+                        14 დღე უფასო
+                      </div>
+                    )}
+
+                    <div className="mb-6">
+                      <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                      <p className="text-slate-400 text-sm">{plan.description}</p>
+                    </div>
+
+                    <div className="mb-6">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl lg:text-5xl font-bold text-white">₾{price}</span>
+                        <span className="text-slate-400 text-sm">
+                          {billingCycle === 'yearly' ? '/ წელი' : '/ თვე'}
+                        </span>
+                      </div>
+                      {billingCycle === 'yearly' && (
+                        <div className="text-xs text-emerald-400 mt-1">
+                          ₾{Math.round(price / 12)}/თვეში · 2 თვე უფასო
+                        </div>
+                      )}
+                    </div>
+
+                    <ul className="space-y-3 mb-8">
+                      {features.map((feature: string, i: number) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-slate-300 text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link
+                      href="/payment"
+                      className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
+                        isPro
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                          : 'bg-slate-700 hover:bg-slate-600 text-white'
+                      }`}
+                    >
+                      {isBasic ? 'დაიწყე უფასო საცდელი' : 'პაკეტის შეძენა'}
+                    </Link>
                   </div>
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {["კორპუსის რეესტრი (უსაზღვრო ბინა)", "გადახდების მართვა", "ქვითრების არქივი (10GB)", "ფინანსური ანგარიშები", "1 ადმინისტრატორი"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-slate-300 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                  {["ავტომატური შეხსენებები", "მრავალადმინისტრატორიანი წვდომა"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3 opacity-50">
-                      <IconX className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-slate-500 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href="/payment" className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors">
-                  დაიწყე უფასო საცდელი
-                </Link>
-              </div>
-
-              {/* Premium Plan */}
-              <div className="bg-slate-800/50 border-2 border-emerald-500/50 rounded-2xl p-6 lg:p-8 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
-                  რეკომენდებული
-                </div>
-
-                <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">პრემიუმ პაკეტი</h3>
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl lg:text-5xl font-bold text-white">₾100</span>
-                    <span className="text-slate-400 text-sm">/ 30 დღე</span>
-                  </div>
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {["ყველაფერი ბაზისიდან", "ავტომატური შეხსენებები", "ულიმიტო არქივი", "5 ადმინისტრატორი", "პრიორიტეტული მხარდაჭერა"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-slate-300 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href="/payment" className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors">
-                  დაიწყე უფასო საცდელი
-                </Link>
-              </div>
+                )
+              })}
             </div>
 
             <div className="text-center mt-8">
@@ -599,6 +690,57 @@ export default function PricingPage() {
             </div>
           </div>
         </section>
+
+        {/* ===== REFERRAL SECTION ===== */}
+        {referralCode && (
+          <section className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full mb-4">
+                  <IconGift className="w-4 h-4 text-purple-400" />
+                  <span className="text-xs sm:text-sm font-medium text-purple-300">Referral პროგრამა</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">მოიწვიე მეგობარი — მიიღე 1 თვე უფასო!</h2>
+                <p className="text-slate-400 text-sm sm:text-base">
+                  გაუზიარე შენი კოდი მეგობარს. როცა ის პაკეტს შეიძენს, ორივე მიიღებთ 1 თვე უფასო გამოყენებას.
+                </p>
+              </div>
+
+              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex-1 w-full">
+                    <div className="text-xs text-slate-400 mb-2">შენი referral კოდი:</div>
+                    <div className="flex items-center gap-2 bg-slate-900 border border-white/10 rounded-lg px-4 py-3">
+                      <code className="text-emerald-400 font-mono text-lg flex-1">{referralCode}</code>
+                      <button
+                        onClick={copyReferralCode}
+                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <IconCopy className="w-4 h-4" />
+                        {copied ? 'დაკოპირდა!' : 'კოპირება'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid sm:grid-cols-3 gap-4 text-center">
+                  <div className="bg-slate-900/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-emerald-400 mb-1">1</div>
+                    <div className="text-xs text-slate-400">გაუზიარე კოდი</div>
+                  </div>
+                  <div className="bg-slate-900/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-emerald-400 mb-1">2</div>
+                    <div className="text-xs text-slate-400">მეგობარი იხდის</div>
+                  </div>
+                  <div className="bg-slate-900/50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-emerald-400 mb-1">3</div>
+                    <div className="text-xs text-slate-400">ორივე იღებს 1 თვე უფასო</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ===== FAQ SECTION ===== */}
         <section className="py-16 lg:py-20">
