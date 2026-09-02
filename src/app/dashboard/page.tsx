@@ -284,9 +284,12 @@ function DashboardContent() {
   const userInitial = userName.charAt(0).toUpperCase()
   const hasBuilding = buildings.length > 0
 
+  // ⭐ გამოსწორებული ლოგიკა: ცალკე ცვლადში გამოვყოფთ შემოწმებას
+  const isPaidOrTrial = userProfile?.subscription_status === 'active' || userProfile?.is_trial;
+
   const onboardingSteps = [
     { title: 'ანგარიშის შექმნა', desc: 'რეგისტრაცია წარმატებით დასრულდა', done: true },
-    { title: 'პაკეტის არჩევა', desc: 'აირჩიე შენთვის შესაფერისი გეგმა', done: userProfile?.subscription_status === 'active' || userProfile?.is_trial, link: (!userProfile?.subscription_status === 'active' && !userProfile?.is_trial) ? '/pricing' : undefined },
+    { title: 'პაკეტის არჩევა', desc: 'აირჩიე შენთვის შესაფერისი გეგმა', done: isPaidOrTrial, link: !isPaidOrTrial ? '/pricing' : undefined },
     { title: 'კორპუსის დამატება', desc: hasBuilding ? 'კორპუსი წარმატებით დაემატა' : 'დაამატე შენი კორპუსის ინფორმაცია', done: hasBuilding, link: hasBuilding ? undefined : '/dashboard/add-building' },
   ]
   
