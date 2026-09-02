@@ -669,7 +669,7 @@ export default function PricingPage() {
                     </ul>
 
                     <Link
-                      href="/payment"
+                      href={`/payment?plan_id=${plan.id}&billing=${billingCycle}`}
                       className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
                         isPro
                           ? 'bg-emerald-500 hover:bg-emerald-600 text-white'

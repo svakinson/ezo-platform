@@ -50,11 +50,22 @@ const IconAlertCircle = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-// ============ შიდა კომპონენტი, რომელიც იყენებს useSearchParams-ს ============
+const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 12 20 22 4 22 4 12" />
+    <rect x="2" y="7" width="20" height="5" />
+    <line x1="12" y1="22" x2="12" y2="7" />
+    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+  </svg>
+)
+
+// ============ შიდა კომპონენტი ============
 function PaymentContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const planId = searchParams.get('plan_id')
+  const billing = (searchParams.get('billing') as 'monthly' | 'yearly') || 'monthly'
 
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -80,7 +91,7 @@ function PaymentContent() {
         query = query.eq('id', planId)
       }
       
-      const { data } = await query.order('price', { ascending: true }).limit(1).single()
+      const { data } = await query.order('price_monthly', { ascending: true }).limit(1).single()
       setPlan(data)
       setLoading(false)
     }
@@ -125,9 +136,14 @@ function PaymentContent() {
 
       const { data: urlData } = supabase.storage.from('payment_proofs').getPublicUrl(fileName)
 
+      // გამოვთვალოთ სწორი ფასი ბილინგის ციკლის მიხედვით
+      const currentPrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly
+
       const { error: dbError } = await supabase.from('payment_requests').insert({
         user_id: user.id,
-        amount: plan.price,
+        plan_id: plan.id,
+        amount: currentPrice,
+        billing_cycle: billing,
         payment_proof_url: urlData.publicUrl,
         status: 'pending',
       })
@@ -160,6 +176,10 @@ function PaymentContent() {
       </div>
     )
   }
+
+  const currentPrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly
+  const durationText = billing === 'yearly' ? '1 წელი' : '1 თვე'
+  const isBasic = plan.name === 'Basic'
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -320,15 +340,33 @@ function PaymentContent() {
                 <div className="text-sm opacity-80 mt-2">{plan.description}</div>
               </div>
 
+              {isBasic && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 flex items-start gap-3">
+                  <IconGift className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-semibold text-amber-300 text-sm">14 დღე უფასო!</div>
+                    <div className="text-xs text-amber-200/80 mt-1">
+                      Basic პაკეტის არჩევისას იღებთ 14-დღიან უფასო საცდელ პერიოდს. ამ პერიოდის შემდეგ ავტომატურად გაგრძელდება არჩეული ციკლით.
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">პაკეტის ღირებულება</span>
-                  <span className="text-white font-medium">₾{plan.price}</span>
+                  <span className="text-white font-medium">₾{currentPrice}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">ვადა</span>
-                  <span className="text-white font-medium">{plan.duration_days} დღე</span>
+                  <span className="text-slate-400">ბილინგის ციკლი</span>
+                  <span className="text-white font-medium">{durationText}</span>
                 </div>
+                {billing === 'yearly' && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">ფასდაკლება</span>
+                    <span className="text-emerald-400 font-medium">2 თვე უფასო</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">გადასახადი</span>
                   <span className="text-emerald-400 font-medium">უფასო</span>
@@ -337,7 +375,7 @@ function PaymentContent() {
 
               <div className="border-t border-white/10 pt-4 flex justify-between items-center">
                 <span className="text-lg font-bold text-white">სულ გადასახდელი:</span>
-                <span className="text-2xl font-bold text-emerald-400">₾{plan.price}</span>
+                <span className="text-2xl font-bold text-emerald-400">₾{currentPrice}</span>
               </div>
 
               <div className="mt-6 flex items-center gap-2 text-xs text-slate-500 bg-slate-950 p-3 rounded-lg">
