@@ -105,6 +105,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/admin/:path*',
+    '/admin', // დამატებულია უსაფრთხოებისთვის, რათა ზუსტად /admin-იც დაიჭიროს
     '/pricing',
     '/payment',
   ],

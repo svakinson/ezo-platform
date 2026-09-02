@@ -152,8 +152,8 @@ function LoginForm() {
           console.log('➡️ გადასვლა: /dashboard (chairman)')
           router.push('/dashboard')
         } else if (userRole === 'admin') {
-          console.log('➡️ გადასვლა: /admin/payments (admin)')
-          router.push('/admin/payments')
+          console.log('➡️ გადასვლა: /admin (admin dashboard)')
+          router.push('/admin')
         } else {
           console.log('➡️ გადასვლა: /pricing (user)')
           router.push('/pricing')
