@@ -34,6 +34,27 @@ const IconCheck = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconClock = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+)
+
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+const IconUser = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+)
+
 export default function AdminUsersPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -42,6 +63,11 @@ export default function AdminUsersPage() {
   const [editRole, setEditRole] = useState('')
   const [editStatus, setEditStatus] = useState('')
   const [saving, setSaving] = useState(false)
+  
+  // ვადის გახანგრძლივების state
+  const [extendingId, setExtendingId] = useState<string | null>(null)
+  const [extensionDays, setExtensionDays] = useState(30)
+  const [extending, setExtending] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -51,7 +77,6 @@ export default function AdminUsersPage() {
         return
       }
 
-      // შევამოწმოთ რომ admin-ია
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -72,7 +97,7 @@ export default function AdminUsersPage() {
     setLoading(true)
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, role, subscription_status, created_at')
+      .select('id, email, full_name, role, subscription_status, subscription_end_date, created_at')
       .order('created_at', { ascending: false })
 
     if (!error && data) {
@@ -99,11 +124,47 @@ export default function AdminUsersPage() {
 
     if (!error) {
       setEditingId(null)
-      await fetchUsers() // განვაახლოთ სია
+      await fetchUsers()
     } else {
       alert('შეცდომა განახლებისას: ' + error.message)
     }
     setSaving(false)
+  }
+
+  // ვადის გახანგრძლივების ფუნქცია
+  const handleExtendSubscription = async (userId: string) => {
+    setExtending(true)
+    
+    // ვიპოვოთ მომხმარებელი
+    const user = users.find(u => u.id === userId)
+    if (!user) return
+
+    // გამოვთვალოთ ახალი თარიღი
+    const currentDate = user.subscription_end_date 
+      ? new Date(user.subscription_end_date) 
+      : new Date()
+    
+    // თუ ვადა უკვე გასულია, დღევანდელიდან ვიწყებთ
+    const startDate = currentDate < new Date() ? new Date() : currentDate
+    const newEndDate = new Date(startDate)
+    newEndDate.setDate(newEndDate.getDate() + extensionDays)
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        subscription_status: 'active',
+        subscription_end_date: newEndDate.toISOString().split('T')[0],
+        last_payment_date: new Date().toISOString().split('T')[0],
+      })
+      .eq('id', userId)
+
+    if (!error) {
+      setExtendingId(null)
+      await fetchUsers()
+    } else {
+      alert('შეცდომა: ' + error.message)
+    }
+    setExtending(false)
   }
 
   const getRoleBadge = (role: string) => {
@@ -119,8 +180,16 @@ export default function AdminUsersPage() {
       case 'active': return 'bg-emerald-500/20 text-emerald-400'
       case 'inactive': return 'bg-slate-500/20 text-slate-400'
       case 'grace_period': return 'bg-amber-500/20 text-amber-400'
+      case 'expired': return 'bg-rose-500/20 text-rose-400'
       default: return 'bg-slate-500/20 text-slate-400'
     }
+  }
+
+  const formatDate = (date: string | null) => {
+    if (!date) return '—'
+    return new Date(date).toLocaleDateString('ka-GE', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    })
   }
 
   if (loading) {
@@ -183,7 +252,8 @@ export default function AdminUsersPage() {
                   <th className="px-6 py-4 font-medium">მომხმარებელი</th>
                   <th className="px-6 py-4 font-medium">როლი</th>
                   <th className="px-6 py-4 font-medium">სტატუსი</th>
-                  <th className="px-6 py-4 font-medium">რეგისტრაციის თარიღი</th>
+                  <th className="px-6 py-4 font-medium">ვადა</th>
+                  <th className="px-6 py-4 font-medium">რეგისტრაცია</th>
                   <th className="px-6 py-4 font-medium text-right">მოქმედება</th>
                 </tr>
               </thead>
@@ -234,38 +304,61 @@ export default function AdminUsersPage() {
                       )}
                     </td>
 
-                    <td className="px-6 py-4 text-slate-400">
-                      {new Date(user.created_at).toLocaleDateString('ka-GE', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                      })}
+                    <td className="px-6 py-4">
+                      <div className="text-slate-300 text-xs">{formatDate(user.subscription_end_date)}</div>
+                      {user.subscription_end_date && (
+                        <div className="text-slate-500 text-xs mt-0.5">
+                          {new Date(user.subscription_end_date) > new Date() 
+                            ? `დარჩენილი: ${Math.ceil((new Date(user.subscription_end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} დღე`
+                            : 'ვადა გასულია'}
+                        </div>
+                      )}
                     </td>
 
-                    <td className="px-6 py-4 text-right">
-                      {editingId === user.id ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setEditingId(null)}
-                            className="px-3 py-1.5 text-slate-400 hover:text-white text-xs font-medium"
-                          >
-                            გაუქმება
-                          </button>
-                          <button
-                            onClick={() => handleSave(user.id)}
-                            disabled={saving}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-medium transition-colors"
-                          >
-                            {saving ? <IconLoader className="w-3 h-3" /> : <IconCheck className="w-3 h-3" />}
-                            შენახვა
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleEditClick(user)}
-                          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-300 rounded-lg text-xs font-medium transition-colors"
-                        >
-                          რედაქტირება
-                        </button>
-                      )}
+                    <td className="px-6 py-4 text-slate-400 text-xs">
+                      {formatDate(user.created_at)}
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        {editingId === user.id ? (
+                          <>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="px-3 py-1.5 text-slate-400 hover:text-white text-xs font-medium"
+                            >
+                              გაუქმება
+                            </button>
+                            <button
+                              onClick={() => handleSave(user.id)}
+                              disabled={saving}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-medium transition-colors"
+                            >
+                              {saving ? <IconLoader className="w-3 h-3" /> : <IconCheck className="w-3 h-3" />}
+                              შენახვა
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            {/* ⭐ ვადის გახანგრძლივების ღილაკი  */}
+                            <button
+                              onClick={() => setExtendingId(user.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-colors"
+                              title="გაახანგრძლივე ვადა"
+                            >
+                              <IconClock className="w-3 h-3" />
+                              გაახანგრძლივე
+                            </button>
+                            
+                            <button
+                              onClick={() => handleEditClick(user)}
+                              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-300 rounded-lg text-xs font-medium transition-colors"
+                            >
+                              რედაქტირება
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -280,6 +373,76 @@ export default function AdminUsersPage() {
           )}
         </div>
       </main>
+
+      {/* ⭐ ვადის გახანგრძლივების Modal ⭐ */}
+      {extendingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <IconClock className="w-5 h-5 text-blue-400" />
+                ვადის გახანგრძლივება
+              </h3>
+              <button
+                onClick={() => setExtendingId(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <IconX className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-sm text-slate-400 mb-4">
+                აირჩიეთ რამდენი დღით გსურთ გააგრძელოთ გამოწერა:
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {[7, 30, 90, 365].map((days) => (
+                  <button
+                    key={days}
+                    onClick={() => setExtensionDays(days)}
+                    className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                      extensionDays === days
+                        ? 'border-blue-500 bg-blue-500/20 text-blue-400'
+                        : 'border-white/10 bg-slate-800 text-slate-300 hover:border-white/20'
+                    }`}
+                  >
+                    {days} დღე
+                    {days === 365 && <span className="block text-xs opacity-70">1 წელი</span>}
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-slate-950 rounded-lg p-4 mb-6">
+                <div className="text-xs text-slate-400 mb-2">შედეგი:</div>
+                <div className="text-sm text-white">
+                  ვადა გაგრძელდება <span className="text-blue-400 font-semibold">{extensionDays} დღით</span>
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  სტატუსი ავტომატურად გახდება: <span className="text-emerald-400">აქტიური</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setExtendingId(null)}
+                  className="flex-1 px-4 py-2.5 text-slate-300 hover:text-white font-medium"
+                >
+                  გაუქმება
+                </button>
+                <button
+                  onClick={() => handleExtendSubscription(extendingId)}
+                  disabled={extending}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  {extending ? <IconLoader className="w-4 h-4" /> : <IconCheck className="w-4 h-4" />}
+                  დადასტურება
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
