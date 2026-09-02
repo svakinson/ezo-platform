@@ -37,33 +37,58 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // მივიღოთ user-ის როლი (გამოვიყენოთ maybeSingle შეცდომის თავიდან ასაცილებლად)
+  // მივიღოთ user-ის პროფილი Trial-ის ველებთან ერთად
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, subscription_status, subscription_end_date')
+    .select('role, subscription_status, subscription_end_date, is_trial, trial_ends_at, has_used_trial')
     .eq('id', user.id)
     .maybeSingle()
 
-  // ნაგულისხმევი მნიშვნელობები, თუ პროფილი ჯერ არ არსებობს (მაგ. ძველი ანგარიში)
   const userRole = profile?.role || 'user'
   const subStatus = profile?.subscription_status || 'inactive'
   const subEndDate = profile?.subscription_end_date
+  const isTrial = profile?.is_trial || false
+  const trialEndsAt = profile?.trial_ends_at
+  const hasUsedTrial = profile?.has_used_trial || false
 
   const path = request.nextUrl.pathname
 
   // ============================================
-  // DASHBOARD - მხოლოდ chairman-ისთვის
+  // TRIAL EXPIRATION CHECK (ავტომატური ვადის გასვლა)
+  // ============================================
+  if (isTrial && trialEndsAt) {
+    const trialEnd = new Date(trialEndsAt)
+    const today = new Date()
+    
+    // თუ ვადა გასულია და ჯერ არ გადაუხდია (არ არის active)
+    if (today > trialEnd && subStatus !== 'active') {
+      // განვაახლოთ პროფილი: დავასრულოთ trial და გავხადოთ expired
+      await supabase
+        .from('profiles')
+        .update({
+          is_trial: false,
+          has_used_trial: true,
+          subscription_status: 'expired',
+          role: userRole === 'chairman' ? 'user' : userRole,
+        })
+        .eq('id', user.id)
+      
+      return NextResponse.redirect(new URL('/pricing', request.url))
+    }
+  }
+
+  // ============================================
+  // DASHBOARD - chairman ან აქტიური trial
   // ============================================
   if (path.startsWith('/dashboard')) {
-    if (userRole !== 'chairman') {
+    const isOnValidTrial = isTrial && subStatus !== 'expired' && trialEndsAt && new Date(trialEndsAt) > new Date()
+    
+    if (userRole !== 'chairman' && !isOnValidTrial) {
       return NextResponse.redirect(new URL('/pricing', request.url))
     }
 
-    if (subStatus !== 'active') {
-      return NextResponse.redirect(new URL('/pricing', request.url))
-    }
-
-    if (subEndDate) {
+    // თუ აქვს active სტატუსი, შევამოწმოთ ვადა
+    if (subStatus === 'active' && subEndDate) {
       const endDate = new Date(subEndDate)
       const today = new Date()
       if (today > endDate) {
@@ -83,18 +108,19 @@ export async function middleware(request: NextRequest) {
   }
 
   // ============================================
-  // PAYMENT UPLOAD - მხოლოდ user-ისთვის (არა chairman)
+  // PAYMENT - თავისუფალია upgrade-ისთვის, მაგრამ active paid chairman-ს არ სჭირდება
   // ============================================
   if (path === '/payment') {
-    if (userRole === 'chairman') {
+    // თუ უკვე აქვს აქტიური გადახდილი პაკეტი და არ არის trial-ში, გადაიყვანე dashboard-ზე
+    if (userRole === 'chairman' && subStatus === 'active' && !isTrial) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 
   // ============================================
-  // PRICING - chairman-ს არ სჭირდება
+  // PRICING - active paid chairman-ს არ სჭირდება
   // ============================================
-  if (path === '/pricing' && userRole === 'chairman') {
+  if (path === '/pricing' && userRole === 'chairman' && subStatus === 'active' && !isTrial) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -105,7 +131,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/admin/:path*',
-    '/admin', // დამატებულია უსაფრთხოებისთვის, რათა ზუსტად /admin-იც დაიჭიროს
+    '/admin',
     '/pricing',
     '/payment',
   ],

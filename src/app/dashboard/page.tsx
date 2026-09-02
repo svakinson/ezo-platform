@@ -120,6 +120,16 @@ const IconEye = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 12 20 22 4 22 4 12" />
+    <rect x="2" y="7" width="20" height="5" />
+    <line x1="12" y1="22" x2="12" y2="7" />
+    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+  </svg>
+)
+
 // ============ STAT CARD ============
 function StatCard({ icon: Icon, label, value, sublabel, gradient }: { 
   icon: any; 
@@ -146,6 +156,7 @@ function DashboardContent() {
   const searchParams = useSearchParams()
   
   const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [viewAsUser, setViewAsUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [buildings, setBuildings] = useState<any[]>([])
@@ -163,6 +174,7 @@ function DashboardContent() {
       setUser(session.user)
       
       const viewAsId = searchParams.get('view_as')
+
       if (viewAsId) {
         const { data: adminProfile } = await supabase
           .from('profiles')
@@ -177,7 +189,7 @@ function DashboardContent() {
 
         const { data: targetProfile } = await supabase
           .from('profiles')
-          .select('id, email, full_name, role, subscription_status')
+          .select('id, email, full_name, role, subscription_status, is_trial, trial_ends_at')
           .eq('id', viewAsId)
           .maybeSingle()
 
@@ -186,6 +198,16 @@ function DashboardContent() {
         } else {
           router.replace('/dashboard')
           return
+        }
+      } else {
+        const { data: myProfile } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, role, subscription_status, is_trial, trial_ends_at')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        
+        if (myProfile) {
+          setUserProfile(myProfile)
         }
       }
 
@@ -257,14 +279,14 @@ function DashboardContent() {
 
   const userName = viewAsUser 
     ? (viewAsUser.full_name || viewAsUser.email) 
-    : (user?.user_metadata?.full_name || 'მომხმარებელი')
+    : (userProfile?.full_name || user?.user_metadata?.full_name || 'მომხმარებელი')
     
   const userInitial = userName.charAt(0).toUpperCase()
   const hasBuilding = buildings.length > 0
 
   const onboardingSteps = [
     { title: 'ანგარიშის შექმნა', desc: 'რეგისტრაცია წარმატებით დასრულდა', done: true },
-    { title: 'პაკეტის არჩევა', desc: 'აირჩიე შენთვის შესაფერისი გეგმა', done: true },
+    { title: 'პაკეტის არჩევა', desc: 'აირჩიე შენთვის შესაფერისი გეგმა', done: userProfile?.subscription_status === 'active' || userProfile?.is_trial, link: (!userProfile?.subscription_status === 'active' && !userProfile?.is_trial) ? '/pricing' : undefined },
     { title: 'კორპუსის დამატება', desc: hasBuilding ? 'კორპუსი წარმატებით დაემატა' : 'დაამატე შენი კორპუსის ინფორმაცია', done: hasBuilding, link: hasBuilding ? undefined : '/dashboard/add-building' },
   ]
   
@@ -273,6 +295,7 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-slate-900">
+      {/* View As User Banner */}
       {viewAsUser && (
         <div className="bg-amber-500/20 border-b border-amber-500/30 text-amber-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
           <div className="flex items-center gap-3 text-sm max-w-4xl">
@@ -331,6 +354,30 @@ function DashboardContent() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        
+        {/* ⭐ Trial Banner ⭐ */}
+        {!viewAsUser && userProfile?.is_trial && userProfile?.trial_ends_at && new Date(userProfile.trial_ends_at) > new Date() && (
+          <div className="mb-8 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <IconGift className="w-6 h-6 text-amber-400 flex-shrink-0" />
+              <div>
+                <div className="text-base font-bold text-amber-200">
+                  🎁 უფასო საცდელი პერიოდი
+                </div>
+                <div className="text-sm text-amber-300/70">
+                  დარჩენილია: <span className="font-bold text-amber-200">{Math.max(0, Math.ceil((new Date(userProfile.trial_ends_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} დღე</span> სრული წვდომით.
+                </div>
+              </div>
+            </div>
+            <Link 
+              href="/pricing"
+              className="text-sm bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-semibold transition-colors flex-shrink-0 shadow-lg shadow-amber-500/20"
+            >
+              პაკეტის შეძენა →
+            </Link>
+          </div>
+        )}
+
         <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8 lg:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -504,7 +551,7 @@ function DashboardContent() {
               </div>
               <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">აირჩიე პაკეტი და დაიწყე</h3>
               <p className="text-slate-400 mb-8">შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს ყოველდღიური მართვისთვის.</p>
-              <Link href="/dashboard/plans" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all">
+              <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all">
                 <span>ნახე პაკეტები</span>
                 <IconArrowRight className="w-5 h-5" />
               </Link>

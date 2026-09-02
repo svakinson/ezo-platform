@@ -120,19 +120,16 @@ function LoginForm() {
       if (data.user) {
         console.log('📋 პროფილის მიღება ბაზიდან...')
         
-        // გამოვიყენოთ .maybeSingle() ნაცვლად .single()-ისა
-        // ეს აბრუნებს null-ს შეცდომის გარეშე, თუ 0 ჩანაწერია
+        // დავამატეთ is_trial ველი
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, email, role, subscription_status, subscription_end_date')
+          .select('id, email, role, subscription_status, subscription_end_date, is_trial')
           .eq('id', data.user.id)
           .maybeSingle()
 
         let userRole = 'user' // ნაგულისხმევი როლი
 
         if (profileError && profileError.code !== 'PGRST116') {
-          // თუ შეცდომა არის "0 rows" (PGRST116), ეს ნორმალურია და უგულებელვყოთ
-          // ნებისმიერი სხვა შეცდომა კი დავალოგოთ
           console.error('❌ [PROFILE ERROR]:', profileError)
         }
 
@@ -140,7 +137,7 @@ function LoginForm() {
           console.log('✅ [PROFILE SUCCESS]:', profile)
           console.log('Role:', profile.role)
           console.log('Status:', profile.subscription_status)
-          console.log('End Date:', profile.subscription_end_date)
+          console.log('Is Trial:', profile.is_trial)
           userRole = profile.role
         } else {
           console.log('⚠️ პროფილი ვერ მოიძებნა ბაზაში. გამოიყენება ნაგულისხმევი "user" როლი.')
@@ -148,12 +145,15 @@ function LoginForm() {
 
         // ჭკვიანი redirect
         console.log('🔄 Redirect ლოგიკის შემოწმება...')
-        if (userRole === 'chairman') {
-          console.log('➡️ გადასვლა: /dashboard (chairman)')
-          router.push('/dashboard')
-        } else if (userRole === 'admin') {
+        if (userRole === 'admin') {
           console.log('➡️ გადასვლა: /admin (admin dashboard)')
           router.push('/admin')
+        } else if (userRole === 'chairman' && profile?.subscription_status === 'active') {
+          console.log('➡️ გადასვლა: /dashboard (chairman)')
+          router.push('/dashboard')
+        } else if (profile?.is_trial) {
+          console.log('➡️ გადასვლა: /dashboard (trial user)')
+          router.push('/dashboard')
         } else {
           console.log('➡️ გადასვლა: /pricing (user)')
           router.push('/pricing')

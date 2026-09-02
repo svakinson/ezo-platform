@@ -77,7 +77,7 @@ export default function AdminPaymentsPage() {
         .from('profiles')
         .select('role')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profile?.role !== 'admin') {
         router.push('/dashboard')
@@ -97,7 +97,7 @@ export default function AdminPaymentsPage() {
       .from('payment_requests')
       .select(`
         *,
-        profiles:user_id (email, full_name, phone, role, subscription_status)
+        profiles:user_id (email, full_name, phone, role, subscription_status, is_trial)
       `)
       .order('created_at', { ascending: false })
 
@@ -112,9 +112,9 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => {
     if (currentUser) loadPayments()
-  }, [filterStatus])
+  }, [filterStatus, currentUser])
 
-  // დამტკიცება
+  // ⭐ დამტკიცების განახლებული ლოგიკა
   const handleApprove = async (payment: any) => {
     if (!confirm(`დარწმუნებული ხარ რომ გსურს ${payment.profiles?.email}-ის გადახდის დამტკიცება?`)) return
 
@@ -133,10 +133,12 @@ export default function AdminPaymentsPage() {
 
       if (updateError) throw updateError
 
-      // 2. განვაახლოთ user-ის პროფილი - მივანიჭოთ chairman როლი
+      // 2. გამოვთვალოთ ვადა billing_cycle-ის მიხედვით
+      const daysToAdd = payment.billing_cycle === 'yearly' ? 365 : 30
       const endDate = new Date()
-      endDate.setDate(endDate.getDate() + 30) // +30 დღე
+      endDate.setDate(endDate.getDate() + daysToAdd)
 
+      // 3. განვაახლოთ user-ის პროფილი
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -145,6 +147,10 @@ export default function AdminPaymentsPage() {
           subscription_start_date: new Date().toISOString().split('T')[0],
           subscription_end_date: endDate.toISOString().split('T')[0],
           last_payment_date: new Date().toISOString().split('T')[0],
+          is_trial: false,
+          has_used_trial: true,
+          billing_cycle: payment.billing_cycle || 'monthly',
+          subscription_plan: payment.plan_id || 'basic',
         })
         .eq('id', payment.user_id)
 
@@ -232,7 +238,7 @@ export default function AdminPaymentsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
           <IconLoader className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
           <div className="text-white text-lg">იტვირთება...</div>
@@ -242,17 +248,17 @@ export default function AdminPaymentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-100">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 border-b border-white/10">
+      <header className="sticky top-0 z-40 bg-slate-950/90 border-b border-white/10 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <IconShield className="w-6 h-6 text-amber-400" />
             <h1 className="text-xl font-bold text-white">Admin Panel</h1>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm text-slate-300 hover:text-white transition-colors">
-              Dashboard
+            <Link href="/admin" className="text-sm text-slate-300 hover:text-white transition-colors">
+              მთავარი
             </Link>
             <button
               onClick={async () => {
@@ -340,7 +346,7 @@ export default function AdminPaymentsPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
                       <IconFileText className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -350,11 +356,19 @@ export default function AdminPaymentsPage() {
                       <div className="text-sm text-slate-400">
                         {payment.profiles?.email}
                       </div>
+                      {payment.profiles?.is_trial && (
+                        <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30">
+                          Trial პერიოდშია
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-emerald-400">₾{payment.amount}</div>
                     <div className="text-xs text-slate-400">
+                      {payment.billing_cycle === 'yearly' ? 'წლიური' : 'ყოველთვიური'} პაკეტი
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
                       {new Date(payment.created_at).toLocaleDateString('ka-GE', {
                         year: 'numeric',
                         month: 'short',
@@ -383,13 +397,15 @@ export default function AdminPaymentsPage() {
 
                   <div className="flex gap-2">
                     {/* ქვითრის ნახვა */}
-                    <button
-                      onClick={() => handleViewReceipt(payment)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-sm font-medium rounded-lg transition-colors"
-                    >
-                      <IconEye className="w-4 h-4" />
-                      ქვითრის ნახვა
-                    </button>
+                    {payment.payment_proof_url && (
+                      <button
+                        onClick={() => handleViewReceipt(payment)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <IconEye className="w-4 h-4" />
+                        ქვითრის ნახვა
+                      </button>
+                    )}
 
                     {/* დამტკიცება/უარყოფა (მხოლოდ pending-ისთვის) */}
                     {payment.status === 'pending' && (
