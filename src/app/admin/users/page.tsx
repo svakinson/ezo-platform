@@ -135,16 +135,13 @@ export default function AdminUsersPage() {
   const handleExtendSubscription = async (userId: string) => {
     setExtending(true)
     
-    // ვიპოვოთ მომხმარებელი
     const user = users.find(u => u.id === userId)
     if (!user) return
 
-    // გამოვთვალოთ ახალი თარიღი
     const currentDate = user.subscription_end_date 
       ? new Date(user.subscription_end_date) 
       : new Date()
     
-    // თუ ვადა უკვე გასულია, დღევანდელიდან ვიწყებთ
     const startDate = currentDate < new Date() ? new Date() : currentDate
     const newEndDate = new Date(startDate)
     newEndDate.setDate(newEndDate.getDate() + extensionDays)
@@ -340,7 +337,17 @@ export default function AdminUsersPage() {
                           </>
                         ) : (
                           <>
-                            {/* ⭐ ვადის გახანგრძლივების ღილაკი  */}
+                            {/* ⭐ View as User ღილაკი ⭐ */}
+                            <Link
+                              href={`/dashboard?view_as=${user.id}`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-400 rounded-lg text-xs font-medium transition-colors"
+                              title="ნახვა მომხმარებლის ხედით"
+                            >
+                              <IconUser className="w-3 h-3" />
+                              ნახვა
+                            </Link>
+
+                            {/* ⭐ ვადის გახანგრძლივების ღილაკი ⭐ */}
                             <button
                               onClick={() => setExtendingId(user.id)}
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-colors"

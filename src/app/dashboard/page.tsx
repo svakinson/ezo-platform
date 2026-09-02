@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation' // დამატებულია useSearchParams
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
@@ -113,6 +113,14 @@ const IconEdit = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+// ⭐ ახალი იკონი View As User ბანერისთვის ⭐
+const IconEye = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+)
+
 // ============ STAT CARD ============
 function StatCard({ icon: Icon, label, value, sublabel, gradient }: { 
   icon: any; 
@@ -137,7 +145,10 @@ function StatCard({ icon: Icon, label, value, sublabel, gradient }: {
 
 export default function DashboardPage() {
   const router = useRouter()
+  const searchParams = useSearchParams() // ⭐ წაიკითხე URL პარამეტრები
+  
   const [user, setUser] = useState<any>(null)
+  const [viewAsUser, setViewAsUser] = useState<any>(null) // ⭐ ვის ხედავს ადმინი
   const [loading, setLoading] = useState(true)
   const [buildings, setBuildings] = useState<any[]>([])
   const [buildingsLoading, setBuildingsLoading] = useState(true)
@@ -148,9 +159,43 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         router.push('/login')
-      } else {
-        setUser(session.user)
+        return
       }
+      
+      setUser(session.user)
+      
+      // ⭐ View As User ლოგიკა ⭐
+      const viewAsId = searchParams.get('view_as')
+      if (viewAsId) {
+        // შევამოწმოთ არის თუ არა მიმდინარე მომხმარებელი ადმინი
+        const { data: adminProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle()
+
+        if (adminProfile?.role !== 'admin') {
+          // თუ ადმინი არ არის, წავშალოთ პარამეტრი და გავაგრძელოთ ჩვეულებრივად
+          router.replace('/dashboard')
+          return
+        }
+
+        // მივიღოთ იმ მომხმარებლის ინფო, ვისაც ვუყურებთ
+        const { data: targetProfile } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, role, subscription_status')
+          .eq('id', viewAsId)
+          .maybeSingle()
+
+        if (targetProfile) {
+          setViewAsUser(targetProfile)
+        } else {
+          // თუ მომხმარებელი არ მოიძებნა, დავბრუნდეთ ჩვეულებრივ Dashboard-ზე
+          router.replace('/dashboard')
+          return
+        }
+      }
+
       setLoading(false)
     }
     checkSession()
@@ -160,15 +205,18 @@ export default function DashboardPage() {
     }, 60000)
 
     return () => clearInterval(timer)
-  }, [router])
+  }, [router, searchParams]) // ⭐ დამატებულია searchParams
 
   useEffect(() => {
     const fetchBuildings = async () => {
       if (user) {
+        // ⭐ თუ viewAsUser არსებობს, მისი ID გამოვიყენოთ, თუ არა - მიმდინარე მომხმარებლის
+        const targetId = viewAsUser ? viewAsUser.id : user.id
+        
         const { data, error } = await supabase
           .from('buildings')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', targetId)
           .order('created_at', { ascending: false })
         
         if (data) {
@@ -178,7 +226,7 @@ export default function DashboardPage() {
       }
     }
     if (user) fetchBuildings()
-  }, [user])
+  }, [user, viewAsUser]) // ⭐ დამატებულია viewAsUser
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -215,11 +263,14 @@ export default function DashboardPage() {
     )
   }
 
-  const userName = user?.user_metadata?.full_name || 'მომხმარებელი'
+  // ⭐ სახელის და ინიციალის განსაზღვრა View As User რეჟიმისთვის
+  const userName = viewAsUser 
+    ? (viewAsUser.full_name || viewAsUser.email) 
+    : (user?.user_metadata?.full_name || 'მომხმარებელი')
+    
   const userInitial = userName.charAt(0).toUpperCase()
   const hasBuilding = buildings.length > 0
 
-  // Dynamic onboarding steps based on real data
   const onboardingSteps = [
     { title: 'ანგარიშის შექმნა', desc: 'რეგისტრაცია წარმატებით დასრულდა', done: true },
     { title: 'პაკეტის არჩევა', desc: 'აირჩიე შენთვის შესაფერისი გეგმა', done: true },
@@ -231,8 +282,29 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-900">
+      
+      {/* ⭐ VIEW AS USER BANNER ⭐ */}
+      {viewAsUser && (
+        <div className="bg-amber-500/20 border-b border-amber-500/30 text-amber-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
+          <div className="flex items-center gap-3 text-sm max-w-4xl">
+            <IconEye className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <span className="truncate">
+              თქვენ ხედავთ ინტერფეისს როგორც: <strong className="text-white">{viewAsUser.email}</strong> 
+              <span className="text-amber-400/70 mx-2">|</span>
+              როლი: {viewAsUser.role === 'chairman' ? 'თავმჯდომარე' : viewAsUser.role}
+            </span>
+          </div>
+          <Link 
+            href="/admin/users" 
+            className="text-xs bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 flex-shrink-0"
+          >
+            ← ადმინ პანელში დაბრუნება
+          </Link>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-900 border-b border-white/10">
+      <header className={`sticky top-0 z-40 bg-slate-900 border-b border-white/10 ${viewAsUser ? 'top-[50px]' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
@@ -252,7 +324,7 @@ export default function DashboardPage() {
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-right">
                 <div className="text-sm font-medium text-white">{userName}</div>
-                <div className="text-xs text-slate-400">{user?.email}</div>
+                <div className="text-xs text-slate-400">{viewAsUser ? viewAsUser.email : user?.email}</div>
               </div>
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg">
                 {userInitial}
@@ -292,21 +364,26 @@ export default function DashboardPage() {
                     {currentTime.toLocaleDateString('ka-GE', { weekday: 'long', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">{userName}!</h1>
-                <p className="text-slate-400 text-sm">{user?.email}</p>
+                <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">
+                  {viewAsUser ? `${userName}-ის პანელი` : `${userName}!`}
+                </h1>
+                <p className="text-slate-400 text-sm">{viewAsUser ? viewAsUser.email : user?.email}</p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link 
-                href="/dashboard/add-building"
-                className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all"
-              >
-                <IconBuilding className="w-5 h-5" />
-                <span>კორპუსის დამატება</span>
-                <IconArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+            {/* ⭐ დამალე "კორპუსის დამატება" ღილაკი, თუ სხვის ანგარიშს უყურებ (Read-Only) ⭐ */}
+            {!viewAsUser && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link 
+                  href="/dashboard/add-building"
+                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all"
+                >
+                  <IconBuilding className="w-5 h-5" />
+                  <span>კორპუსის დამატება</span>
+                  <IconArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
@@ -342,8 +419,8 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Onboarding Progress - HIDES COMPLETELY WHEN ALL STEPS ARE DONE */}
-        {completedSteps < onboardingSteps.length && (
+        {/* Onboarding Progress */}
+        {completedSteps < onboardingSteps.length && !viewAsUser && (
           <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -392,27 +469,28 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {/* Progress Bar */}
             <div className="mt-6 h-2 bg-white/10 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000" style={{ width: progressWidth }} />
             </div>
           </div>
         )}
 
-        {/* My Buildings Section - COMPACT GRID LAYOUT */}
+        {/* My Buildings Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <IconBuilding className="w-5 h-5 text-emerald-400" />
               ჩემი კორპუსები
             </h2>
-            <Link 
-              href="/dashboard/add-building"
-              className="text-sm text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 transition-colors"
-            >
-              <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
-              ახლის დამატება
-            </Link>
+            {!viewAsUser && (
+              <Link 
+                href="/dashboard/add-building"
+                className="text-sm text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 transition-colors"
+              >
+                <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
+                ახლის დამატება
+              </Link>
+            )}
           </div>
 
           {buildingsLoading ? (
@@ -423,7 +501,6 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {buildings.map((building) => (
                 <div key={building.id} className="group bg-slate-800/50 border border-white/10 rounded-xl p-4 hover:border-emerald-500/50 hover:bg-slate-800 transition-all duration-300 flex flex-col">
-                  {/* Building Icon & Name */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
                       <IconBuilding className="w-5 h-5 text-white" />
@@ -438,7 +515,6 @@ export default function DashboardPage() {
                     {building.city}{building.district ? `, ${building.district}` : ''}
                   </p>
 
-                  {/* Stats */}
                   <div className="space-y-1 mb-4 flex-grow">
                     <div className="flex items-center gap-1.5 text-xs text-slate-400">
                       <IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
@@ -456,29 +532,37 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* ⭐ Action Buttons: Read-Only if viewing as user ⭐ */}
                   <div className="flex flex-col gap-1.5 pt-3 border-t border-white/10 mt-auto">
-                    <Link 
-                      href={`/dashboard/building/${building.id}/edit`}
-                      className="w-full px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
-                    >
-                      <IconEdit className="w-3 h-3" />
-                      რედაქტირება
-                    </Link>
-                    <Link 
-                      href={`/dashboard/building/${building.id}`}
-                      className="w-full px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
-                    >
-                      <IconBuilding className="w-3 h-3" />
-                      მართვა
-                    </Link>
-                    <button 
-                      onClick={() => handleDeleteBuilding(building.id)}
-                      className="w-full px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
-                    >
-                      <IconTrash className="w-3 h-3" />
-                      წაშლა
-                    </button>
+                    {!viewAsUser ? (
+                      <>
+                        <Link 
+                          href={`/dashboard/building/${building.id}/edit`}
+                          className="w-full px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
+                        >
+                          <IconEdit className="w-3 h-3" />
+                          რედაქტირება
+                        </Link>
+                        <Link 
+                          href={`/dashboard/building/${building.id}`}
+                          className="w-full px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
+                        >
+                          <IconBuilding className="w-3 h-3" />
+                          მართვა
+                        </Link>
+                        <button 
+                          onClick={() => handleDeleteBuilding(building.id)}
+                          className="w-full px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
+                        >
+                          <IconTrash className="w-3 h-3" />
+                          წაშლა
+                        </button>
+                      </>
+                    ) : (
+                      <div className="text-center text-xs text-slate-500 py-1.5 bg-slate-900/50 rounded-lg border border-white/5">
+                        მხოლოდ ნახვის რეჟიმი
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -488,15 +572,21 @@ export default function DashboardPage() {
               <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
                 <IconBuilding className="w-8 h-8 text-slate-400" />
               </div>
-              <h3 className="font-bold text-white text-lg mb-2">კორპუსი ჯერ არ არის დამატებული</h3>
-              <p className="text-sm text-slate-400 mb-4 max-w-sm">დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.</p>
-              <Link 
-                href="/dashboard/add-building"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all"
-              >
-                <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
-                კორპუსის დამატება
-              </Link>
+              <h3 className="font-bold text-white text-lg mb-2">
+                {viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ჯერ არ არის დამატებული'}
+              </h3>
+              <p className="text-sm text-slate-400 mb-4 max-w-sm">
+                {viewAsUser ? 'ეს მომხმარებელი ჯერ არ არის დაკავშირებული არცერთ კორპუსთან.' : 'დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.'}
+              </p>
+              {!viewAsUser && (
+                <Link 
+                  href="/dashboard/add-building"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all"
+                >
+                  <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
+                  კორპუსის დამატება
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -535,29 +625,31 @@ export default function DashboardPage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8 lg:p-12 text-center">
-          <div className="max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-6">
-              <IconRocket className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-medium text-white">მზად ხარ დასაწყებად?</span>
+        {!viewAsUser && (
+          <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8 lg:p-12 text-center">
+            <div className="max-w-2xl mx-auto">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-6">
+                <IconRocket className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm font-medium text-white">მზად ხარ დასაწყებად?</span>
+              </div>
+              
+              <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                აირჩიე პაკეტი და დაიწყე
+              </h3>
+              <p className="text-slate-400 mb-8">
+                შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს ყოველდღიური მართვისთვის.
+              </p>
+              
+              <Link 
+                href="/dashboard/plans"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all"
+              >
+                <span>ნახე პაკეტები</span>
+                <IconArrowRight className="w-5 h-5" />
+              </Link>
             </div>
-            
-            <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-              აირჩიე პაკეტი და დაიწყე
-            </h3>
-            <p className="text-slate-400 mb-8">
-              შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს ყოველდღიური მართვისთვის.
-            </p>
-            
-            <Link 
-              href="/dashboard/plans"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all"
-            >
-              <span>ნახე პაკეტები</span>
-              <IconArrowRight className="w-5 h-5" />
-            </Link>
           </div>
-        </div>
+        )}
       </main>
     </div>
   )
