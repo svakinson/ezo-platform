@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation' // დამატებულია useSearchParams
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
@@ -113,7 +113,6 @@ const IconEdit = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-// ⭐ ახალი იკონი View As User ბანერისთვის ⭐
 const IconEye = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -141,14 +140,13 @@ function StatCard({ icon: Icon, label, value, sublabel, gradient }: {
   )
 }
 
-// ============ MAIN PAGE ============
-
-export default function DashboardPage() {
+// ============ შიდა კომპონენტი (იყენებს useSearchParams-ს) ============
+function DashboardContent() {
   const router = useRouter()
-  const searchParams = useSearchParams() // ⭐ წაიკითხე URL პარამეტრები
+  const searchParams = useSearchParams()
   
   const [user, setUser] = useState<any>(null)
-  const [viewAsUser, setViewAsUser] = useState<any>(null) // ⭐ ვის ხედავს ადმინი
+  const [viewAsUser, setViewAsUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [buildings, setBuildings] = useState<any[]>([])
   const [buildingsLoading, setBuildingsLoading] = useState(true)
@@ -164,10 +162,8 @@ export default function DashboardPage() {
       
       setUser(session.user)
       
-      // ⭐ View As User ლოგიკა ⭐
       const viewAsId = searchParams.get('view_as')
       if (viewAsId) {
-        // შევამოწმოთ არის თუ არა მიმდინარე მომხმარებელი ადმინი
         const { data: adminProfile } = await supabase
           .from('profiles')
           .select('role')
@@ -175,12 +171,10 @@ export default function DashboardPage() {
           .maybeSingle()
 
         if (adminProfile?.role !== 'admin') {
-          // თუ ადმინი არ არის, წავშალოთ პარამეტრი და გავაგრძელოთ ჩვეულებრივად
           router.replace('/dashboard')
           return
         }
 
-        // მივიღოთ იმ მომხმარებლის ინფო, ვისაც ვუყურებთ
         const { data: targetProfile } = await supabase
           .from('profiles')
           .select('id, email, full_name, role, subscription_status')
@@ -190,7 +184,6 @@ export default function DashboardPage() {
         if (targetProfile) {
           setViewAsUser(targetProfile)
         } else {
-          // თუ მომხმარებელი არ მოიძებნა, დავბრუნდეთ ჩვეულებრივ Dashboard-ზე
           router.replace('/dashboard')
           return
         }
@@ -205,12 +198,11 @@ export default function DashboardPage() {
     }, 60000)
 
     return () => clearInterval(timer)
-  }, [router, searchParams]) // ⭐ დამატებულია searchParams
+  }, [router, searchParams])
 
   useEffect(() => {
     const fetchBuildings = async () => {
       if (user) {
-        // ⭐ თუ viewAsUser არსებობს, მისი ID გამოვიყენოთ, თუ არა - მიმდინარე მომხმარებლის
         const targetId = viewAsUser ? viewAsUser.id : user.id
         
         const { data, error } = await supabase
@@ -226,7 +218,7 @@ export default function DashboardPage() {
       }
     }
     if (user) fetchBuildings()
-  }, [user, viewAsUser]) // ⭐ დამატებულია viewAsUser
+  }, [user, viewAsUser])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -263,7 +255,6 @@ export default function DashboardPage() {
     )
   }
 
-  // ⭐ სახელის და ინიციალის განსაზღვრა View As User რეჟიმისთვის
   const userName = viewAsUser 
     ? (viewAsUser.full_name || viewAsUser.email) 
     : (user?.user_metadata?.full_name || 'მომხმარებელი')
@@ -282,8 +273,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      
-      {/* ⭐ VIEW AS USER BANNER ⭐ */}
       {viewAsUser && (
         <div className="bg-amber-500/20 border-b border-amber-500/30 text-amber-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
           <div className="flex items-center gap-3 text-sm max-w-4xl">
@@ -303,7 +292,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Header */}
       <header className={`sticky top-0 z-40 bg-slate-900 border-b border-white/10 ${viewAsUser ? 'top-[50px]' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -343,7 +331,6 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        {/* Welcome Banner */}
         <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8 lg:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -371,7 +358,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* ⭐ დამალე "კორპუსის დამატება" ღილაკი, თუ სხვის ანგარიშს უყურებ (Read-Only) ⭐ */}
             {!viewAsUser && (
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link 
@@ -387,39 +373,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={IconBuilding}
-            label="კორპუსები"
-            value={buildings.length.toString()}
-            sublabel={hasBuilding ? "აქტიური კორპუსი" : "დაამატე პირველი კორპუსი"}
-            gradient="from-emerald-500 to-teal-600"
-          />
-          <StatCard
-            icon={IconChart}
-            label="ბალანსი"
-            value="₾0"
-            sublabel="ამ თვის შემოსავალი"
-            gradient="from-blue-500 to-cyan-600"
-          />
-          <StatCard
-            icon={IconZap}
-            label="აქტივობა"
-            value={hasBuilding ? "აქტიური" : "0"}
-            sublabel="ბოლო 30 დღე"
-            gradient="from-amber-500 to-orange-600"
-          />
-          <StatCard
-            icon={IconShield}
-            label="უსაფრთხოება"
-            value="100%"
-            sublabel="ანგარიში დაცულია"
-            gradient="from-purple-500 to-pink-600"
-          />
+          <StatCard icon={IconBuilding} label="კორპუსები" value={buildings.length.toString()} sublabel={hasBuilding ? "აქტიური კორპუსი" : "დაამატე პირველი კორპუსი"} gradient="from-emerald-500 to-teal-600" />
+          <StatCard icon={IconChart} label="ბალანსი" value="₾0" sublabel="ამ თვის შემოსავალი" gradient="from-blue-500 to-cyan-600" />
+          <StatCard icon={IconZap} label="აქტივობა" value={hasBuilding ? "აქტიური" : "0"} sublabel="ბოლო 30 დღე" gradient="from-amber-500 to-orange-600" />
+          <StatCard icon={IconShield} label="უსაფრთხოება" value="100%" sublabel="ანგარიში დაცულია" gradient="from-purple-500 to-pink-600" />
         </div>
 
-        {/* Onboarding Progress */}
         {completedSteps < onboardingSteps.length && !viewAsUser && (
           <div className="mb-8 bg-slate-800/50 border border-white/10 rounded-3xl p-8">
             <div className="flex items-center justify-between mb-6">
@@ -435,47 +395,26 @@ export default function DashboardPage() {
                 <div className="text-xs text-slate-500">ნაბიჯი შესრულებული</div>
               </div>
             </div>
-
             <div className="space-y-3">
               {onboardingSteps.map((step, i) => (
-                <div 
-                  key={i}
-                  className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
-                    step.done 
-                      ? 'bg-emerald-500/10 border-emerald-500/30' 
-                      : step.link 
-                        ? 'bg-slate-900/50 border-white/10 hover:border-emerald-500/30 cursor-pointer group' 
-                        : 'bg-slate-900/50 border-white/10 opacity-50'
-                  }`}
-                  onClick={() => step.link && router.push(step.link)}
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    step.done 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-white/10 text-slate-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-400'
-                  }`}>
+                <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${step.done ? 'bg-emerald-500/10 border-emerald-500/30' : step.link ? 'bg-slate-900/50 border-white/10 hover:border-emerald-500/30 cursor-pointer group' : 'bg-slate-900/50 border-white/10 opacity-50'}`} onClick={() => step.link && router.push(step.link)}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${step.done ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-400'}`}>
                     {step.done ? <IconCheck className="w-5 h-5" /> : <span className="font-bold">{i + 1}</span>}
                   </div>
-                  
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-white mb-0.5">{step.title}</div>
                     <div className="text-sm text-slate-400 truncate">{step.desc}</div>
                   </div>
-
-                  {step.link && !step.done && (
-                    <IconArrowRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
-                  )}
+                  {step.link && !step.done && <IconArrowRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all flex-shrink-0" />}
                 </div>
               ))}
             </div>
-
             <div className="mt-6 h-2 bg-white/10 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000" style={{ width: progressWidth }} />
             </div>
           </div>
         )}
 
-        {/* My Buildings Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -483,10 +422,7 @@ export default function DashboardPage() {
               ჩემი კორპუსები
             </h2>
             {!viewAsUser && (
-              <Link 
-                href="/dashboard/add-building"
-                className="text-sm text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 transition-colors"
-              >
+              <Link href="/dashboard/add-building" className="text-sm text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 transition-colors">
                 <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
                 ახლის დამატება
               </Link>
@@ -506,62 +442,22 @@ export default function DashboardPage() {
                       <IconBuilding className="w-5 h-5 text-white" />
                     </div>
                   </div>
-                  
-                  <h3 className="font-bold text-white text-sm mb-1 truncate" title={building.name || building.street}>
-                    {building.name || building.street}
-                  </h3>
-                  
-                  <p className="text-xs text-slate-400 mb-3 truncate">
-                    {building.city}{building.district ? `, ${building.district}` : ''}
-                  </p>
-
+                  <h3 className="font-bold text-white text-sm mb-1 truncate" title={building.name || building.street}>{building.name || building.street}</h3>
+                  <p className="text-xs text-slate-400 mb-3 truncate">{building.city}{building.district ? `, ${building.district}` : ''}</p>
                   <div className="space-y-1 mb-4 flex-grow">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                      <IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                      <span className="truncate">{building.apartments_count || 0} ბინა</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                      <IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                      <span className="truncate">{building.entrances_count || 0} სადარბაზო</span>
-                    </div>
-                    {building.total_area && (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                        <span className="truncate">{building.total_area} მ²</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400"><IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" /><span className="truncate">{building.apartments_count || 0} ბინა</span></div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400"><IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" /><span className="truncate">{building.entrances_count || 0} სადარბაზო</span></div>
+                    {building.total_area && <div className="flex items-center gap-1.5 text-xs text-slate-400"><IconCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" /><span className="truncate">{building.total_area} მ²</span></div>}
                   </div>
-
-                  {/* ⭐ Action Buttons: Read-Only if viewing as user ⭐ */}
                   <div className="flex flex-col gap-1.5 pt-3 border-t border-white/10 mt-auto">
                     {!viewAsUser ? (
                       <>
-                        <Link 
-                          href={`/dashboard/building/${building.id}/edit`}
-                          className="w-full px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
-                        >
-                          <IconEdit className="w-3 h-3" />
-                          რედაქტირება
-                        </Link>
-                        <Link 
-                          href={`/dashboard/building/${building.id}`}
-                          className="w-full px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
-                        >
-                          <IconBuilding className="w-3 h-3" />
-                          მართვა
-                        </Link>
-                        <button 
-                          onClick={() => handleDeleteBuilding(building.id)}
-                          className="w-full px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"
-                        >
-                          <IconTrash className="w-3 h-3" />
-                          წაშლა
-                        </button>
+                        <Link href={`/dashboard/building/${building.id}/edit`} className="w-full px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"><IconEdit className="w-3 h-3" />რედაქტირება</Link>
+                        <Link href={`/dashboard/building/${building.id}`} className="w-full px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"><IconBuilding className="w-3 h-3" />მართვა</Link>
+                        <button onClick={() => handleDeleteBuilding(building.id)} className="w-full px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-medium rounded-lg transition-colors text-center flex items-center justify-center gap-1"><IconTrash className="w-3 h-3" />წაშლა</button>
                       </>
                     ) : (
-                      <div className="text-center text-xs text-slate-500 py-1.5 bg-slate-900/50 rounded-lg border border-white/5">
-                        მხოლოდ ნახვის რეჟიმი
-                      </div>
+                      <div className="text-center text-xs text-slate-500 py-1.5 bg-slate-900/50 rounded-lg border border-white/5">მხოლოდ ნახვის რეჟიმი</div>
                     )}
                   </div>
                 </div>
@@ -569,62 +465,36 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="bg-slate-800/50 border border-white/10 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
-                <IconBuilding className="w-8 h-8 text-slate-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg mb-2">
-                {viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ჯერ არ არის დამატებული'}
-              </h3>
-              <p className="text-sm text-slate-400 mb-4 max-w-sm">
-                {viewAsUser ? 'ეს მომხმარებელი ჯერ არ არის დაკავშირებული არცერთ კორპუსთან.' : 'დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.'}
-              </p>
+              <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center mb-4"><IconBuilding className="w-8 h-8 text-slate-400" /></div>
+              <h3 className="font-bold text-white text-lg mb-2">{viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ჯერ არ არის დამატებული'}</h3>
+              <p className="text-sm text-slate-400 mb-4 max-w-sm">{viewAsUser ? 'ეს მომხმარებელი ჯერ არ არის დაკავშირებული არცერთ კორპუსთან.' : 'დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.'}</p>
               {!viewAsUser && (
-                <Link 
-                  href="/dashboard/add-building"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all"
-                >
-                  <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />
-                  კორპუსის დამატება
+                <Link href="/dashboard/add-building" className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all">
+                  <IconArrowRight className="w-4 h-4 rotate-[-90deg]" />კორპუსის დამატება
                 </Link>
               )}
             </div>
           )}
         </div>
 
-        {/* Feature Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="group bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300">
-              <IconBuilding className="w-6 h-6 text-white" />
-            </div>
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300"><IconBuilding className="w-6 h-6 text-white" /></div>
             <h3 className="font-bold text-white mb-2">კორპუსის მართვა</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              დაამატე ბინები, მაცხოვრებლები და მართე ყოველდღიური ოპერაციები ერთი სივრციდან.
-            </p>
+            <p className="text-sm text-slate-400 leading-relaxed">დაამატე ბინები, მაცხოვრებლები და მართე ყოველდღიური ოპერაციები ერთი სივრციდან.</p>
           </div>
-
           <div className="group bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300">
-              <IconChart className="w-6 h-6 text-white" />
-            </div>
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300"><IconChart className="w-6 h-6 text-white" /></div>
             <h3 className="font-bold text-white mb-2">ფინანსები</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              აკონტროლე შემოსავლები, ხარჯები და გადახდები ერთ სივრცეში.
-            </p>
+            <p className="text-sm text-slate-400 leading-relaxed">აკონტროლე შემოსავლები, ხარჯები და გადახდები ერთ სივრცეში.</p>
           </div>
-
           <div className="group bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300">
-              <IconShield className="w-6 h-6 text-white" />
-            </div>
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300"><IconShield className="w-6 h-6 text-white" /></div>
             <h3 className="font-bold text-white mb-2">ანალიტიკა</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              მიიღე დეტალური ანგარიშები და ინსაიტები შენი კორპუსის შესახებ.
-            </p>
+            <p className="text-sm text-slate-400 leading-relaxed">მიიღე დეტალური ანგარიშები და ინსაიტები შენი კორპუსის შესახებ.</p>
           </div>
         </div>
 
-        {/* Bottom CTA */}
         {!viewAsUser && (
           <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-8 lg:p-12 text-center">
             <div className="max-w-2xl mx-auto">
@@ -632,18 +502,9 @@ export default function DashboardPage() {
                 <IconRocket className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm font-medium text-white">მზად ხარ დასაწყებად?</span>
               </div>
-              
-              <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                აირჩიე პაკეტი და დაიწყე
-              </h3>
-              <p className="text-slate-400 mb-8">
-                შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს ყოველდღიური მართვისთვის.
-              </p>
-              
-              <Link 
-                href="/dashboard/plans"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all"
-              >
+              <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">აირჩიე პაკეტი და დაიწყე</h3>
+              <p className="text-slate-400 mb-8">შეუერთდი ასობით კორპუსს, რომლებიც უკვე იყენებენ EZO-ს ყოველდღიური მართვისთვის.</p>
+              <Link href="/dashboard/plans" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all">
                 <span>ნახე პაკეტები</span>
                 <IconArrowRight className="w-5 h-5" />
               </Link>
@@ -652,5 +513,22 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+  )
+}
+
+// ============ მთავარი ექსპორტი Suspense-ით ============
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-white font-semibold mb-1">EZO იტვირთება</div>
+          <div className="text-slate-400 text-sm">გთხოვთ მოიცადოთ...</div>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   )
 }
