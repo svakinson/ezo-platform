@@ -62,19 +62,146 @@ const IconLogOut = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconAlertCircle = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="12" />
-    <line x1="12" y1="16" x2="12.01" y2="16" />
-  </svg>
-)
-
 const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="6 9 12 15 18 9" />
   </svg>
 )
+
+const IconElectricity = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+)
+
+const IconWater = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+  </svg>
+)
+
+const IconConcierge = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+)
+
+// ============ ANIMATED DASHBOARD MOCKUP ============
+function AnimatedDashboard() {
+  const [payments, setPayments] = useState([
+    { id: 1, name: "ბინა 12", type: "დენი", amount: 45, status: "paid", delay: 0 },
+    { id: 2, name: "ბინა 23", type: "კონსიერჟი", amount: 80, status: "paid", delay: 1500 },
+    { id: 3, name: "ბინა 34", type: "წყალი", amount: 32, status: "pending", delay: 3000 },
+  ])
+  const [totalCollected, setTotalCollected] = useState(0)
+  const [visiblePayments, setVisiblePayments] = useState<number[]>([])
+
+  useEffect(() => {
+    // ანიმაცია: გადახდები ერთმანეთის მიყოლებით ჩნდება
+    payments.forEach((payment, index) => {
+      setTimeout(() => {
+        setVisiblePayments(prev => [...prev, payment.id])
+        if (payment.status === 'paid') {
+          setTotalCollected(prev => prev + payment.amount)
+        }
+      }, payment.delay)
+    })
+
+    // ციკლური განახლება
+    const interval = setInterval(() => {
+      setVisiblePayments([])
+      setTotalCollected(0)
+      setTimeout(() => {
+        payments.forEach((payment, index) => {
+          setTimeout(() => {
+            setVisiblePayments(prev => [...prev, payment.id])
+            if (payment.status === 'paid') {
+              setTotalCollected(prev => prev + payment.amount)
+            }
+          }, payment.delay)
+        })
+      }, 500)
+    }, 8000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
+      {/* Window Controls */}
+      <div className="flex items-center gap-2 mb-6">
+        <div className="w-3 h-3 rounded-full bg-rose-500" />
+        <div className="w-3 h-3 rounded-full bg-amber-500" />
+        <div className="w-3 h-3 rounded-full bg-emerald-500" />
+        <span className="ml-3 text-xs text-slate-500 font-medium">EZO Dashboard — რეალურ დროში</span>
+      </div>
+      
+      {/* Stats Cards */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-white/5">
+          <div className="text-xs text-slate-400 mb-1">სულ ბინები</div>
+          <div className="text-xl font-bold text-white">47</div>
+        </div>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20">
+          <div className="text-xs text-slate-400 mb-1">შემოსული</div>
+          <div className="text-xl font-bold text-emerald-400">₾{totalCollected}</div>
+        </div>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-white/5">
+          <div className="text-xs text-slate-400 mb-1">ლოდინში</div>
+          <div className="text-xl font-bold text-amber-400">12</div>
+        </div>
+      </div>
+
+      {/* Animated Payments List */}
+      <div className="space-y-2">
+        <div className="text-xs text-slate-500 mb-2 font-medium">ბოლო გადახდები:</div>
+        {payments.map((payment) => (
+          <div
+            key={payment.id}
+            className={`flex items-center justify-between bg-slate-800/30 rounded-lg px-3 py-2.5 border transition-all duration-500 ${
+              visiblePayments.includes(payment.id)
+                ? 'opacity-100 translate-x-0 border-white/10'
+                : 'opacity-0 -translate-x-4 border-transparent'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded flex items-center justify-center ${
+                payment.type === 'დენი' ? 'bg-amber-500/20' :
+                payment.type === 'წყალი' ? 'bg-blue-500/20' :
+                'bg-purple-500/20'
+              }`}>
+                {payment.type === 'დენი' ? <IconElectricity className="w-3.5 h-3.5 text-amber-400" /> :
+                 payment.type === 'წყალი' ? <IconWater className="w-3.5 h-3.5 text-blue-400" /> :
+                 <IconConcierge className="w-3.5 h-3.5 text-purple-400" />}
+              </div>
+              <div>
+                <div className="text-xs font-medium text-white">{payment.name}</div>
+                <div className="text-[10px] text-slate-500">{payment.type}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                payment.status === 'paid' 
+                  ? 'bg-emerald-500/20 text-emerald-400' 
+                  : 'bg-amber-500/20 text-amber-400'
+              }`}>
+                {payment.status === 'paid' ? '✓' : '⏳'}
+              </span>
+              <span className="text-xs font-semibold text-white">₾{payment.amount}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Live Indicator */}
+      <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="text-[10px] text-slate-500">რეალურ დროში განახლება</span>
+      </div>
+    </div>
+  )
+}
 
 export default function PricingPage() {
   const router = useRouter()
@@ -215,21 +342,21 @@ export default function PricingPage() {
       
       {/* ===== HEADER ===== */}
       <header className="sticky top-0 z-50 bg-slate-950/90 border-b border-white/10 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <IconBuilding className="w-6 h-6 text-emerald-400" />
             <span className="text-xl font-bold text-white">EZO</span>
           </Link>
 
-          <div className="flex items-center gap-4">
-            {/* Status Badge */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Status Badge - Mobile Hidden */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg">
               <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               <span className="text-xs font-medium text-amber-300">პაკეტი არჩეული არ არის</span>
             </div>
 
             {/* User Menu */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="hidden sm:block text-right">
                 <div className="text-sm font-medium text-white">{userName}</div>
                 <div className="text-xs text-slate-400">{user?.email}</div>
@@ -249,121 +376,86 @@ export default function PricingPage() {
             {/* CTA Button */}
             <Link
               href="#pricing"
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="px-3 sm:px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors"
             >
-              აირჩიე პაკეტი
+              <span className="hidden sm:inline">აირჩიე პაკეტი</span>
+              <span className="sm:hidden">პაკეტი</span>
             </Link>
           </div>
         </div>
       </header>
 
       <main>
-        {/* ===== HERO SECTION ===== */}
-        <section className="relative pt-20 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* ===== HERO SECTION — SPLIT LAYOUT ===== */}
+        <section className="relative py-12 lg:py-20 overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="max-w-5xl mx-auto px-4 relative z-10">
-            <div className="text-center mb-12">
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                თქვენს კორპუსში 47 ბინაა. 12-მა არ გადაიხადა კომუნალური.
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                  თქვენ არ იცით — ვის რა ვალი აქვს, ვინ გადაიხადა და ვინ არა.
-                </span>
-              </h1>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               
-              <p className="text-lg md:text-xl text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
-                EZO აგროვებს ყველა ბინის, გადახდისა და ქვითრის ინფორმაციას ერთ ადგილას — 
-                რომ თავმჯდომარემ იცოდეს უსტად რა ხდება, ყოველგვარი ჩანაწერების და WhatsApp-ის ძებნის გარეშე.
-              </p>
-
-              <div className="flex flex-col items-center gap-4">
-                <Link
-                  href="#pricing"
-                  className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center gap-2 group text-lg"
-                >
-                  დაიწყე უფასოდ 14 დღით
-                  <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <p className="text-sm text-slate-500">
-                  ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
-                </p>
-              </div>
-            </div>
-
-            {/* Dashboard Mockup */}
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-3 h-3 rounded-full bg-rose-500" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="ml-2 text-xs text-slate-500">EZO Dashboard — Demo</span>
+              {/* LEFT: Text Content */}
+              <div className="order-2 lg:order-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-6">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-medium text-emerald-300">კორპუსის მართვა ახალ დონეზე</span>
                 </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+                  თქვენს კორპუსში 47 ბინაა. 12-მა არ გადაიხადა კომუნალური.
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                    თქვენ არ იცით — ვის რა ვალი აქვს.
+                  </span>
+                </h1>
                 
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="bg-slate-800 rounded-lg p-4">
-                    <div className="text-xs text-slate-400 mb-1">სულ ბინები</div>
-                    <div className="text-2xl font-bold text-white">47</div>
-                  </div>
-                  <div className="bg-slate-800 rounded-lg p-4">
-                    <div className="text-xs text-slate-400 mb-1">გადაიხადეს</div>
-                    <div className="text-2xl font-bold text-emerald-400">35</div>
-                  </div>
-                  <div className="bg-slate-800 rounded-lg p-4">
-                    <div className="text-xs text-slate-400 mb-1">ვალი</div>
-                    <div className="text-2xl font-bold text-rose-400">12</div>
-                  </div>
-                </div>
+                <p className="text-base sm:text-lg text-slate-400 mb-8 leading-relaxed">
+                  EZO აგროვებს ყველა ბინის, გადახდისა და ქვითრის ინფორმაციას ერთ ადგილას — 
+                  რომ თავმჯდომარემ იცოდეს ზუსტად რა ხდება, ყოველგვარი ქაოსის გარეშე.
+                </p>
 
-                <div className="space-y-2">
-                  {[
-                    { name: "ბინა 12", status: "გადახდილი", amount: "150", color: "emerald" },
-                    { name: "ბინა 23", status: "ვალი", amount: "₾150", color: "rose" },
-                    { name: "ბინა 34", status: "გადახდილი", amount: "₾150", color: "emerald" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between bg-slate-800/50 rounded-lg px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-slate-700 flex items-center justify-center text-xs font-bold">
-                          {item.name.split(' ')[1]}
-                        </div>
-                        <span className="text-sm font-medium text-white">{item.name}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          item.color === 'emerald' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
-                        }`}>
-                          {item.status}
-                        </span>
-                        <span className="text-sm font-medium text-white">{item.amount}</span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <Link
+                    href="#pricing"
+                    className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group text-base"
+                  >
+                    დაიწყე უფასოდ 14 დღით
+                    <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <p className="text-xs sm:text-sm text-slate-500">
+                    ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
+                  </p>
                 </div>
               </div>
+
+              {/* RIGHT: Animated Dashboard */}
+              <div className="order-1 lg:order-2">
+                <AnimatedDashboard />
+              </div>
+
             </div>
           </div>
         </section>
 
         {/* ===== PROBLEM SECTION ===== */}
-        <section className="py-20 bg-slate-900/50 border-y border-white/5">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="py-16 lg:py-20 bg-slate-900/50 border-y border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">ეს ნაცნობია?</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ეს ნაცნობია?</h2>
+              <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
                 თუ თქვენ ხართ კორპუსის თავმჯდომარე ან წარმომადგენელი, ეს ალბათ ნაცნობია:
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
               {problems.map((problem, i) => (
-                <div key={i} className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-6 hover:border-rose-500/40 transition-all">
+                <div key={i} className="bg-rose-950/20 border border-rose-500/20 rounded-xl p-5 lg:p-6 hover:border-rose-500/40 transition-all">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center flex-shrink-0">
                       <IconX className="w-5 h-5 text-rose-400" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-white mb-2">{problem.title}</h3>
+                      <h3 className="text-base lg:text-lg font-bold text-white mb-2">{problem.title}</h3>
                       <p className="text-slate-400 text-sm leading-relaxed">{problem.desc}</p>
                     </div>
                   </div>
@@ -374,25 +466,25 @@ export default function PricingPage() {
         </section>
 
         {/* ===== SOLUTION SECTION ===== */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">EZO ამას ასე აგვარებს</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">EZO ამას ასე აგვარებს</h2>
+              <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
                 თითოეულ პრობლემას — კონკრეტული გადაწყვეტა
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
               {solutions.map((item, i) => (
-                <div key={i} className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-6 hover:border-emerald-500/40 transition-all">
+                <div key={i} className="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-5 lg:p-6 hover:border-emerald-500/40 transition-all">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                       <IconCheck className="w-5 h-5 text-emerald-400" />
                     </div>
                     <div className="flex-1">
                       <div className="text-xs text-slate-500 mb-1">პრობლემა: {item.problem}</div>
-                      <h3 className="text-lg font-bold text-white mb-2">{item.solution}</h3>
+                      <h3 className="text-base lg:text-lg font-bold text-white mb-2">{item.solution}</h3>
                       <p className="text-emerald-400 text-sm font-medium">
                         პრაქტიკულად: {item.practical}
                       </p>
@@ -405,14 +497,14 @@ export default function PricingPage() {
         </section>
 
         {/* ===== PROCESS SECTION ===== */}
-        <section className="py-20 bg-slate-900/50 border-y border-white/5">
-          <div className="max-w-5xl mx-auto px-4">
+        <section className="py-16 lg:py-20 bg-slate-900/50 border-y border-white/5">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">რა ხდება პაკეტის არჩევის შემდეგ?</h2>
-              <p className="text-slate-400">3 მარტივი ნაბიჯი</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">რა ხდება პაკეტის არჩევის შემდეგ?</h2>
+              <p className="text-slate-400 text-sm sm:text-base">3 მარტივი ნაბიჯი</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
                   step: "01",
@@ -421,20 +513,20 @@ export default function PricingPage() {
                 },
                 {
                   step: "02",
-                  title: "ავტომატურად ეხსნება თავმჯდომარის წვდომა",
-                  desc: "რამდენიმე წამში მიიღებ სრულ ფუნქციონალს — არანაირი ლოდინი, არანაირი დამტკიცება."
+                  title: "ავტომატურად ეხსნება წვდომა",
+                  desc: "რამდენიმე წამში მიიღებ სრულ ფუნქციონალს — არანაირი ლოდინი."
                 },
                 {
                   step: "03",
-                  title: "დაამატე შენი კორპუსი",
-                  desc: "შეიყვანე ბინები, მაცხოვრებლები, დაიწყე პირველი გადახდის ჩანაწერი — 5 წუთში მზად ხარ."
+                  title: "დაამატე კორპუსი",
+                  desc: "შეიყვანე ბინები, მაცხოვრებლები — 5 წუთში მზად ხარ."
                 }
               ].map((item, i) => (
                 <div key={i} className="text-center">
-                  <div className="w-20 h-20 rounded-full bg-slate-800 border-2 border-emerald-500/30 flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl font-bold text-emerald-400">{item.step}</span>
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-800 border-2 border-emerald-500/30 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <span className="text-xl sm:text-2xl font-bold text-emerald-400">{item.step}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">{item.title}</h3>
                   <p className="text-slate-400 text-sm">{item.desc}</p>
                 </div>
               ))}
@@ -443,20 +535,20 @@ export default function PricingPage() {
         </section>
 
         {/* ===== FEATURES SECTION ===== */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">ყველაფერი, რაც კორპუსის მართვას გჭირდება</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto">ერთ სისტემაში:</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ყველაფერი, რაც გჭირდება</h2>
+              <p className="text-slate-400 text-sm sm:text-base">ერთ სისტემაში:</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {features.map((feature, i) => (
-                <div key={i} className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
+                <div key={i} className="bg-slate-800/50 border border-white/10 rounded-xl p-5 lg:p-6 hover:border-emerald-500/30 transition-all">
                   <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6 text-emerald-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                  <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
                   <p className="text-slate-400 text-sm mb-3">{feature.desc}</p>
                   <p className="text-emerald-400 text-xs font-medium">{feature.detail}</p>
                 </div>
@@ -466,37 +558,37 @@ export default function PricingPage() {
         </section>
 
         {/* ===== TRUST SECTION ===== */}
-        <section className="py-16 bg-slate-900/50 border-y border-white/5">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-6">
+        <section className="py-12 lg:py-16 bg-slate-900/50 border-y border-white/5">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full mb-4 sm:mb-6">
               <IconShield className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-300">უსაფრთხო და დაცული</span>
+              <span className="text-xs sm:text-sm font-medium text-emerald-300">უსაფრთხო და დაცული</span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">
               მონაცემები დაცულია SSL დაშიფვრით
             </h3>
-            <p className="text-slate-400">
+            <p className="text-slate-400 text-sm sm:text-base">
               ინახება უსაფრთხო Supabase სერვერებზე. შენი ფინანსური ინფორმაცია დაცულია.
             </p>
           </div>
         </section>
 
         {/* ===== PRICING SECTION ===== */}
-        <section id="pricing" className="py-20">
-          <div className="max-w-5xl mx-auto px-4">
+        <section id="pricing" className="py-16 lg:py-20">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">აირჩიე პაკეტი შენი კორპუსისთვის</h2>
-              <p className="text-slate-400">გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">აირჩიე პაკეტი</h2>
+              <p className="text-slate-400 text-sm sm:text-base">გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid sm:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
               {/* Basic Plan */}
-              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-8 hover:border-emerald-500/50 transition-all">
-                <h3 className="text-2xl font-bold text-white mb-2">ბაზის პაკეტი</h3>
+              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 lg:p-8 hover:border-emerald-500/50 transition-all">
+                <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">ბაზის პაკეტი</h3>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold text-white">₾50</span>
-                    <span className="text-slate-400">/ 30 დღე</span>
+                    <span className="text-4xl lg:text-5xl font-bold text-white">₾50</span>
+                    <span className="text-slate-400 text-sm">/ 30 დღე</span>
                   </div>
                 </div>
 
@@ -526,23 +618,23 @@ export default function PricingPage() {
 
                 <Link
                   href="/payment"
-                  className="block w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
+                  className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
                 >
                   დაიწყე უფასო საცდელი
                 </Link>
               </div>
 
               {/* Premium Plan */}
-              <div className="bg-slate-800/50 border-2 border-emerald-500/50 rounded-2xl p-8 relative">
+              <div className="bg-slate-800/50 border-2 border-emerald-500/50 rounded-2xl p-6 lg:p-8 relative">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
                   რეკომენდებული
                 </div>
 
-                <h3 className="text-2xl font-bold text-white mb-2">პრემიუმ პაკეტი</h3>
+                <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">პრემიუმ პაკეტი</h3>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold text-white">₾100</span>
-                    <span className="text-slate-400">/ 30 დღე</span>
+                    <span className="text-4xl lg:text-5xl font-bold text-white">₾100</span>
+                    <span className="text-slate-400 text-sm">/ 30 დღე</span>
                   </div>
                 </div>
 
@@ -563,7 +655,7 @@ export default function PricingPage() {
 
                 <Link
                   href="/payment"
-                  className="block w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
+                  className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold rounded-xl transition-colors"
                 >
                   დაიწყე უფასო საცდელი
                 </Link>
@@ -571,32 +663,32 @@ export default function PricingPage() {
             </div>
 
             <div className="text-center mt-8">
-              <p className="text-sm text-slate-400">
-                🎁 14 დღე სრულად უფასო · ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
+              <p className="text-xs sm:text-sm text-slate-400">
+                 14 დღე სრულად უფასო · ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
               </p>
             </div>
           </div>
         </section>
 
         {/* ===== FAQ SECTION ===== */}
-        <section className="py-20 bg-slate-900/50 border-y border-white/5">
-          <div className="max-w-3xl mx-auto px-4">
+        <section className="py-16 lg:py-20 bg-slate-900/50 border-y border-white/5">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">ხშირად დასმული კითხვები</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ხშირად დასმული კითხვები</h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 lg:space-y-4">
               {faqs.map((faq, i) => (
                 <div key={i} className="bg-slate-800/50 border border-white/10 rounded-xl overflow-hidden">
                   <button
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800 transition-colors"
+                    className="w-full px-4 sm:px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800 transition-colors"
                   >
-                    <span className="font-medium text-white">{faq.q}</span>
-                    <IconChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
+                    <span className="font-medium text-white text-sm sm:text-base pr-4">{faq.q}</span>
+                    <IconChevronDown className={`w-5 h-5 text-slate-400 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                   </button>
                   {openFaq === i && (
-                    <div className="px-6 pb-4">
+                    <div className="px-4 sm:px-6 pb-4">
                       <p className="text-slate-400 text-sm leading-relaxed">{faq.a}</p>
                     </div>
                   )}
@@ -607,17 +699,17 @@ export default function PricingPage() {
         </section>
 
         {/* ===== FINAL CTA ===== */}
-        <section className="py-20">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section className="py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
               მზად ხარ კორპუსის ეფექტური მართვისთვის?
             </h2>
-            <p className="text-slate-400 mb-8">
+            <p className="text-slate-400 mb-8 text-sm sm:text-base">
               14 დღე სრულად უფასო — ბარათის გარეშე.
             </p>
             <Link
               href="#pricing"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all text-lg group"
+              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all text-base sm:text-lg group"
             >
               დაიწყე უფასოდ
               <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -627,8 +719,8 @@ export default function PricingPage() {
       </main>
 
       {/* ===== FOOTER ===== */}
-      <footer className="border-t border-white/10 bg-slate-950 py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
+      <footer className="border-t border-white/10 bg-slate-950 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-500 text-xs sm:text-sm">
           © {new Date().getFullYear()} EZO Platform. ყველა უფლება დაცულია.
         </div>
       </footer>
