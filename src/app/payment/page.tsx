@@ -67,6 +67,12 @@ const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconChevronLeft = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+)
+
 // ============ შიდა კომპონენტი ============
 function PaymentContent() {
   const router = useRouter()
@@ -233,7 +239,8 @@ function PaymentContent() {
       <header className="border-b border-white/10 bg-slate-950/50 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/pricing" className="text-sm text-slate-400 hover:text-white flex items-center gap-2">
-            ← უკან დაბრუნება
+            <IconChevronLeft className="w-4 h-4" />
+            უკან დაბრუნება
           </Link>
           <span className="text-sm font-medium text-slate-400">
             {isFreeTrial ? 'უფასო აქტივაცია' : 'უსაფრთხო გადახდა'}
@@ -246,7 +253,7 @@ function PaymentContent() {
           
           <div className="lg:col-span-2 space-y-6">
             <h1 className="text-2xl font-bold text-white">
-              {isFreeTrial ? 'უფასო წვდომის გააქტიურება' : 'გადახდის მეთოდის არჩევა'}
+              {isFreeTrial ? '🎁 დაიწყე 14-დღიანი უფასო ტესტირება' : 'გადახდის მეთოდის არჩევა'}
             </h1>
 
             {/* ⭐ პირობითი რენდერი: უფასო ტესტი vs გადახდა */}
@@ -263,15 +270,48 @@ function PaymentContent() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6 text-center">
-                      <IconGift className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-white mb-2">14-დღიანი უფასო ტესტი</h3>
-                      <p className="text-slate-300 mb-2">
-                        თქვენ ირჩევთ Basic პაკეტს, რომელიც მოიცავს 14-დღიან სრულად უფასო საცდელ პერიოდს.
-                      </p>
-                      <p className="text-sm text-slate-400">
-                        ქვითრის ატვირთვა ან გადახდა არ არის საჭირო. უბრალოდ დაადასტურეთ გააქტიურება.
-                      </p>
+                    <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-xl p-6">
+                      <IconGift className="w-12 h-12 text-emerald-400 mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-3">მიიღე სრული წვდომა EZO-ს Basic პაკეტზე - სრულიად უფასოდ!</h3>
+                      
+                      <div className="space-y-3 mb-6">
+                        <h4 className="text-white font-semibold mb-2">✅ რას მიიღებ:</h4>
+                        <ul className="space-y-2 text-slate-300">
+                          <li className="flex items-start gap-2">
+                            <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                            <span>14 დღე შეუზღუდავი წვდომა ყველა ფუნქციაზე</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                            <span>კორპუსის სრული მართვა (20 ბინამდე)</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                            <span>ფინანსური ანგარიშები და გადახდების მართვა</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                            <span>ქვითრების ციფრული არქივი</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                            <span>CSV ექსპორტი და ანალიტიკა</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg p-4 mb-6">
+                        <p className="text-emerald-300 font-semibold mb-1">💳 არანაირი გადახდა არ არის საჭირო</p>
+                        <p className="text-emerald-200/80 text-sm">არ გვჭირდება ბარათის მონაცემები. უბრალოდ დააჭირე ღილაკს და დაიწყე გამოყენება დაუყოვნებლივ!</p>
+                      </div>
+
+                      <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4">
+                        <p className="text-slate-300 text-sm">
+                          <span className="text-amber-400 font-semibold">14 დღის შემდეგ:</span>
+                          <br />
+                          თუ მოგეწონება, შეგიძლია განაახლო გამოწერა ნებისმიერი პაკეტით. თუ არა - არაფერი ხდება, უბრალოდ შეწყვეტს მუშაობას.
+                        </p>
+                      </div>
                     </div>
 
                     {errorMessage && (
@@ -284,10 +324,10 @@ function PaymentContent() {
                     <button
                       onClick={handleActivateTrial}
                       disabled={uploading}
-                      className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg"
+                      className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-emerald-500/25"
                     >
                       {uploading ? <IconLoader className="w-5 h-5" /> : <IconCheck className="w-5 h-5" />}
-                      {uploading ? 'მუშავდება...' : 'უფასო წვდომის გააქტიურება'}
+                      {uploading ? 'მუშავდება...' : '✓ დიახ, მინდა 14 დღე უფასოდ!'}
                     </button>
                   </div>
                 )}
@@ -427,20 +467,34 @@ function PaymentContent() {
             )}
           </div>
 
+          {/* ⭐ შეჯამების ბლოკი - ერთიანი დიზაინი ყველა პაკეტისთვის */}
           <div className="lg:col-span-1">
             <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-white mb-4">შეკვეთის შეჯამება</h3>
+              <h3 className="text-lg font-bold text-white mb-4">შეკვეთის დეტალები</h3>
               
               <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl p-5 mb-6 text-white">
                 <div className="text-sm opacity-80 mb-1">არჩეული პაკეტი</div>
-                <div className="text-xl font-bold">{plan.name}</div>
-                <div className="text-sm opacity-80 mt-2">{plan.description}</div>
+                <div className="text-xl font-bold mb-2">{plan.name}</div>
+                <div className="text-sm opacity-80">{plan.description}</div>
+                
+                {isFreeTrial && (
+                  <div className="mt-4 pt-4 border-t border-white/20">
+                    <div className="text-xs opacity-80 mb-2">რას მოიცავს:</div>
+                    <ul className="text-xs space-y-1 opacity-90">
+                      <li>• სრული წვდომა Basic პაკეტის ფუნქციებზე</li>
+                      <li>• 20 ბინის მართვა</li>
+                      <li>• 1 ადმინისტრატორი</li>
+                      <li>• 10 GB საცავი</li>
+                      <li>• 14 დღე სრულიად უფასოდ</li>
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">პაკეტის ღირებულება</span>
-                  <span className="text-white font-medium">₾{currentPrice}</span>
+                  <span className="text-slate-400">პაკეტი</span>
+                  <span className="text-white font-medium">{plan.name}</span>
                 </div>
                 {!isFreeTrial && (
                   <>
@@ -468,16 +522,18 @@ function PaymentContent() {
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4 flex justify-between items-center">
+              <div className="border-t border-white/10 pt-4 flex justify-between items-center mb-6">
                 <span className="text-lg font-bold text-white">სულ გადასახდელი:</span>
-                <span className="text-2xl font-bold text-emerald-400">₾{currentPrice}</span>
+                <span className="text-2xl font-bold text-emerald-400">
+                  {isFreeTrial ? '₾0' : `₾${currentPrice}`}
+                </span>
               </div>
 
-              <div className="mt-6 flex items-center gap-2 text-xs text-slate-500 bg-slate-950 p-3 rounded-lg">
+              <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-950 p-3 rounded-lg">
                 <IconCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                 <span>
                   {isFreeTrial 
-                    ? 'დადასტურების შემდეგ, თქვენი ანგარიში მყისიერად განახლდება.' 
+                    ? 'დადასტურების შემდეგ, შენი ანგარიში მყისიერად გააქტიურდება და მიიღებ სრულ წვდომას.' 
                     : 'გადახდის დადასტურების შემდეგ, თქვენი ანგარიში ავტომატურად განახლდება.'}
                 </span>
               </div>
@@ -486,9 +542,6 @@ function PaymentContent() {
 
         </div>
       </main>
-
-      {/* უარყოფის Modal (მხოლოდ გადახდილი პაკეტებისთვის, თუ საჭირო გახდა) */}
-      {/* აქ ვტოვებთ ცარიელს, რადგან უფასო ტესტისთვის არ გვჭირდება */}
     </div>
   )
 }
