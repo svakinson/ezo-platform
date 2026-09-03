@@ -90,11 +90,8 @@ function LoginForm() {
     setError('')
 
     console.log('🔐 [LOGIN] დაიწყო შესვლის პროცესი...')
-    console.log('📧 Email:', email)
-    console.log('🔑 Password length:', password.length)
-
+    
     try {
-      console.log('📡 Supabase signInWithPassword გამოძახება...')
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -102,8 +99,6 @@ function LoginForm() {
 
       if (signInError) {
         console.error('❌ [LOGIN ERROR]:', signInError)
-        console.error('Error details:', signInError.message, signInError.status)
-        
         if (signInError.message.includes('Invalid login credentials')) {
           setError('არასწორი ელ-ფოსტა ან პაროლი')
         } else {
@@ -112,56 +107,32 @@ function LoginForm() {
         return
       }
 
-      console.log('✅ [LOGIN SUCCESS] მომხმარებელი წარმატებით შევიდა!')
-      console.log('👤 User data:', data)
-      console.log('User ID:', data.user?.id)
-      console.log('Email:', data.user?.email)
-
       if (data.user) {
-        console.log('📋 პროფილის მიღება ბაზიდან...')
-        
-        // დავამატეთ is_trial ველი
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
-          .select('id, email, role, subscription_status, subscription_end_date, is_trial')
+          .select('role')
           .eq('id', data.user.id)
           .maybeSingle()
 
-        let userRole = 'user' // ნაგულისხმევი როლი
+        const userRole = profile?.role || 'user'
 
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('❌ [PROFILE ERROR]:', profileError)
-        }
-
-        if (profile) {
-          console.log('✅ [PROFILE SUCCESS]:', profile)
-          console.log('Role:', profile.role)
-          console.log('Status:', profile.subscription_status)
-          console.log('Is Trial:', profile.is_trial)
-          userRole = profile.role
-        } else {
-          console.log('⚠️ პროფილი ვერ მოიძებნა ბაზაში. გამოიყენება ნაგულისხმევი "user" როლი.')
-        }
-
-        // ჭკვიანი redirect
-        console.log('🔄 Redirect ლოგიკის შემოწმება...')
+        // ⭐ მარტივი და ზუსტი Redirect ლოგიკა
+        console.log('🔄 Redirect ლოგიკის შემოწმება. როლი:', userRole)
+        
         if (userRole === 'admin') {
-          console.log('➡️ გადასვლა: /admin (admin dashboard)')
+          console.log('➡️ გადასვლა: /admin')
           router.push('/admin')
-        } else if (userRole === 'chairman' && profile?.subscription_status === 'active') {
-          console.log('➡️ გადასვლა: /dashboard (chairman)')
-          router.push('/dashboard')
-        } else if (profile?.is_trial) {
-          console.log('➡️ გადასვლა: /dashboard (trial user)')
+        } else if (userRole === 'chairman') {
+          console.log('➡️ გადასვლა: /dashboard')
           router.push('/dashboard')
         } else {
-          console.log('➡️ გადასვლა: /pricing (user)')
+          // ჩვეულებრივი მომხმარებელი, რომელმაც ჯერ არ იყიდა პაკეტი
+          console.log('➡️ გადასვლა: /pricing')
           router.push('/pricing')
         }
       }
     } catch (err: any) {
       console.error('💥 [CATCH ERROR]:', err)
-      console.error('Error stack:', err.stack)
       setError('შესვლის დროს მოხდა შეცდომა. სცადეთ თავიდან.')
     } finally {
       setLoading(false)
@@ -351,7 +322,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Debug Component - მხოლოდ development-ში გამოჩნდება */}
       {process.env.NODE_ENV === 'development' && <AuthDebug />}
     </div>
   )
