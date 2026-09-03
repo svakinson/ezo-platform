@@ -260,7 +260,7 @@ export default function RegisterPage() {
           data: {
             full_name: formData.fullName,
             phone: formData.phone,
-            role: 'user', // ავტომატურად ენიჭება "user" როლი
+            role: 'user', 
           },
         },
       })
@@ -274,12 +274,15 @@ export default function RegisterPage() {
         return
       }
 
+      // ⭐ აქ არაფერს ვცვლით პროფილში. მომხმარებელი რჩება 'inactive' სტატუსით.
+      // Trial-ს მიიღებს მხოლოდ მაშინ, როცა Pricing გვერდზე ღილაკს დააჭერს.
+
       setSuccess(true)
       
       setTimeout(() => {
         router.push('/login?registered=true')
       }, 2500)
-    } catch (err) {
+    } catch (err: any) {
       setErrors({ submit: 'რეგისტრაციის დროს მოხდა შეცდომა. სცადეთ თავიდან.' })
     } finally {
       setLoading(false)

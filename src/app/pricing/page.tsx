@@ -104,6 +104,13 @@ const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
+)
+
 // ============ ANIMATED DASHBOARD MOCKUP ============
 function AnimatedDashboard() {
   const [payments, setPayments] = useState([
@@ -268,6 +275,43 @@ export default function PricingPage() {
       navigator.clipboard.writeText(referralCode)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  // ⭐ ახალი ფუნქცია: Trial-ის აქტივაცია ღილაკზე დაჭერისას
+  const handleStartTrial = async () => {
+    if (!user) {
+      router.push('/login?redirect=/pricing')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const trialEndDate = new Date()
+      trialEndDate.setDate(trialEndDate.getDate() + 14)
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          is_trial: true,
+          has_used_trial: true,
+          trial_ends_at: trialEndDate.toISOString().split('T')[0],
+          subscription_status: 'trial',
+          subscription_plan: 'basic',
+          role: 'chairman', // ვაძლევთ წვდომას, რომ dashboard-ის ფუნქციები ნახოს
+        })
+        .eq('id', user.id)
+
+      if (error) {
+        alert('შეცდომა: ' + error.message)
+      } else {
+        // წარმატების შემდეგ გადავყავართ dashboard-ზე
+        router.push('/dashboard')
+      }
+    } catch (err: any) {
+      alert('შეცდომა: ' + err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -668,16 +712,26 @@ export default function PricingPage() {
                       ))}
                     </ul>
 
-                    <Link
-                      href={`/payment?plan_id=${plan.id}&billing=${billingCycle}`}
-                      className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
-                        isPro
-                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                          : 'bg-slate-700 hover:bg-slate-600 text-white'
-                      }`}
-                    >
-                      {isBasic ? 'დაიწყე უფასო საცდელი' : 'პაკეტის შეძენა'}
-                    </Link>
+                    {/* ⭐ განახლებული ღილაკის ლოგიკა ⭐ */}
+                    {isBasic ? (
+                      <button
+                        onClick={handleStartTrial}
+                        disabled={loading}
+                        className="block w-full py-3 text-center font-semibold rounded-xl transition-colors bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {loading ? <IconLoader className="w-5 h-5 animate-spin" /> : <IconGift className="w-5 h-5" />}
+                        დაიწყე 14-დღიანი უფასო ტესტი
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/payment?plan_id=${plan.id}&billing=${billingCycle}`}
+                        className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
+                          isPro ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'
+                        }`}
+                      >
+                        პაკეტის შეძენა
+                      </Link>
+                    )}
                   </div>
                 )
               })}
