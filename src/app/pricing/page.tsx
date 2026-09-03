@@ -240,6 +240,7 @@ export default function PricingPage() {
       }
       setUser(user)
 
+      // მივიღოთ ყველა აქტიური პაკეტი ბაზიდან
       const { data: plansData } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -285,7 +286,12 @@ export default function PricingPage() {
   }
 
   const userName = user?.email?.split('@')[0] || 'მომხმარებელი'
-  const basicPlan = plans.find(p => p.name === 'Basic')
+
+  // ⭐ ვიპოვოთ უფასო ტესტის პაკეტი (ფასი 0)
+  const freeTrialPlan = plans.find(p => Number(p.price_monthly) === 0)
+  
+  // ⭐ გადახდილი პაკეტები (ფასი > 0) - მხოლოდ ეს გამოჩნდება პაკეტების სიაში
+  const paidPlans = plans.filter(p => Number(p.price_monthly) > 0)
 
   const problems = [
     {
@@ -454,9 +460,9 @@ export default function PricingPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  {/* ჰერო ღილაკი გადადის პირდაპირ ჩეკაუთზე Basic პაკეტის არჩევით */}
+                  {/* ⭐ Hero ღილაკი გადადის უფასო ტესტის პაკეტზე */}
                   <Link 
-                    href={basicPlan ? `/payment?plan_id=${basicPlan.id}` : '/payment'} 
+                    href={freeTrialPlan ? `/payment?plan_id=${freeTrialPlan.id}` : '/payment'} 
                     className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group text-base"
                   >
                     დაიწყე უფასოდ 14 დღით
@@ -619,9 +625,9 @@ export default function PricingPage() {
               </div>
             </div>
 
-            {/* Plans Grid - ყველა პაკეტი თანაბარ პირობებში */}
+            {/* ⭐ Plans Grid - მხოლოდ გადახდილი პაკეტები (Basic, Pro, Enterprise) */}
             <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {plans.map((plan) => {
+              {paidPlans.map((plan) => {
                 const isPro = plan.name === 'Pro'
                 const price = getPlanPrice(plan)
                 const features = getPlanFeatures(plan)
@@ -669,7 +675,7 @@ export default function PricingPage() {
                       ))}
                     </ul>
 
-                    {/* ყველა პაკეტს აქვს ერთნაირი ღილაკი, რომელიც გადადის ჩეკაუთზე */}
+                    {/* ყველა გადახდილ პაკეტს აქვს ერთნაირი ღილაკი */}
                     <Link
                       href={`/payment?plan_id=${plan.id}&billing=${billingCycle}`}
                       className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
@@ -685,7 +691,7 @@ export default function PricingPage() {
 
             <div className="text-center mt-8">
               <p className="text-xs sm:text-sm text-slate-400">
-                 Basic პაკეტი მოიცავს 14-დღიან უფასო ტესტს · ბარათი არ საჭიროა · გაუქმება ნებისმიერ დროს
+                 ხელმისაწვდომია 14-დღიანი უფასო ტესტი · ბარათი არ საჭიროა · გაუქმება ნებისმიერ დროს
               </p>
             </div>
           </div>
