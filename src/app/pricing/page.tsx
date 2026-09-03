@@ -240,7 +240,6 @@ export default function PricingPage() {
       }
       setUser(user)
 
-      // მივიღოთ პაკეტები ბაზიდან
       const { data: plansData } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -249,7 +248,6 @@ export default function PricingPage() {
 
       setPlans(plansData || [])
 
-      // მივიღოთ referral code
       const { data: profile } = await supabase
         .from('profiles')
         .select('referral_code')
@@ -278,43 +276,6 @@ export default function PricingPage() {
     }
   }
 
-  // ⭐ ახალი ფუნქცია: Trial-ის აქტივაცია ღილაკზე დაჭერისას
-  const handleStartTrial = async () => {
-    if (!user) {
-      router.push('/login?redirect=/pricing')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const trialEndDate = new Date()
-      trialEndDate.setDate(trialEndDate.getDate() + 14)
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          is_trial: true,
-          has_used_trial: true,
-          trial_ends_at: trialEndDate.toISOString().split('T')[0],
-          subscription_status: 'trial',
-          subscription_plan: 'basic',
-          role: 'chairman', // ვაძლევთ წვდომას, რომ dashboard-ის ფუნქციები ნახოს
-        })
-        .eq('id', user.id)
-
-      if (error) {
-        alert('შეცდომა: ' + error.message)
-      } else {
-        // წარმატების შემდეგ გადავყავართ dashboard-ზე
-        router.push('/dashboard')
-      }
-    } catch (err: any) {
-      alert('შეცდომა: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -324,6 +285,7 @@ export default function PricingPage() {
   }
 
   const userName = user?.email?.split('@')[0] || 'მომხმარებელი'
+  const basicPlan = plans.find(p => p.name === 'Basic')
 
   const problems = [
     {
@@ -492,12 +454,16 @@ export default function PricingPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Link href="#pricing" className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group text-base">
+                  {/* ჰერო ღილაკი გადადის პირდაპირ ჩეკაუთზე Basic პაკეტის არჩევით */}
+                  <Link 
+                    href={basicPlan ? `/payment?plan_id=${basicPlan.id}` : '/payment'} 
+                    className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group text-base"
+                  >
                     დაიწყე უფასოდ 14 დღით
                     <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                   <p className="text-xs sm:text-sm text-slate-500">
-                    ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
+                    ბარათი არ საჭიროა · გაუქმე ნებისმიერ დროს
                   </p>
                 </div>
               </div>
@@ -582,9 +548,9 @@ export default function PricingPage() {
 
             <div className="grid sm:grid-cols-3 gap-6 lg:gap-8">
               {[
-                { step: "01", title: "აირჩიე პაკეტი", desc: "14 დღით სრულად უფასოდ, ბარათის გარეშე." },
-                { step: "02", title: "ავტომატურად ეხსნება წვდომა", desc: "რამდენიმე წამში მიიღებ სრულ ფუნქციონალს — არანაირი ლოდინი." },
-                { step: "03", title: "დაამატე კორპუსი", desc: "შეიყვანე ბინები, მაცხოვრებლები — 5 წუთში მზად ხარ." }
+                { step: "01", title: "აირჩიე პაკეტი", desc: "შეარჩიე შენთვის შესაფერისი გეგმა." },
+                { step: "02", title: "გადაიხადე უსაფრთხოდ", desc: "ბანკის ქვითრის ატვირთვით ან ონლაინ გადახდით." },
+                { step: "03", title: "დაიწყე მართვა", desc: "დაამატე ბინები და ისარგებლე სრული ფუნქციონალით." }
               ].map((item, i) => (
                 <div key={i} className="text-center">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-800 border-2 border-emerald-500/30 flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -628,7 +594,6 @@ export default function PricingPage() {
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">აირჩიე პაკეტი</h2>
               <p className="text-slate-400 text-sm sm:text-base mb-8">გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე</p>
 
-              {/* Billing Cycle Toggle */}
               <div className="inline-flex items-center gap-2 p-1 bg-slate-800/50 border border-white/10 rounded-xl">
                 <button
                   onClick={() => setBillingCycle('monthly')}
@@ -654,11 +619,10 @@ export default function PricingPage() {
               </div>
             </div>
 
-            {/* Plans Grid */}
+            {/* Plans Grid - ყველა პაკეტი თანაბარ პირობებში */}
             <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {plans.map((plan, index) => {
+              {plans.map((plan) => {
                 const isPro = plan.name === 'Pro'
-                const isBasic = plan.name === 'Basic'
                 const price = getPlanPrice(plan)
                 const features = getPlanFeatures(plan)
 
@@ -674,13 +638,6 @@ export default function PricingPage() {
                     {isPro && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
                         რეკომენდებული
-                      </div>
-                    )}
-
-                    {isBasic && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                        <IconGift className="w-3 h-3" />
-                        14 დღე უფასო
                       </div>
                     )}
 
@@ -712,26 +669,15 @@ export default function PricingPage() {
                       ))}
                     </ul>
 
-                    {/* ⭐ განახლებული ღილაკის ლოგიკა ⭐ */}
-                    {isBasic ? (
-                      <button
-                        onClick={handleStartTrial}
-                        disabled={loading}
-                        className="block w-full py-3 text-center font-semibold rounded-xl transition-colors bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {loading ? <IconLoader className="w-5 h-5 animate-spin" /> : <IconGift className="w-5 h-5" />}
-                        დაიწყე 14-დღიანი უფასო ტესტი
-                      </button>
-                    ) : (
-                      <Link
-                        href={`/payment?plan_id=${plan.id}&billing=${billingCycle}`}
-                        className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
-                          isPro ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'
-                        }`}
-                      >
-                        პაკეტის შეძენა
-                      </Link>
-                    )}
+                    {/* ყველა პაკეტს აქვს ერთნაირი ღილაკი, რომელიც გადადის ჩეკაუთზე */}
+                    <Link
+                      href={`/payment?plan_id=${plan.id}&billing=${billingCycle}`}
+                      className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
+                        isPro ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'
+                      }`}
+                    >
+                      პაკეტის შეძენა
+                    </Link>
                   </div>
                 )
               })}
@@ -739,7 +685,7 @@ export default function PricingPage() {
 
             <div className="text-center mt-8">
               <p className="text-xs sm:text-sm text-slate-400">
-                 14 დღე სრულად უფასო · ბარათი არ საჭიროა · გააუქმე ნებისმიერ დროს
+                 Basic პაკეტი მოიცავს 14-დღიან უფასო ტესტს · ბარათი არ საჭიროა · გაუქმება ნებისმიერ დროს
               </p>
             </div>
           </div>
@@ -828,10 +774,10 @@ export default function PricingPage() {
               მზად ხარ კორპუსის ეფექტური მართვისთვის?
             </h2>
             <p className="text-slate-400 mb-8 text-sm sm:text-base">
-              14 დღე სრულად უფასო — ბარათის გარეშე.
+              აირჩიე შენთვის შესაფერისი გეგმა და დაიწყე მუშაობა დღესვე.
             </p>
             <Link href="#pricing" className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all text-base sm:text-lg group">
-              დაიწყე უფასოდ
+              პაკეტების ნახვა
               <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

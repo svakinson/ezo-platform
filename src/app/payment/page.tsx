@@ -60,6 +60,13 @@ const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconX = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
 // ============ შიდა კომპონენტი ============
 function PaymentContent() {
   const router = useRouter()
@@ -117,6 +124,45 @@ function PaymentContent() {
     setErrorMessage('')
   }
 
+  // ⭐ ახალი ფუნქცია: უფასო ტესტის მყისიერი აქტივაცია
+  const handleActivateTrial = async () => {
+    if (!user || !plan) return
+
+    setUploading(true)
+    setErrorMessage('')
+
+    try {
+      const trialEndDate = new Date()
+      trialEndDate.setDate(trialEndDate.getDate() + 14)
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          is_trial: true,
+          has_used_trial: true,
+          trial_ends_at: trialEndDate.toISOString().split('T')[0],
+          subscription_status: 'trial',
+          subscription_plan: 'basic',
+          role: 'chairman',
+        })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      setSuccessMessage('🎉 14-დღიანი უფასო წვდომა წარმატებით გააქტიურდა!')
+      
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 3000)
+
+    } catch (error: any) {
+      console.error('Trial activation error:', error)
+      setErrorMessage('შეცდომა: ' + (error.message || 'უცნობი შეცდომა'))
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSubmitTransfer = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedFile || !user || !plan) return
@@ -136,7 +182,6 @@ function PaymentContent() {
 
       const { data: urlData } = supabase.storage.from('payment_proofs').getPublicUrl(fileName)
 
-      // გამოვთვალოთ სწორი ფასი ბილინგის ციკლის მიხედვით
       const currentPrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly
 
       const { error: dbError } = await supabase.from('payment_requests').insert({
@@ -179,7 +224,9 @@ function PaymentContent() {
 
   const currentPrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly
   const durationText = billing === 'yearly' ? '1 წელი' : '1 თვე'
-  const isBasic = plan.name === 'Basic'
+  
+  // ⭐ მთავარი ლოგიკა: თუ ფასი 0-ია, ეს არის უფასო ტესტი
+  const isFreeTrial = currentPrice === 0
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -188,7 +235,9 @@ function PaymentContent() {
           <Link href="/pricing" className="text-sm text-slate-400 hover:text-white flex items-center gap-2">
             ← უკან დაბრუნება
           </Link>
-          <span className="text-sm font-medium text-slate-400">უსაფრთხო გადახდა</span>
+          <span className="text-sm font-medium text-slate-400">
+            {isFreeTrial ? 'უფასო აქტივაცია' : 'უსაფრთხო გადახდა'}
+          </span>
         </div>
       </header>
 
@@ -196,138 +245,186 @@ function PaymentContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-2 space-y-6">
-            <h1 className="text-2xl font-bold text-white">გადახდის მეთოდის არჩევა</h1>
+            <h1 className="text-2xl font-bold text-white">
+              {isFreeTrial ? 'უფასო წვდომის გააქტიურება' : 'გადახდის მეთოდის არჩევა'}
+            </h1>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button
-                onClick={() => setPaymentMethod('transfer')}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
-                  paymentMethod === 'transfer' 
-                    ? 'border-emerald-500 bg-emerald-500/10' 
-                    : 'border-white/10 bg-slate-900 hover:border-white/20'
-                }`}
-              >
-                <IconBuilding2 className={`w-8 h-8 mb-3 ${paymentMethod === 'transfer' ? 'text-emerald-400' : 'text-slate-400'}`} />
-                <div className="font-semibold text-white">ბანკით გადარიცხვა</div>
-                <div className="text-sm text-slate-400 mt-1">ქვითრის ატვირთვით</div>
-              </button>
+            {/* ⭐ პირობითი რენდერი: უფასო ტესტი vs გადახდა */}
+            {isFreeTrial ? (
+              <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sm:p-8">
+                {successMessage ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-8 text-center">
+                    <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <IconCheck className="w-8 h-8 text-emerald-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-emerald-300 mb-2">წარმატებით!</h3>
+                    <p className="text-emerald-400/80">{successMessage}</p>
+                    <p className="text-sm text-slate-400 mt-4 animate-pulse">გადამისამართება Dashboard-ზე...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6 text-center">
+                      <IconGift className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">14-დღიანი უფასო ტესტი</h3>
+                      <p className="text-slate-300 mb-2">
+                        თქვენ ირჩევთ Basic პაკეტს, რომელიც მოიცავს 14-დღიან სრულად უფასო საცდელ პერიოდს.
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        ქვითრის ატვირთვა ან გადახდა არ არის საჭირო. უბრალოდ დაადასტურეთ გააქტიურება.
+                      </p>
+                    </div>
 
-              <button
-                onClick={() => setPaymentMethod('online')}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
-                  paymentMethod === 'online' 
-                    ? 'border-emerald-500 bg-emerald-500/10' 
-                    : 'border-white/10 bg-slate-900 hover:border-white/20'
-                }`}
-              >
-                <IconCreditCard className={`w-8 h-8 mb-3 ${paymentMethod === 'online' ? 'text-emerald-400' : 'text-slate-400'}`} />
-                <div className="font-semibold text-white">ონლაინ გადახდა</div>
-                <div className="text-sm text-slate-400 mt-1">ბარათით (Visa/Mastercard)</div>
-              </button>
-            </div>
+                    {errorMessage && (
+                      <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 flex items-start gap-3">
+                        <IconAlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+                        <div className="text-sm text-rose-300">{errorMessage}</div>
+                      </div>
+                    )}
 
-            <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sm:p-8">
-              {paymentMethod === 'transfer' ? (
-                <form onSubmit={handleSubmitTransfer} className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-4">ბანკის რეკვიზიტები</h3>
-                    <div className="bg-slate-950 rounded-xl p-5 space-y-3 border border-white/5">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">ბანკი:</span>
-                        <span className="font-medium text-white">TBC Bank / Bank of Georgia</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">მიმღები:</span>
-                        <span className="font-medium text-white">EZO Platform LLC</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">ანგარიში:</span>
-                        <span className="font-mono text-emerald-400 select-all">GE00TB0000000000000000</span>
-                      </div>
-                      <div className="pt-3 border-t border-white/10">
-                        <span className="text-slate-400 text-sm block mb-1">გადახდის დანიშნულება (აუცილებელი):</span>
-                        <code className="bg-slate-800 text-amber-400 px-3 py-2 rounded-lg text-sm block break-all">
-                          გამოწერა: {user?.email}
-                        </code>
-                        <p className="text-xs text-slate-500 mt-2">
-                          ⚠️ გთხოვთ, დანიშნულებაში ზუსტად მიუთითოთ თქვენი ელ-ფოსტა, რათა გადახდა სწრაფად დადასტურდეს.
-                        </p>
+                    <button
+                      onClick={handleActivateTrial}
+                      disabled={uploading}
+                      className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg"
+                    >
+                      {uploading ? <IconLoader className="w-5 h-5" /> : <IconCheck className="w-5 h-5" />}
+                      {uploading ? 'მუშავდება...' : 'უფასო წვდომის გააქტიურება'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // სტანდარტული გადახდის ფორმა (ფასიანი პაკეტებისთვის)
+              <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sm:p-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <button
+                    onClick={() => setPaymentMethod('transfer')}
+                    className={`p-5 rounded-xl border-2 text-left transition-all ${
+                      paymentMethod === 'transfer' 
+                        ? 'border-emerald-500 bg-emerald-500/10' 
+                        : 'border-white/10 bg-slate-900 hover:border-white/20'
+                    }`}
+                  >
+                    <IconBuilding2 className={`w-8 h-8 mb-3 ${paymentMethod === 'transfer' ? 'text-emerald-400' : 'text-slate-400'}`} />
+                    <div className="font-semibold text-white">ბანკით გადარიცხვა</div>
+                    <div className="text-sm text-slate-400 mt-1">ქვითრის ატვირთვით</div>
+                  </button>
+
+                  <button
+                    onClick={() => setPaymentMethod('online')}
+                    className={`p-5 rounded-xl border-2 text-left transition-all ${
+                      paymentMethod === 'online' 
+                        ? 'border-emerald-500 bg-emerald-500/10' 
+                        : 'border-white/10 bg-slate-900 hover:border-white/20'
+                    }`}
+                  >
+                    <IconCreditCard className={`w-8 h-8 mb-3 ${paymentMethod === 'online' ? 'text-emerald-400' : 'text-slate-400'}`} />
+                    <div className="font-semibold text-white">ონლაინ გადახდა</div>
+                    <div className="text-sm text-slate-400 mt-1">ბარათით (Visa/Mastercard)</div>
+                  </button>
+                </div>
+
+                {paymentMethod === 'transfer' ? (
+                  <form onSubmit={handleSubmitTransfer} className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-4">ბანკის რეკვიზიტები</h3>
+                      <div className="bg-slate-950 rounded-xl p-5 space-y-3 border border-white/5">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">ბანკი:</span>
+                          <span className="font-medium text-white">TBC Bank / Bank of Georgia</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">მიმღები:</span>
+                          <span className="font-medium text-white">EZO Platform LLC</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">ანგარიში:</span>
+                          <span className="font-mono text-emerald-400 select-all">GE00TB0000000000000000</span>
+                        </div>
+                        <div className="pt-3 border-t border-white/10">
+                          <span className="text-slate-400 text-sm block mb-1">გადახდის დანიშნულება (აუცილებელი):</span>
+                          <code className="bg-slate-800 text-amber-400 px-3 py-2 rounded-lg text-sm block break-all">
+                            გამოწერა: {user?.email}
+                          </code>
+                          <p className="text-xs text-slate-500 mt-2">
+                            ⚠️ გთხოვთ, დანიშნულებაში ზუსტად მიუთითოთ თქვენი ელ-ფოსტა, რათა გადახდა სწრაფად დადასტურდეს.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {successMessage ? (
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-start gap-3">
-                      <IconCheck className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-                      <div>
-                        <div className="font-semibold text-emerald-300">წარმატებით!</div>
-                        <div className="text-sm text-emerald-400/80 mt-1">{successMessage}</div>
+                    {successMessage ? (
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-start gap-3">
+                        <IconCheck className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                        <div>
+                          <div className="font-semibold text-emerald-300">წარმატებით!</div>
+                          <div className="text-sm text-emerald-400/80 mt-1">{successMessage}</div>
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        {errorMessage && (
+                          <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 flex items-start gap-3">
+                            <IconAlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+                            <div className="text-sm text-rose-300">{errorMessage}</div>
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-3">გადახდის ქვითრის ატვირთვა</label>
+                          <div className="relative">
+                            <input type="file" id="receipt" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
+                            <label htmlFor="receipt" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all">
+                              {selectedFile ? (
+                                <div className="text-center">
+                                  <IconCheck className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                                  <div className="text-white font-medium">{selectedFile.name}</div>
+                                  <div className="text-xs text-slate-400 mt-1">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</div>
+                                </div>
+                              ) : (
+                                <div className="text-center">
+                                  <IconUpload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                                  <div className="text-slate-300 font-medium">დააჭირეთ ფაილის ასარჩევად</div>
+                                  <div className="text-xs text-slate-500 mt-1">JPG, PNG ან PDF (მაქს. 10MB)</div>
+                                </div>
+                              )}
+                            </label>
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={!selectedFile || uploading}
+                          className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                          {uploading ? <><IconLoader className="w-5 h-5" /> მუშავდება...</> : 'ქვითრის ატვირთვა და დადასტურება'}
+                        </button>
+                      </>
+                    )}
+                  </form>
+                ) : (
+                  <div className="text-center py-8 space-y-6">
+                    <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
+                      <IconCreditCard className="w-10 h-10 text-emerald-400" />
                     </div>
-                  ) : (
-                    <>
-                      {errorMessage && (
-                        <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 flex items-start gap-3">
-                          <IconAlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
-                          <div className="text-sm text-rose-300">{errorMessage}</div>
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-3">გადახდის ქვითრის ატვირთვა</label>
-                        <div className="relative">
-                          <input type="file" id="receipt" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
-                          <label htmlFor="receipt" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all">
-                            {selectedFile ? (
-                              <div className="text-center">
-                                <IconCheck className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                                <div className="text-white font-medium">{selectedFile.name}</div>
-                                <div className="text-xs text-slate-400 mt-1">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</div>
-                              </div>
-                            ) : (
-                              <div className="text-center">
-                                <IconUpload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                                <div className="text-slate-300 font-medium">დააჭირეთ ფაილის ასარჩევად</div>
-                                <div className="text-xs text-slate-500 mt-1">JPG, PNG ან PDF (მაქს. 10MB)</div>
-                              </div>
-                            )}
-                          </label>
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={!selectedFile || uploading}
-                        className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-                      >
-                        {uploading ? <><IconLoader className="w-5 h-5" /> მუშავდება...</> : 'ქვითრის ატვირთვა და დადასტურება'}
-                      </button>
-                    </>
-                  )}
-                </form>
-              ) : (
-                <div className="text-center py-8 space-y-6">
-                  <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-                    <IconCreditCard className="w-10 h-10 text-emerald-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-2">უსაფრთხო ონლაინ გადახდა</h3>
-                    <p className="text-slate-400 max-w-md mx-auto">
-                      დააჭირეთ ქვემოთ მოცემულ ღილაკს და გადაგამისამართებთ ბანკის დაცულ გვერდზე ბარათის მონაცემების შესაყვანად.
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2">უსაფრთხო ონლაინ გადახდა</h3>
+                      <p className="text-slate-400 max-w-md mx-auto">
+                        დააჭირეთ ქვემოთ მოცემულ ღილაკს და გადაგამისამართებთ ბანკის დაცულ გვერდზე ბარათის მონაცემების შესაყვანად.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleOnlinePayment}
+                      className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 mx-auto"
+                    >
+                      გადასვლა გადახდის გვერდზე →
+                    </button>
+                    <p className="text-xs text-slate-500">
+                      🔒 მონაცემები დაცულია SSL სერტიფიკატით. ჩვენ არ ვინახავთ თქვენი ბარათის მონაცემებს.
                     </p>
                   </div>
-                  <button
-                    onClick={handleOnlinePayment}
-                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 mx-auto"
-                  >
-                    გადასვლა გადახდის გვერდზე →
-                  </button>
-                  <p className="text-xs text-slate-500">
-                    🔒 მონაცემები დაცულია SSL სერტიფიკატით. ჩვენ არ ვინახავთ თქვენი ბარათის მონაცემებს.
-                  </p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-1">
@@ -340,31 +437,29 @@ function PaymentContent() {
                 <div className="text-sm opacity-80 mt-2">{plan.description}</div>
               </div>
 
-              {isBasic && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 flex items-start gap-3">
-                  <IconGift className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-semibold text-amber-300 text-sm">14 დღე უფასო!</div>
-                    <div className="text-xs text-amber-200/80 mt-1">
-                      Basic პაკეტის არჩევისას იღებთ 14-დღიან უფასო საცდელ პერიოდს. ამ პერიოდის შემდეგ ავტომატურად გაგრძელდება არჩეული ციკლით.
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">პაკეტის ღირებულება</span>
                   <span className="text-white font-medium">₾{currentPrice}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">ბილინგის ციკლი</span>
-                  <span className="text-white font-medium">{durationText}</span>
-                </div>
-                {billing === 'yearly' && (
+                {!isFreeTrial && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">ბილინგის ციკლი</span>
+                      <span className="text-white font-medium">{durationText}</span>
+                    </div>
+                    {billing === 'yearly' && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-400">ფასდაკლება</span>
+                        <span className="text-emerald-400 font-medium">2 თვე უფასო</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {isFreeTrial && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">ფასდაკლება</span>
-                    <span className="text-emerald-400 font-medium">2 თვე უფასო</span>
+                    <span className="text-slate-400">ხანგრძლივობა</span>
+                    <span className="text-emerald-400 font-medium">14 დღე</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
@@ -380,13 +475,20 @@ function PaymentContent() {
 
               <div className="mt-6 flex items-center gap-2 text-xs text-slate-500 bg-slate-950 p-3 rounded-lg">
                 <IconCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                <span>გადახდის დადასტურების შემდეგ, თქვენი ანგარიში ავტომატურად განახლდება.</span>
+                <span>
+                  {isFreeTrial 
+                    ? 'დადასტურების შემდეგ, თქვენი ანგარიში მყისიერად განახლდება.' 
+                    : 'გადახდის დადასტურების შემდეგ, თქვენი ანგარიში ავტომატურად განახლდება.'}
+                </span>
               </div>
             </div>
           </div>
 
         </div>
       </main>
+
+      {/* უარყოფის Modal (მხოლოდ გადახდილი პაკეტებისთვის, თუ საჭირო გახდა) */}
+      {/* აქ ვტოვებთ ცარიელს, რადგან უფასო ტესტისთვის არ გვჭირდება */}
     </div>
   )
 }
