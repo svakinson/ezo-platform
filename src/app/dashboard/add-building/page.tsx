@@ -125,19 +125,12 @@ export default function AddBuildingPage() {
     accountantName: '',
     accountantPhone: '',
     
-    // Step 3: Utilities
+    // Step 3: Utilities (გამარტივებული - მხოლოდ მიმწოდებლები)
     electricityProvider: '',
-    electricityMeterId: '',
-    electricityReading: '',
     waterProvider: '',
-    waterMeterId: '',
-    waterReading: '',
     gasProvider: '',
-    gasMeterId: '',
-    gasReading: '',
     heatingType: 'central',
     elevatorCount: '',
-    elevatorCompany: '',
     
     // Step 4: Safety & Insurance
     smokeDetectors: '',
@@ -243,17 +236,10 @@ export default function AddBuildingPage() {
       const { error: utilitiesError } = await supabase.from('building_utilities').insert({
         building_id: buildingId,
         electricity_provider: formData.electricityProvider || null,
-        electricity_meter_id: formData.electricityMeterId || null,
-        electricity_reading: formData.electricityReading ? parseFloat(formData.electricityReading) : null,
         water_provider: formData.waterProvider || null,
-        water_meter_id: formData.waterMeterId || null,
-        water_reading: formData.waterReading ? parseFloat(formData.waterReading) : null,
         gas_provider: formData.gasProvider || null,
-        gas_meter_id: formData.gasMeterId || null,
-        gas_reading: formData.gasReading ? parseFloat(formData.gasReading) : null,
         heating_type: formData.heatingType || null,
         elevator_count: formData.elevatorCount ? parseInt(formData.elevatorCount) : null,
-        elevator_company: formData.elevatorCompany || null,
         has_cameras: formData.hasCameras,
         camera_count: formData.cameraCount ? parseInt(formData.cameraCount) : null,
         has_domophone: formData.hasDomophone,
@@ -594,36 +580,26 @@ export default function AddBuildingPage() {
             </div>
           )}
 
-          {/* Step 3: Utilities */}
+          {/* Step 3: Utilities (გამარტივებული - მხოლოდ მიმწოდებლები) */}
           {currentStep === 3 && (
             <div className="space-y-8">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">კომუნალური სერვისები</h2>
-                <p className="text-slate-400">შეავსეთ კომუნალური მრიცხველების და სერვისების მონაცემები</p>
+                <p className="text-slate-400">მიუთითეთ რომელი კომუნალური სერვისებით სარგებლობს კორპუსი</p>
               </div>
 
               <div className="space-y-6">
                 {/* Electricity */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2"><IconZap className="w-5 h-5 text-amber-400" />ელექტროენერგია</h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">მიმწოდებელი</label>
-                      <select value={formData.electricityProvider} onChange={(e) => updateField('electricityProvider', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
-                        <option value="" className="bg-slate-800">აირჩიეთ</option>
-                        <option value="თელასი" className="bg-slate-800">თელასი</option>
-                        <option value="ენერგო-პრო" className="bg-slate-800">ენერგო-პრო ორჯია</option>
-                        <option value="სხვა" className="bg-slate-800">სხვა</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">მრიცხველის ID</label>
-                      <input type="text" value={formData.electricityMeterId} onChange={(e) => updateField('electricityMeterId', e.target.value)} placeholder="მაგ: EL-12345" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">საწყისი ჩვენება (kWh)</label>
-                      <input type="number" value={formData.electricityReading} onChange={(e) => updateField('electricityReading', e.target.value)} placeholder="მაგ: 15420" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">მიმწოდებელი</label>
+                    <select value={formData.electricityProvider} onChange={(e) => updateField('electricityProvider', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                      <option value="" className="bg-slate-800">აირჩიეთ</option>
+                      <option value="თელასი" className="bg-slate-800">თელასი</option>
+                      <option value="ენერგო-პრო" className="bg-slate-800">ენერგო-პრო ორჯია</option>
+                      <option value="სხვა" className="bg-slate-800">სხვა</option>
+                    </select>
                   </div>
                 </div>
 
@@ -633,23 +609,13 @@ export default function AddBuildingPage() {
                     <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></svg>
                     წყალი
                   </h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">მიმწოდებელი</label>
-                      <select value={formData.waterProvider} onChange={(e) => updateField('waterProvider', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
-                        <option value="" className="bg-slate-800">აირჩიეთ</option>
-                        <option value="საქართველოს წყალი" className="bg-slate-800">საქართველოს წყალი</option>
-                        <option value="ადგილობრივი" className="bg-slate-800">ადგილობრივი</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">მრიცხველის ID</label>
-                      <input type="text" value={formData.waterMeterId} onChange={(e) => updateField('waterMeterId', e.target.value)} placeholder="მაგ: W-67890" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">საწყისი ჩვენება (m³)</label>
-                      <input type="number" value={formData.waterReading} onChange={(e) => updateField('waterReading', e.target.value)} placeholder="მაგ: 8920" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">მიმწოდებელი</label>
+                    <select value={formData.waterProvider} onChange={(e) => updateField('waterProvider', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                      <option value="" className="bg-slate-800">აირჩიეთ</option>
+                      <option value="საქართველოს წყალი" className="bg-slate-800">საქართველოს წყალი</option>
+                      <option value="ადგილობრივი" className="bg-slate-800">ადგილობრივი</option>
+                    </select>
                   </div>
                 </div>
 
@@ -659,23 +625,13 @@ export default function AddBuildingPage() {
                     <svg className="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
                     გაზი
                   </h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">მიმწოდებელი</label>
-                      <select value={formData.gasProvider} onChange={(e) => updateField('gasProvider', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
-                        <option value="" className="bg-slate-800">აირჩიეთ</option>
-                        <option value="ყაზტრანსგაზი" className="bg-slate-800">ყაზტრანსგაზი</option>
-                        <option value="სხვა" className="bg-slate-800">სხვა</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">მრიცხველის ID</label>
-                      <input type="text" value={formData.gasMeterId} onChange={(e) => updateField('gasMeterId', e.target.value)} placeholder="მაგ: G-11223" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">საწყისი ჩვენება (m³)</label>
-                      <input type="number" value={formData.gasReading} onChange={(e) => updateField('gasReading', e.target.value)} placeholder="მაგ: 3450" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">მიმწოდებელი</label>
+                    <select value={formData.gasProvider} onChange={(e) => updateField('gasProvider', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                      <option value="" className="bg-slate-800">აირჩიეთ</option>
+                      <option value="ყაზტრანსგაზი" className="bg-slate-800">ყაზტრანსგაზი</option>
+                      <option value="სხვა" className="bg-slate-800">სხვა</option>
+                    </select>
                   </div>
                 </div>
 
@@ -692,15 +648,9 @@ export default function AddBuildingPage() {
                   </div>
                   <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                     <h3 className="text-lg font-semibold text-white mb-4">ლიფტი</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">ლიფტების რაოდენობა</label>
-                        <input type="number" value={formData.elevatorCount} onChange={(e) => updateField('elevatorCount', e.target.value)} placeholder="მაგ: 2" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">სერვისის კომპანია</label>
-                        <input type="text" value={formData.elevatorCompany} onChange={(e) => updateField('elevatorCompany', e.target.value)} placeholder="მაგ: ლიფტი სერვისი" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">ლიფტების რაოდენობა</label>
+                      <input type="number" value={formData.elevatorCount} onChange={(e) => updateField('elevatorCount', e.target.value)} placeholder="მაგ: 2" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
                     </div>
                   </div>
                 </div>
