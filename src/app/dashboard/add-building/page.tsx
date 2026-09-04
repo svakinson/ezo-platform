@@ -239,7 +239,7 @@ export default function AddBuildingPage() {
         if (contactsError) throw contactsError
       }
 
-      // 3. შევინახოთ კომუნალური და უსაფრთხოების მონაცემები (Building Utilities) - ყველა ველით!
+      // 3. შევინახოთ კომუნალური და უსაფრთხოების მონაცემები (Building Utilities)
       const { error: utilitiesError } = await supabase.from('building_utilities').insert({
         building_id: buildingId,
         electricity_provider: formData.electricityProvider || null,
@@ -341,34 +341,48 @@ export default function AddBuildingPage() {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Progress Steps */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-8">
-            {steps.map((step, index) => {
-              const Icon = step.icon
-              const isActive = currentStep === step.id
+      <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        
+        {/* ⭐ განახლებული Stepper - ახლა ფორმის ბანერის შიგნითაა, რაც უზრუნველყოფს იდეალურ გასწვრივ კიდეებთან */}
+        <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-10 mb-6">
+          <div className="relative flex items-center justify-between w-full mb-2">
+            {/* ფონის ხაზი (მთლიანი სიგრძე) */}
+            <div className="absolute top-5 sm:top-6 left-0 right-0 h-0.5 bg-slate-700/50 mx-4 sm:mx-8" />
+            
+            {/* აქტიური ხაზი (ანიმაციური შევსება) */}
+            <div 
+              className="absolute top-5 sm:top-6 left-0 h-0.5 bg-emerald-500 mx-4 sm:mx-8 transition-all duration-500 ease-out"
+              style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+            />
+            
+            {steps.map((step) => {
               const isCompleted = currentStep > step.id
+              const isActive = currentStep === step.id
+              const Icon = step.icon
+              
               return (
-                <div key={step.id} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center">
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      isCompleted ? 'bg-emerald-500 text-white' : isActive ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg' : 'bg-white/10 text-white/50'
-                    }`}>
-                      {isCompleted ? <IconCheck className="w-5 h-5 sm:w-6 sm:h-6" /> : <Icon className="w-5 h-5 sm:w-6 sm:h-6" />}
-                    </div>
-                    <div className={`mt-2 text-xs font-medium text-center hidden sm:block ${isActive ? 'text-white' : isCompleted ? 'text-emerald-400' : 'text-white/50'}`}>
-                      {step.title}
-                    </div>
+                <div key={step.id} className="relative flex flex-col items-center flex-1 z-10">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                    isCompleted 
+                      ? 'bg-emerald-500 border-emerald-500 text-white' 
+                      : isActive 
+                        ? 'bg-slate-900 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]' 
+                        : 'bg-slate-800 border-slate-700 text-slate-500'
+                  }`}>
+                    {isCompleted ? <IconCheck className="w-5 h-5 sm:w-6 sm:h-6" /> : <Icon className="w-5 h-5 sm:w-6 sm:h-6" />}
                   </div>
-                  {index < steps.length - 1 && (<div className={`flex-1 h-0.5 mx-2 sm:mx-4 ${isCompleted ? 'bg-emerald-500' : 'bg-white/10'}`} />)}
+                  <span className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold text-center transition-colors ${
+                    isActive ? 'text-emerald-400' : isCompleted ? 'text-emerald-500/80' : 'text-slate-500'
+                  }`}>
+                    {step.title}
+                  </span>
                 </div>
               )
             })}
           </div>
         </div>
 
-        {/* Form Content */}
+        {/* Form Content Card */}
         <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-12">
           
           {/* Step 1: Basic Info */}
@@ -506,7 +520,7 @@ export default function AddBuildingPage() {
             </div>
           )}
 
-          {/* Step 3: Utilities (FULLY RESTORED) */}
+          {/* Step 3: Utilities */}
           {currentStep === 3 && (
             <div className="space-y-8">
               <div>
@@ -565,7 +579,7 @@ export default function AddBuildingPage() {
                   </div>
                 </div>
 
-                {/* Gas (RESTORED) */}
+                {/* Gas */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
@@ -620,7 +634,7 @@ export default function AddBuildingPage() {
             </div>
           )}
 
-          {/* Step 4: Safety & Insurance (FULLY RESTORED) */}
+          {/* Step 4: Safety & Insurance */}
           {currentStep === 4 && (
             <div className="space-y-8">
               <div>
@@ -629,7 +643,7 @@ export default function AddBuildingPage() {
               </div>
 
               <div className="space-y-6">
-                {/* Fire Safety (RESTORED DATES) */}
+                {/* Fire Safety */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
@@ -673,7 +687,7 @@ export default function AddBuildingPage() {
                   </div>
                 </div>
 
-                {/* Insurance (RESTORED) */}
+                {/* Insurance */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2"><IconShield className="w-5 h-5 text-purple-400" />დაზღვევა</h3>
                   <div className="grid md:grid-cols-3 gap-4">
@@ -767,8 +781,8 @@ export default function AddBuildingPage() {
               უკან
             </button>
 
-            <div className="text-sm text-slate-500">
-              ნაბიჯი {currentStep} / 5
+            <div className="text-sm text-slate-500 font-medium">
+              ნაბიჯი {currentStep} / {steps.length}
             </div>
 
             {currentStep < 5 ? (
