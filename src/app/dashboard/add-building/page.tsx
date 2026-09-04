@@ -343,13 +343,10 @@ export default function AddBuildingPage() {
 
       <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         
-        {/* ⭐ განახლებული Stepper - ახლა ფორმის ბანერის შიგნითაა, რაც უზრუნველყოფს იდეალურ გასწვრივ კიდეებთან */}
+        {/* ⭐ განახლებული Stepper */}
         <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-10 mb-6">
           <div className="relative flex items-center justify-between w-full mb-2">
-            {/* ფონის ხაზი (მთლიანი სიგრძე) */}
             <div className="absolute top-5 sm:top-6 left-0 right-0 h-0.5 bg-slate-700/50 mx-4 sm:mx-8" />
-            
-            {/* აქტიური ხაზი (ანიმაციური შევსება) */}
             <div 
               className="absolute top-5 sm:top-6 left-0 h-0.5 bg-emerald-500 mx-4 sm:mx-8 transition-all duration-500 ease-out"
               style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
@@ -385,29 +382,38 @@ export default function AddBuildingPage() {
         {/* Form Content Card */}
         <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-12">
           
-          {/* Step 1: Basic Info */}
+          {/* Step 1: Basic Info (გამარტივებული) */}
           {currentStep === 1 && (
             <div className="space-y-8">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">კორპუსის ძირითადი ინფორმაცია</h2>
-                <p className="text-slate-400">შეავსეთ კორპუსის ზოგადი მონაცემები</p>
+                <p className="text-slate-400">შეავსეთ მხოლოდ აუცილებელი მონაცემები</p>
               </div>
+              
               <div className="grid md:grid-cols-2 gap-6">
+                {/* მისამართი - სრული სიგანე */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის სახელი (არასავალდებულო)</label>
-                  <input type="text" value={formData.buildingName} onChange={(e) => updateField('buildingName', e.target.value)} placeholder="მაგ: ვაჟა-ფშაველას 42" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    კორპუსის სახელი ან მისამართი *
+                  </label>
+                  <input 
+                    type="text" 
+                    value={formData.street} 
+                    onChange={(e) => updateField('street', e.target.value)} 
+                    placeholder="მაგ: ვაჟა-ფშაველას გამზირი 42" 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" 
+                    required 
+                  />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">ქუჩა და ნომერი *</label>
-                  <input type="text" value={formData.street} onChange={(e) => updateField('street', e.target.value)} placeholder="მაგ: ვაჟა-ფშაველას გამზირი 42" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">უბანი/რაიონი</label>
-                  <input type="text" value={formData.district} onChange={(e) => updateField('district', e.target.value)} placeholder="მაგ: საბურთალო" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                </div>
+
+                {/* ქალაქი */}
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">ქალაქი *</label>
-                  <select value={formData.city} onChange={(e) => updateField('city', e.target.value)} className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                  <select 
+                    value={formData.city} 
+                    onChange={(e) => updateField('city', e.target.value)} 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                  >
                     <option value="თბილისი" className="bg-slate-800">თბილისი</option>
                     <option value="ბათუმი" className="bg-slate-800">ბათუმი</option>
                     <option value="ქუთაისი" className="bg-slate-800">ქუთაისი</option>
@@ -415,38 +421,106 @@ export default function AddBuildingPage() {
                     <option value="სხვა" className="bg-slate-800">სხვა</option>
                   </select>
                 </div>
+
+                {/* უბანი */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">საფოსტო ინდექსი</label>
-                  <input type="text" value={formData.postalCode} onChange={(e) => updateField('postalCode', e.target.value)} placeholder="მაგ: 0160" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                  <label className="block text-sm font-medium text-slate-300 mb-2">უბანი/რაიონი</label>
+                  <input 
+                    type="text" 
+                    value={formData.district} 
+                    onChange={(e) => updateField('district', e.target.value)} 
+                    placeholder="მაგ: საბურთალო" 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" 
+                  />
                 </div>
+
+                {/* ბინების რაოდენობა */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის ტიპი *</label>
-                  <select value={formData.buildingType} onChange={(e) => updateField('buildingType', e.target.value)} className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    ბინების რაოდენობა *
+                    <span className="text-xs text-slate-500 ml-1">(აუცილებელი)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    value={formData.apartments} 
+                    onChange={(e) => updateField('apartments', e.target.value)} 
+                    placeholder="მაგ: 72" 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" 
+                    required 
+                  />
+                </div>
+
+                {/* სადარბაზოების რაოდენობა */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    სადარბაზოების რაოდენობა *
+                  </label>
+                  <input 
+                    type="number" 
+                    value={formData.entrances} 
+                    onChange={(e) => updateField('entrances', e.target.value)} 
+                    placeholder="მაგ: 3" 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" 
+                    required 
+                  />
+                </div>
+
+                {/* სართულების რაოდენობა */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    სართულების რაოდენობა *
+                  </label>
+                  <input 
+                    type="number" 
+                    value={formData.floors} 
+                    onChange={(e) => updateField('floors', e.target.value)} 
+                    placeholder="მაგ: 9" 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" 
+                    required 
+                  />
+                </div>
+
+                {/* კორპუსის ტიპი */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის ტიპი</label>
+                  <select 
+                    value={formData.buildingType} 
+                    onChange={(e) => updateField('buildingType', e.target.value)} 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                  >
                     <option value="multi-family" className="bg-slate-800">მრავალსართულიანი საცხოვრებელი</option>
                     <option value="private-houses" className="bg-slate-800">კერძო სახლების კომპლექსი</option>
                     <option value="business-center" className="bg-slate-800">ბიზნეს ცენტრი</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">აგების წელი</label>
-                  <input type="number" value={formData.constructionYear} onChange={(e) => updateField('constructionYear', e.target.value)} placeholder="მაგ: 2010" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">სართულების რაოდენობა *</label>
-                  <input type="number" value={formData.floors} onChange={(e) => updateField('floors', e.target.value)} placeholder="მაგ: 9" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">ბინების რაოდენობა *</label>
-                  <input type="number" value={formData.apartments} onChange={(e) => updateField('apartments', e.target.value)} placeholder="მაგ: 72" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">სადარბაზოების რაოდენობა *</label>
-                  <input type="number" value={formData.entrances} onChange={(e) => updateField('entrances', e.target.value)} placeholder="მაგ: 3" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">საერთო ფართობი (მ²)</label>
-                  <input type="number" value={formData.area} onChange={(e) => updateField('area', e.target.value)} placeholder="მაგ: 5400" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                </div>
+              </div>
+
+              {/* დამატებითი ინფორმაცია - collapsible სექცია */}
+              <div className="mt-6 pt-6 border-t border-white/10">
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                    <span>დამატებითი ინფორმაცია (არასავალდებულო)</span>
+                    <span className="transition-transform group-open:rotate-180">▼</span>
+                  </summary>
+                  <div className="mt-4 grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის სახელი (არასავალდებულო)</label>
+                      <input type="text" value={formData.buildingName} onChange={(e) => updateField('buildingName', e.target.value)} placeholder="მაგ: ვაჟა-ფშაველას 42" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">საფოსტო ინდექსი</label>
+                      <input type="text" value={formData.postalCode} onChange={(e) => updateField('postalCode', e.target.value)} placeholder="მაგ: 0160" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">აგების წელი</label>
+                      <input type="number" value={formData.constructionYear} onChange={(e) => updateField('constructionYear', e.target.value)} placeholder="მაგ: 2010" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">საერთო ფართობი (მ²)</label>
+                      <input type="number" value={formData.area} onChange={(e) => updateField('area', e.target.value)} placeholder="მაგ: 5400" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    </div>
+                  </div>
+                </details>
               </div>
             </div>
           )}
