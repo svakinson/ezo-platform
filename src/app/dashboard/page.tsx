@@ -88,14 +88,6 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconChart = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
-  </svg>
-)
-
 const IconShield = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -154,6 +146,12 @@ const IconSend = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+)
+
 // ============ შიდა კომპონენტი ============
 function DashboardContent() {
   const router = useRouter()
@@ -166,6 +164,10 @@ function DashboardContent() {
   const [buildings, setBuildings] = useState<any[]>([])
   const [buildingsLoading, setBuildingsLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
+  
+  //  ახალი: კორპუსის გადამრთველი
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   useEffect(() => {
     const checkSession = async () => {
@@ -360,30 +362,68 @@ function DashboardContent() {
     },
   ]
 
-  // ⭐ Mock Data - Active State-ისთვის
-  const mockStats = {
-    collected: 4500,
-    debt: 1200,
-    collectionRate: 78,
-    openRequests: 3,
-    totalApartments: 72,
-    paidApartments: 56,
+  //  Mock Data - Active State-ისთვის (რამდენიმე კორპუსი)
+  const mockBuildingsData = [
+    {
+      id: '1',
+      name: 'ვაჟა-ფშაველას 42',
+      city: 'თბილისი',
+      apartments: 72,
+      collected: 4500,
+      debt: 1200,
+      collectionRate: 78,
+      openRequests: 3,
+    },
+    {
+      id: '2',
+      name: 'ჩავჩავაძის 15',
+      city: 'თბილისი',
+      apartments: 48,
+      collected: 3200,
+      debt: 800,
+      collectionRate: 80,
+      openRequests: 1,
+    },
+    {
+      id: '3',
+      name: 'რუსთაველის 28',
+      city: 'თბილისი',
+      apartments: 96,
+      collected: 6800,
+      debt: 2100,
+      collectionRate: 76,
+      openRequests: 5,
+    },
+  ]
+
+  // ⭐ არჩეული კორპუსის მონაცემები
+  const selectedBuilding = buildings.find(b => b.id === selectedBuildingId)
+  const isAllSelected = selectedBuildingId === 'all'
+
+  // ჯამური სტატისტიკა (ყველა კორპუსისთვის)
+  const totalStats = {
+    collected: mockBuildingsData.reduce((sum, b) => sum + b.collected, 0),
+    debt: mockBuildingsData.reduce((sum, b) => sum + b.debt, 0),
+    collectionRate: Math.round(mockBuildingsData.reduce((sum, b) => sum + b.collectionRate, 0) / mockBuildingsData.length),
+    openRequests: mockBuildingsData.reduce((sum, b) => sum + b.openRequests, 0),
+    totalApartments: mockBuildingsData.reduce((sum, b) => sum + b.apartments, 0),
+    paidApartments: Math.round(mockBuildingsData.reduce((sum, b) => sum + (b.apartments * b.collectionRate / 100), 0)),
   }
 
-  const mockTopDebtors = [
-    { id: 1, apartment: 'ბინა 15', owner: 'გიორგი მ.', amount: 450, days: 45 },
-    { id: 2, apartment: 'ბინა 23', owner: 'ნინო კ.', amount: 320, days: 30 },
-    { id: 3, apartment: 'ბინა 8', owner: 'ლევან ს.', amount: 280, days: 25 },
-    { id: 4, apartment: 'ბინა 41', owner: 'მარიამ ჯ.', amount: 150, days: 15 },
+  // კონკრეტული კორპუსის სტატისტიკა
+  const buildingStats = mockBuildingsData.find(b => b.id === selectedBuildingId) || mockBuildingsData[0]
+
+  // ⭐ Dropdown-ისთვის Mock Data
+  const dropdownOptions = [
+    { id: 'all', label: 'ყველა კორპუსი', icon: '📊' },
+    ...mockBuildingsData.map(b => ({
+      id: b.id,
+      label: b.name,
+      icon: '🏢',
+    })),
   ]
 
-  const mockRecentActivity = [
-    { id: 1, type: 'payment', message: 'ბინა 12-მა გადაიხადა ₾50', time: '2 წუთის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
-    { id: 2, type: 'receipt', message: 'დაემატა ახალი ქვითარი', time: '1 საათის წინ', icon: IconFileText, color: 'text-blue-400 bg-blue-500/10' },
-    { id: 3, type: 'payment', message: 'ბინა 34-მა გადაიხადა ₾45', time: '3 საათის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
-    { id: 4, type: 'owner', message: 'ბინა 45-ს შეეცვალა მფლობელი', time: 'გუშინ', icon: IconUsers, color: 'text-purple-400 bg-purple-500/10' },
-    { id: 5, type: 'payment', message: 'ბინა 7-მა გადაიხადა ₾60', time: '2 დღის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
-  ]
+  const currentDropdownLabel = dropdownOptions.find(o => o.id === selectedBuildingId)?.label || 'კორპუსი'
 
   return (
     <div className="min-h-screen bg-slate-950 relative overflow-hidden">
@@ -645,11 +685,96 @@ function DashboardContent() {
           </div>
         ) : (
           /* ═══════════════════════════════════════════════════════
-             ACTIVE STATE - კორპუსი დამატებულია (მობილურზე ოპტიმიზირებული)
+             ACTIVE STATE - კორპუსი დამატებულია
              ═══════════════════════════════════════════════════════ */
           <div className="space-y-4 sm:space-y-6">
             
-            {/* ⭐ განახლებული 3-ნაწილიანი ბანერი */}
+            {/* ⭐ კორპუსის გადამრთველი (Dropdown) */}
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full sm:w-auto flex items-center justify-between gap-3 bg-slate-900/50 backdrop-blur-xl border border-white/10 hover:border-emerald-500/30 rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                    <IconBuilding className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">კორპუსი</div>
+                    <div className="text-sm sm:text-base font-bold text-white truncate max-w-[200px] sm:max-w-none">
+                      {currentDropdownLabel}
+                    </div>
+                  </div>
+                </div>
+                <IconChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setIsDropdownOpen(false)}
+                  />
+                  
+                  {/* Menu */}
+                  <div className="absolute top-full left-0 right-0 sm:right-auto sm:min-w-[280px] mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                    <div className="p-2">
+                      {dropdownOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => {
+                            setSelectedBuildingId(option.id)
+                            setIsDropdownOpen(false)
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+                            selectedBuildingId === option.id
+                              ? 'bg-emerald-500/10 border border-emerald-500/30'
+                              : 'hover:bg-white/5 border border-transparent'
+                          }`}
+                        >
+                          <span className="text-xl">{option.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-sm font-semibold truncate ${
+                              selectedBuildingId === option.id ? 'text-emerald-300' : 'text-white'
+                            }`}>
+                              {option.label}
+                            </div>
+                            {option.id !== 'all' && (
+                              <div className="text-xs text-slate-400">
+                                {mockBuildingsData.find(b => b.id === option.id)?.apartments} ბინა
+                              </div>
+                            )}
+                          </div>
+                          {selectedBuildingId === option.id && (
+                            <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {/* ახალი კორპუსის დამატება */}
+                    <div className="border-t border-white/10 p-2">
+                      <Link
+                        href="/dashboard/add-building"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                          <IconPlus className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div className="text-sm font-semibold text-emerald-400">
+                          ახალი კორპუსის დამატება
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* ⭐ 3-ნაწილიანი ბანერი */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               
               {/* ნაწილი 1: აქტიური პაკეტის სტატუსი */}
@@ -708,7 +833,7 @@ function DashboardContent() {
               </button>
             </div>
 
-            {/* ⭐ KPI Cards - ზედა რიგი (მობილურზე 2x2, დესკტოპზე 4 სვეტი) */}
+            {/* ⭐ KPI Cards - ზედა რიგი */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {/* შეგროვებული */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-emerald-500/30 transition-all">
@@ -718,10 +843,12 @@ function DashboardContent() {
                     <IconTrendingUp className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">₾{mockStats.collected.toLocaleString()}</div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
+                  ₾{isAllSelected ? totalStats.collected.toLocaleString() : buildingStats.collected.toLocaleString()}
+                </div>
                 <span className="text-[10px] sm:text-xs text-emerald-400 font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  {mockStats.paidApartments}/{mockStats.totalApartments} ბინამ
+                  {isAllSelected ? totalStats.paidApartments : Math.round(buildingStats.apartments * buildingStats.collectionRate / 100)}/{isAllSelected ? totalStats.totalApartments : buildingStats.apartments} ბინამ
                 </span>
               </div>
 
@@ -733,9 +860,14 @@ function DashboardContent() {
                     <IconAlertCircle className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">₾{mockStats.debt.toLocaleString()}</div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
+                  ₾{isAllSelected ? totalStats.debt.toLocaleString() : buildingStats.debt.toLocaleString()}
+                </div>
                 <span className="text-[10px] sm:text-xs text-rose-400 font-semibold">
-                  {mockStats.totalApartments - mockStats.paidApartments} ბინას უჭირს
+                  {isAllSelected 
+                    ? `${mockBuildingsData.length} კორპუსს`
+                    : `${buildingStats.apartments - Math.round(buildingStats.apartments * buildingStats.collectionRate / 100)} ბინას`
+                  } უჭირს
                 </span>
               </div>
 
@@ -747,16 +879,18 @@ function DashboardContent() {
                     <IconCheck className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">{mockStats.collectionRate}%</div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
+                  {isAllSelected ? totalStats.collectionRate : buildingStats.collectionRate}%
+                </div>
                 <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-700"
-                    style={{ width: `${mockStats.collectionRate}%` }}
+                    style={{ width: `${isAllSelected ? totalStats.collectionRate : buildingStats.collectionRate}%` }}
                   />
                 </div>
               </div>
 
-              {/* ღია საჩივრები */}
+              {/* ია საჩივრები */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-purple-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">ღია საჩივრები</span>
@@ -767,28 +901,79 @@ function DashboardContent() {
                     </svg>
                   </div>
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">{mockStats.openRequests}</div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
+                  {isAllSelected ? totalStats.openRequests : buildingStats.openRequests}
+                </div>
                 <span className="text-[10px] sm:text-xs text-purple-400 font-semibold">
                   მოითხოვს ყურადღებას
                 </span>
               </div>
             </div>
 
-            {/* ⭐ შუა რიგი - 2 სვეტი (მობილურზე 1 სვეტი, დესკტოპზე 2:1) */}
+            {/* ⭐ თუ "ყველა კორპუსი" არის არჩეული - კორპუსების ბარათები */}
+            {isAllSelected && (
+              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                    <IconBuilding className="w-5 h-5 text-emerald-400" />
+                    ყველა კორპუსი
+                  </h3>
+                  <span className="text-xs text-slate-400">{mockBuildingsData.length} კორპუსი</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {mockBuildingsData.map((building) => (
+                    <button
+                      key={building.id}
+                      onClick={() => setSelectedBuildingId(building.id)}
+                      className="text-left bg-slate-800/50 border border-white/5 hover:border-emerald-500/30 rounded-xl p-4 transition-all group"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                          <IconBuilding className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        <IconArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+                      </div>
+                      <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name}</h4>
+                      <p className="text-xs text-slate-400 mb-3">{building.city} • {building.apartments} ბინა</p>
+                      <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                        <div>
+                          <div className="text-xs text-slate-400">შეგროვება</div>
+                          <div className="text-sm font-bold text-emerald-400">₾{building.collected.toLocaleString()}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-slate-400">ვალი</div>
+                          <div className="text-sm font-bold text-rose-400">₾{building.debt.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ⭐ შუა რიგი - 2 სვეტი */}
             <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
               
-              {/* მარცხენა სვეტი - ტოპ მოვალეები (2/3 სიგანე) */}
+              {/* მარცხენა სვეტი - ტოპ მოვალეები */}
               <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                     <IconAlertCircle className="w-5 h-5 text-rose-400" />
-                    ყველაზე დიდი მოვალეები
+                    {isAllSelected ? 'ყველაზე დიდი მოვალეები' : 'მოვალეები'}
                   </h3>
-                  <span className="text-xs text-slate-400">ტოპ 4</span>
+                  <span className="text-xs text-slate-400">
+                    {isAllSelected ? 'ყველა კორპუსი' : mockBuildingsData.find(b => b.id === selectedBuildingId)?.name}
+                  </span>
                 </div>
 
                 <div className="space-y-3">
-                  {mockTopDebtors.map((debtor) => (
+                  {[
+                    { id: 1, apartment: 'ბინა 15', owner: 'გიორგი მ.', amount: 450, days: 45 },
+                    { id: 2, apartment: 'ბინა 23', owner: 'ნინო კ.', amount: 320, days: 30 },
+                    { id: 3, apartment: 'ბინა 8', owner: 'ლევან ს.', amount: 280, days: 25 },
+                    { id: 4, apartment: 'ბინა 41', owner: 'მარიამ .', amount: 150, days: 15 },
+                  ].map((debtor) => (
                     <div 
                       key={debtor.id} 
                       className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-white/5 hover:border-rose-500/30 transition-all"
@@ -815,7 +1000,7 @@ function DashboardContent() {
                 </button>
               </div>
 
-              {/* მარჯვენა სვეტი - ბოლო აქტივობა (1/3 სიგანე) */}
+              {/* მარჯვენა სვეტი - ბოლო აქტივობა */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -825,7 +1010,13 @@ function DashboardContent() {
                 </div>
 
                 <div className="space-y-3">
-                  {mockRecentActivity.map((activity) => {
+                  {[
+                    { id: 1, message: 'ბინა 12-მა გადაიხადა ₾50', time: '2 წუთის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
+                    { id: 2, message: 'დაემატა ახალი ქვითარი', time: '1 საათის წინ', icon: IconFileText, color: 'text-blue-400 bg-blue-500/10' },
+                    { id: 3, message: 'ბინა 34-მა გადაიხადა ₾45', time: '3 საათის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
+                    { id: 4, message: 'ბინა 45-ს შეეცვალა მფლობელი', time: 'გუშინ', icon: IconUsers, color: 'text-purple-400 bg-purple-500/10' },
+                    { id: 5, message: 'ბინა 7-მა გადაიხადა ₾60', time: '2 დღის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
+                  ].map((activity) => {
                     const ActivityIcon = activity.icon
                     return (
                       <div key={activity.id} className="flex items-start gap-3">
@@ -843,7 +1034,7 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* ⭐ სწრაფი მოქმედებები (მობილურზე 1 სვეტი, დიდ ეკრანზე 3) */}
+            {/* ⭐ სწრაფი მოქმედებები */}
             <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-bold text-white mb-4">სწრაფი მოქმედებები</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
