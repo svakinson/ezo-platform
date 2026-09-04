@@ -133,6 +133,7 @@ export default function AddBuildingPage() {
     elevatorCount: '',
     
     // Step 4: Safety & Insurance
+    hasFireSafety: false, // ⭐ ახალი: სახანძრო უსაფრთხოების ტოგლი
     smokeDetectors: '',
     lastFireInspection: '',
     nextFireInspection: '',
@@ -140,7 +141,7 @@ export default function AddBuildingPage() {
     cameraCount: '',
     hasDomophone: false,
     hasGuard: false,
-    hasInsurance: false, // ⭐ ახალი: დაზღვევის ტოგლი
+    hasInsurance: false,
     insuranceCompany: '',
     insurancePolicy: '',
     insuranceExpiry: '',
@@ -245,9 +246,9 @@ export default function AddBuildingPage() {
         camera_count: formData.cameraCount ? parseInt(formData.cameraCount) : null,
         has_domophone: formData.hasDomophone,
         has_guard: formData.hasGuard,
-        smoke_detectors: formData.smokeDetectors ? parseInt(formData.smokeDetectors) : null,
-        last_fire_inspection: formData.lastFireInspection || null,
-        next_fire_inspection: formData.nextFireInspection || null,
+        smoke_detectors: formData.hasFireSafety && formData.smokeDetectors ? parseInt(formData.smokeDetectors) : null,
+        last_fire_inspection: formData.hasFireSafety ? formData.lastFireInspection : null,
+        next_fire_inspection: formData.hasFireSafety ? formData.nextFireInspection : null,
         insurance_company: formData.hasInsurance ? formData.insuranceCompany : null,
         insurance_policy: formData.hasInsurance ? formData.insurancePolicy : null,
         insurance_expiry: formData.hasInsurance ? formData.insuranceExpiry : null,
@@ -524,7 +525,6 @@ export default function AddBuildingPage() {
                 <p className="text-slate-400">მიუთითეთ რომელი კომუნალური სერვისებით სარგებლობს კორპუსი</p>
               </div>
 
-              {/* ⭐ სამივე ერთ ხაზზე (3 სვეტი) */}
               <div className="grid md:grid-cols-3 gap-6 mb-6">
                 {/* Electricity */}
                 <div className="bg-slate-800/50 rounded-2xl p-5 border border-white/10">
@@ -573,7 +573,6 @@ export default function AddBuildingPage() {
                 </div>
               </div>
 
-              {/* Heating & Elevator */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4">გათბობის ტიპი</h3>
@@ -604,26 +603,40 @@ export default function AddBuildingPage() {
               </div>
 
               <div className="space-y-6">
-                {/* Fire Safety */}
+                {/* ⭐ Fire Safety (არასავალდებულო - ტოგლით) */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
-                    სახანძრო უსაფრთხოება
-                  </h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">კვამლის დეტექტორები (რაოდ.)</label>
-                      <input type="number" value={formData.smokeDetectors} onChange={(e) => updateField('smokeDetectors', e.target.value)} placeholder="მაგ: 12" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">უკანასკნელი შემოწმება</label>
-                      <input type="date" value={formData.lastFireInspection} onChange={(e) => updateField('lastFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">შემდეგი შემოწმება</label>
-                      <input type="date" value={formData.nextFireInspection} onChange={(e) => updateField('nextFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
-                    </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <svg className="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
+                      სახანძრო უსაფრთხოება
+                    </h3>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.hasFireSafety} 
+                        onChange={(e) => updateField('hasFireSafety', e.target.checked)} 
+                        className="w-5 h-5 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50" 
+                      />
+                      <span className="text-sm text-slate-300">აქვს სახანძრო უსაფრთხოების სისტემა</span>
+                    </label>
                   </div>
+                  
+                  {formData.hasFireSafety && (
+                    <div className="grid md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">კვამლის დეტექტორები (რაოდ.)</label>
+                        <input type="number" value={formData.smokeDetectors} onChange={(e) => updateField('smokeDetectors', e.target.value)} placeholder="მაგ: 12" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">უკანასკნელი შემოწმება</label>
+                        <input type="date" value={formData.lastFireInspection} onChange={(e) => updateField('lastFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">შემდეგი შემოწმება</label>
+                        <input type="date" value={formData.nextFireInspection} onChange={(e) => updateField('nextFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Security Systems */}
@@ -648,7 +661,7 @@ export default function AddBuildingPage() {
                   </div>
                 </div>
 
-                {/* ⭐ Insurance (არასავალდებულო - ტოგლით) */}
+                {/* Insurance */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white flex items-center gap-2"><IconShield className="w-5 h-5 text-purple-400" />დაზღვევა</h3>
@@ -689,14 +702,20 @@ export default function AddBuildingPage() {
             <div className="space-y-8">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">დოკუმენტები და ფოტოები</h2>
-                <p className="text-slate-400">ატვირთეთ საჭირო დოკუმენტები და კორპუსის ფოტოები (ფუნქციონალი მალე დაემატება)</p>
+                <p className="text-slate-400">ეს ეტაპი არ არის სავალდებულო. შეგიძლიათ დოკუმენტები და ფოტოები მოგვიანებით, კორპუსის გვერდიდან ატვირთოთ.</p>
               </div>
 
               <div className="space-y-6">
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
-                  <h3 className="text-lg font-semibold text-white mb-4">სავალდებულო დოკუმენტები</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    რეკომენდებული დოკუმენტები
+                  </h3>
                   <div className="space-y-3">
-                    {['კორპუსის რეგისტრაციის მოწმობა', 'ტექნიკური პასპორტი', 'სადაზღვევო პოლისი'].map((doc, i) => (
+                    {['კორპუსის რეგისტრაციის მოწმობა', 'ტექნიკური პასპორტი', 'სხვა დოკუმენტაცია'].map((doc, i) => (
                       <div key={i} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-white/10 hover:border-emerald-500/30 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
@@ -766,17 +785,25 @@ export default function AddBuildingPage() {
                 <IconArrowRight className="w-5 h-5" />
               </button>
             ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:opacity-70 disabled:cursor-not-allowed rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300"
-              >
-                {isSubmitting ? (
-                  <><IconLoader className="w-5 h-5" /> ინახება...</>
-                ) : (
-                  <><IconCheck className="w-5 h-5" /> დასრულება</>
-                )}
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleSubmit}
+                  className="text-sm text-slate-400 hover:text-white transition-colors font-medium"
+                >
+                  ატვირთვა მოგვიანებით
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:opacity-70 disabled:cursor-not-allowed rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  {isSubmitting ? (
+                    <><IconLoader className="w-5 h-5" /> ინახება...</>
+                  ) : (
+                    <><IconCheck className="w-5 h-5" /> კორპუსის შექმნა</>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </div>
