@@ -226,7 +226,7 @@ function DashboardContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 ezo-dashboard flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
           <div className="text-white font-semibold mb-1">EZO იტვირთება</div>
@@ -259,7 +259,77 @@ function DashboardContent() {
     : 0
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-slate-950 ezo-dashboard relative overflow-hidden">
+      <div className="ezo-orb ezo-orb-one" />
+      <div className="ezo-orb ezo-orb-two" />
+      <div className="ezo-grid" />
+      <style jsx global>{`
+        .ezo-dashboard {
+          color-scheme: dark;
+          background:
+            radial-gradient(circle at 12% 8%, rgba(16,185,129,.10), transparent 26%),
+            radial-gradient(circle at 88% 16%, rgba(59,130,246,.08), transparent 25%),
+            #070a12;
+        }
+        .ezo-header {
+          background: rgba(7,10,18,.72);
+          backdrop-filter: blur(22px);
+          -webkit-backdrop-filter: blur(22px);
+          box-shadow: 0 1px 0 rgba(255,255,255,.04), 0 12px 40px rgba(0,0,0,.18);
+        }
+        .ezo-card, .ezo-building-card, .ezo-empty {
+          box-shadow: 0 18px 60px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.035);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+        }
+        .ezo-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 24px 70px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05);
+        }
+        .ezo-building-card {
+          position: relative;
+          overflow: hidden;
+        }
+        .ezo-building-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(135deg, rgba(16,185,129,.06), transparent 45%, rgba(34,211,238,.035));
+          opacity: 0;
+          transition: opacity .25s ease;
+        }
+        .ezo-building-card:hover::before { opacity: 1; }
+        .ezo-orb {
+          position: absolute;
+          border-radius: 999px;
+          filter: blur(80px);
+          pointer-events: none;
+          opacity: .28;
+        }
+        .ezo-orb-one {
+          width: 280px; height: 280px; left: -160px; top: 280px;
+          background: rgba(16,185,129,.18);
+        }
+        .ezo-orb-two {
+          width: 340px; height: 340px; right: -180px; top: 520px;
+          background: rgba(99,102,241,.14);
+        }
+        .ezo-grid {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: .18;
+          background-image:
+            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+          background-size: 44px 44px;
+          mask-image: linear-gradient(to bottom, black, transparent 78%);
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          .ezo-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+        }
+      `}</style>
       {/* View As User Banner */}
       {viewAsUser && (
         <div className="bg-amber-500/20 border-b border-amber-500/30 text-amber-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
@@ -280,13 +350,13 @@ function DashboardContent() {
         </div>
       )}
 
-      <header className={`sticky top-0 z-40 bg-slate-900 border-b border-white/10 ${viewAsUser ? 'top-[50px]' : ''}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <header className={`sticky top-0 z-40 ezo-header border-b border-white/10 ${viewAsUser ? 'top-[50px]' : ''}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 flex items-center justify-center shadow-[0_8px_30px_rgba(16,185,129,.25)] group-hover:scale-105 transition-transform">
               <IconBuilding className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">EZO</span>
+            <span className="text-xl font-black tracking-tight text-white">EZO</span>
           </Link>
           
           <div className="flex items-center gap-4">
@@ -320,16 +390,16 @@ function DashboardContent() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 relative z-10">
         
         {/* ⭐ 4 COMPACT BLOCKS ⭐ */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           
           {/* Block 1: User Profile + Trial Info */}
-          <div className="bg-slate-800/50 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all">
+          <div className="ezo-card bg-slate-900/55 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
             <div className="flex items-start gap-3 mb-3">
               <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/20">
                   {userInitial}
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-800 flex items-center justify-center">
@@ -365,8 +435,8 @@ function DashboardContent() {
           </div>
 
           {/* Block 2: Buildings */}
-          <div className="bg-slate-800/50 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-3">
+          <div className="ezo-card bg-slate-900/55 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-4 shadow-lg shadow-cyan-500/10">
               <IconBuilding className="w-4 h-4 text-white" />
             </div>
             <div className="text-2xl font-bold text-white mb-1">{buildings.length}</div>
@@ -383,8 +453,8 @@ function DashboardContent() {
           </div>
 
           {/* Block 3: Balance */}
-          <div className="bg-slate-800/50 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mb-3">
+          <div className="ezo-card bg-slate-900/55 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
               <IconChart className="w-4 h-4 text-white" />
             </div>
             <div className="text-2xl font-bold text-white mb-1">₾0</div>
@@ -393,8 +463,8 @@ function DashboardContent() {
           </div>
 
           {/* Block 4: Test/Placeholder */}
-          <div className="bg-slate-800/50 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-3">
+          <div className="ezo-card bg-slate-900/55 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mb-4 shadow-lg shadow-violet-500/10">
               <IconShield className="w-4 h-4 text-white" />
             </div>
             <div className="text-2xl font-bold text-white mb-1">100%</div>
@@ -406,7 +476,7 @@ function DashboardContent() {
 
         {/* Onboarding Steps */}
         {completedSteps < onboardingSteps.length && !viewAsUser && (
-          <div className="mb-6 bg-slate-800/50 border border-white/10 rounded-xl p-6">
+          <div className="ezo-card mb-7 bg-slate-900/55 border border-white/10 rounded-2xl p-6 lg:p-7">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-base font-bold text-white mb-1 flex items-center gap-2">
@@ -462,9 +532,9 @@ function DashboardContent() {
           ) : buildings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {buildings.map((building) => (
-                <div key={building.id} className="group bg-slate-800/50 border border-white/10 rounded-lg p-3 hover:border-emerald-500/50 hover:bg-slate-800 transition-all flex flex-col">
+                <div key={building.id} className="group ezo-building-card bg-slate-900/60 border border-white/10 rounded-2xl p-4 hover:border-emerald-400/40 hover:bg-slate-900/80 transition-all flex flex-col">
                   <div className="flex items-start justify-between mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/10">
                       <IconBuilding className="w-4 h-4 text-white" />
                     </div>
                   </div>
@@ -489,7 +559,7 @@ function DashboardContent() {
               ))}
             </div>
           ) : (
-            <div className="bg-slate-800/50 border border-white/10 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center">
+            <div className="ezo-empty bg-slate-900/45 border border-white/10 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center">
               <div className="w-12 h-12 rounded-full bg-slate-700/50 flex items-center justify-center mb-3"><IconBuilding className="w-6 h-6 text-slate-400" /></div>
               <h3 className="font-bold text-white text-sm mb-1">{viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ჯერ არ არის დამატებული'}</h3>
               <p className="text-xs text-slate-400 mb-3 max-w-xs">{viewAsUser ? 'ეს მომხმარებელი ჯერ არ არის დაკავშირებული არცერთ კორპუსთან.' : 'დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.'}</p>
@@ -511,7 +581,7 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 ezo-dashboard flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
           <div className="text-white font-semibold mb-1">EZO იტვირთება</div>
