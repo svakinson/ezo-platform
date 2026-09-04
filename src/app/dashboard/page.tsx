@@ -95,6 +95,20 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconChart = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+)
+
+const IconShield = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+)
+
 // ============ შიდა კომპონენტი ============
 function DashboardContent() {
   const router = useRouter()
@@ -477,7 +491,7 @@ function DashboardContent() {
           ) : (
             <div className="bg-slate-800/50 border border-white/10 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center">
               <div className="w-12 h-12 rounded-full bg-slate-700/50 flex items-center justify-center mb-3"><IconBuilding className="w-6 h-6 text-slate-400" /></div>
-              <h3 className="font-bold text-white text-sm mb-1">{viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ერ არ არის დამატებული'}</h3>
+              <h3 className="font-bold text-white text-sm mb-1">{viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ჯერ არ არის დამატებული'}</h3>
               <p className="text-xs text-slate-400 mb-3 max-w-xs">{viewAsUser ? 'ეს მომხმარებელი ჯერ არ არის დაკავშირებული არცერთ კორპუსთან.' : 'დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.'}</p>
               {!viewAsUser && (
                 <Link href="/dashboard/add-building" className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all">
