@@ -7,15 +7,15 @@ import Link from 'next/link'
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="2" width="16" height="20" rx="1" />
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2" />
     <path d="M9 22v-4h6v4" />
     <path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01" />
   </svg>
 )
 
 const IconLogOut = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
     <polyline points="16 17 21 12 16 7" />
     <line x1="21" y1="12" x2="9" y2="12" />
@@ -23,14 +23,14 @@ const IconLogOut = ({ className = "w-5 h-5" }: { className?: string }) => (
 )
 
 const IconArrowRight = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="5" y1="12" x2="19" y2="12" />
     <polyline points="12 5 19 12 12 19" />
   </svg>
 )
 
 const IconSparkles = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z" />
     <path d="M19 15l.5 2 2 .5-2 .5-.5 2-.5-2-2-.5 2-.5.5-2z" />
     <path d="M5 17l.5 1.5L7 19l-1.5.5L5 21l-.5-1.5L3 19l1.5-.5L5 17z" />
@@ -38,27 +38,27 @@ const IconSparkles = ({ className = "w-5 h-5" }: { className?: string }) => (
 )
 
 const IconBell = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
   </svg>
 )
 
 const IconCheck = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 )
 
 const IconPlus = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="12" y1="5" x2="12" y2="19" />
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 )
 
 const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 12 20 22 4 22 4 12" />
     <rect x="2" y="7" width="20" height="5" />
     <line x1="12" y1="22" x2="12" y2="7" />
@@ -68,14 +68,21 @@ const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
 )
 
 const IconEye = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 )
 
+const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+)
+
 const IconEdit = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
@@ -83,13 +90,13 @@ const IconEdit = ({ className = "w-5 h-5" }: { className?: string }) => (
 
 const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
   </svg>
 )
 
 const IconChart = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="20" x2="18" y2="10" />
     <line x1="12" y1="20" x2="12" y2="4" />
     <line x1="6" y1="20" x2="6" y2="14" />
@@ -97,27 +104,9 @@ const IconChart = ({ className = "w-5 h-5" }: { className?: string }) => (
 )
 
 const IconShield = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
-)
-
-const IconTrash = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-  </svg>
-)
-
-// ============ Structural corner marks — a drafting/registration-mark motif reused ============
-// wherever a surface stands in for a "sheet" (logo mark, stamp tiles, building tiles).
-const CornerMarks = ({ active = false }: { active?: boolean }) => (
-  <>
-    <span className={`pointer-events-none absolute left-0 top-0 h-2.5 w-2.5 border-l border-t transition-colors duration-300 ${active ? 'border-[var(--brass)]' : 'border-[var(--line)]'}`} />
-    <span className={`pointer-events-none absolute right-0 top-0 h-2.5 w-2.5 border-r border-t transition-colors duration-300 ${active ? 'border-[var(--brass)]' : 'border-[var(--line)]'}`} />
-    <span className={`pointer-events-none absolute left-0 bottom-0 h-2.5 w-2.5 border-l border-b transition-colors duration-300 ${active ? 'border-[var(--brass)]' : 'border-[var(--line)]'}`} />
-    <span className={`pointer-events-none absolute right-0 bottom-0 h-2.5 w-2.5 border-r border-b transition-colors duration-300 ${active ? 'border-[var(--brass)]' : 'border-[var(--line)]'}`} />
-  </>
 )
 
 // ============ შიდა კომპონენტი ============
@@ -235,42 +224,13 @@ function DashboardContent() {
     return 'საღამო მშვიდობისა'
   }
 
-  const themeStyle = `
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-    :root {
-      --ink-950:#0B0F1A;
-      --ink-900:#121826;
-      --ink-800:#19212F;
-      --line:#2B364C;
-      --paper:#EAE3D3;
-      --muted:#8992A6;
-      --brass:#C79A4B;
-      --brass-soft: rgba(199,154,75,0.12);
-      --sage:#84A488;
-      --brick:#BC6659;
-    }
-    .ezo-body { font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; }
-    .ezo-display { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
-    .ezo-mono { font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace; }
-    .ezo-grid {
-      background-image:
-        linear-gradient(rgba(234,227,211,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(234,227,211,0.035) 1px, transparent 1px);
-      background-size: 28px 28px;
-    }
-  `
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--ink-950)] ezo-grid ezo-body flex items-center justify-center">
-        <style jsx global>{themeStyle}</style>
+      <div className="min-h-screen bg-[#F7F7F4] flex items-center justify-center">
         <div className="text-center">
-          <div className="relative w-12 h-12 mx-auto mb-4 border border-[var(--line)]">
-            <CornerMarks active />
-            <IconLoader className="w-5 h-5 text-[var(--brass)] absolute inset-0 m-auto" />
-          </div>
-          <div className="text-[var(--paper)] ezo-display font-semibold mb-1">EZO იტვირთება</div>
-          <div className="text-[var(--muted)] text-sm">გთხოვთ მოიცადოთ...</div>
+          <div className="w-16 h-16 border-4 border-[#BFE7D5] border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-[#202522] font-semibold mb-1">EZO იტვირთება</div>
+          <div className="text-[#737A75] text-sm">გთხოვთ მოიცადოთ...</div>
         </div>
       </div>
     )
@@ -299,61 +259,97 @@ function DashboardContent() {
     : 0
 
   return (
-    <div className="min-h-screen bg-[var(--ink-950)] ezo-grid ezo-body">
-      <style jsx global>{themeStyle}</style>
-
-      {/* View As User Banner — styled as a redline / revision note */}
+    <div className="min-h-screen bg-[#F7F7F4] ezo-page relative overflow-hidden">
+      <style jsx global>{`
+        .ezo-page {
+          color-scheme: light;
+          background:
+            radial-gradient(circle at 0% 0%, rgba(22,138,98,.055), transparent 28%),
+            radial-gradient(circle at 100% 35%, rgba(59,130,246,.035), transparent 25%),
+            #F7F7F4;
+        }
+        .ezo-page::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          opacity: .35;
+          background-image:
+            linear-gradient(rgba(32,37,34,.018) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(32,37,34,.018) 1px, transparent 1px);
+          background-size: 48px 48px;
+          mask-image: linear-gradient(to bottom, black, transparent 75%);
+        }
+        .ezo-page header {
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          box-shadow: 0 1px 0 rgba(32,37,34,.035), 0 10px 35px rgba(32,37,34,.035);
+        }
+        .ezo-page main > div > div,
+        .ezo-page main > div > section {
+          box-shadow: 0 10px 35px rgba(32,37,34,.045);
+        }
+        .ezo-page a,
+        .ezo-page button {
+          transition: all .2s ease;
+        }
+        .ezo-page a:hover,
+        .ezo-page button:hover {
+          transform: translateY(-1px);
+        }
+      `}</style>
+      {/* View As User Banner */}
       {viewAsUser && (
-        <div className="bg-[var(--brass-soft)] border-b border-dashed border-[var(--brass)]/50 text-[var(--paper)] px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
+        <div className="bg-[#FFF8E7] border-b border-amber-200 text-amber-900 px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
           <div className="flex items-center gap-3 text-sm max-w-4xl">
-            <IconEye className="w-4 h-4 text-[var(--brass)] flex-shrink-0" />
-            <span className="truncate text-[var(--paper)]/90">
-              თქვენ ხედავთ ინტერფეისს როგორც: <strong className="text-[var(--paper)]">{viewAsUser.email}</strong>
-              <span className="text-[var(--brass)]/60 mx-2">/</span>
+            <IconEye className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <span className="truncate">
+              თქვენ ხედავთ ინტერფეისს როგორც: <strong className="text-[#202522]">{viewAsUser.email}</strong> 
+              <span className="text-amber-400/70 mx-2">|</span>
               როლი: {viewAsUser.role === 'chairman' ? 'თავმჯდომარე' : viewAsUser.role}
             </span>
           </div>
           <Link 
             href="/admin/users" 
-            className="text-xs border border-[var(--brass)]/50 hover:bg-[var(--brass)] hover:text-[var(--ink-950)] text-[var(--brass)] px-4 py-2 font-medium transition-colors flex items-center gap-2 flex-shrink-0"
+            className="text-xs bg-[#168A62] hover:bg-[#0E6B4B] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 flex-shrink-0"
           >
             ← ადმინ პანელში დაბრუნება
           </Link>
         </div>
       )}
 
-      <header className={`sticky top-0 z-40 bg-[var(--ink-950)]/95 backdrop-blur-sm border-b border-[var(--line)] ${viewAsUser ? 'top-[50px]' : ''}`}>
+      <header className={`sticky top-0 z-40 bg-white/90 border-b border-[#E8E8E2] ${viewAsUser ? 'top-[50px]' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-9 h-9 border border-[var(--line)] bg-[var(--ink-900)] flex items-center justify-center group-hover:border-[var(--brass)] transition-colors">
-              <CornerMarks />
-              <IconBuilding className="w-4 h-4 text-[var(--brass)]" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-[#168A62] flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <IconBuilding className="w-5 h-5 text-[#202522]" />
             </div>
-            <span className="text-xl font-semibold text-[var(--paper)] ezo-display tracking-tight">EZO</span>
+            <span className="text-xl font-bold text-[#202522]">EZO</span>
           </Link>
           
           <div className="flex items-center gap-4">
-            <button className="relative p-2 text-[var(--muted)] hover:text-[var(--paper)] transition-colors">
+            <button className="relative p-2 text-[#737A75] hover:text-[#202522] hover:bg-[#F1F3F0] rounded-lg transition-colors">
               <IconBell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[var(--brass)] rounded-full"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#168A62] rounded-full animate-pulse"></span>
             </button>
             
-            <div className="hidden sm:block h-8 w-px bg-[var(--line)]"></div>
+            <div className="hidden sm:block h-8 w-px bg-[#EEF1ED]"></div>
             
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-right">
-                <div className="text-sm font-medium text-[var(--paper)]">{userName}</div>
-                <div className="text-xs text-[var(--muted)] ezo-mono">{viewAsUser ? viewAsUser.email : user?.email}</div>
+                <div className="text-sm font-medium text-[#202522]">{userName}</div>
+                <div className="text-xs text-[#737A75]">{viewAsUser ? viewAsUser.email : user?.email}</div>
               </div>
-              <div className="relative w-10 h-10 border border-[var(--line)] bg-[var(--ink-900)] flex items-center justify-center text-[var(--brass)] font-semibold ezo-display">
-                <CornerMarks />
+              <div className="relative w-10 h-10 rounded-xl bg-[#168A62] flex items-center justify-center text-[#202522] font-bold shadow-lg">
                 {userInitial}
+                {/* Notification dot */}
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full animate-pulse"></span>
               </div>
             </div>
             
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--brick)] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#737A75] hover:text-[#C84444] hover:bg-[#FCEEEE] rounded-lg transition-colors"
             >
               <IconLogOut className="w-4 h-4" />
               <span className="hidden sm:inline">გამოსვლა</span>
@@ -362,181 +358,182 @@ function DashboardContent() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-        {/* Title block strip */}
-        <div className="flex items-baseline justify-between mb-6 pb-4 border-b border-[var(--line)]">
-          <div>
-            <div className="text-xs text-[var(--muted)] ezo-mono mb-1">{getGreeting()} · {currentTime.toLocaleDateString('ka-GE', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
-            <h1 className="text-2xl font-semibold text-[var(--paper)] ezo-display">{userName}</h1>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* ⭐ 4 COMPACT BLOCKS ⭐ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          
+          {/* Block 1: User Profile + Trial Info */}
+          <div className="bg-white border border-[#E8E8E2] rounded-xl p-4 hover:border-[#D9DDD8] transition-all">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-[#168A62] flex items-center justify-center text-[#202522] font-bold">
+                  {userInitial}
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[#168A62] rounded-full border-2 border-slate-800 flex items-center justify-center">
+                  <IconCheck className="w-2 h-2 text-[#202522]" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-[#168A62] font-medium mb-0.5">{getGreeting()}</div>
+                <div className="text-[10px] text-[#8B918D]">
+                  {currentTime.toLocaleDateString('ka-GE', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </div>
+              </div>
+            </div>
+            <div className="mb-2">
+              <h3 className="text-sm font-bold text-[#202522] mb-0.5">{userName}!</h3>
+              <p className="text-xs text-[#737A75] truncate">{viewAsUser ? viewAsUser.email : user?.email}</p>
+            </div>
+            {userProfile?.is_trial && trialDaysLeft > 0 && (
+              <div className="mt-2 pt-2 border-t border-[#E8E8E2]">
+                <div className="flex items-center gap-1.5 text-[10px] text-amber-300">
+                  <IconGift className="w-3 h-3 flex-shrink-0" />
+                  <span className="font-medium">უფასო საცდელი პერიოდი</span>
+                </div>
+                <div className="text-[10px] text-amber-200/70 mt-0.5">
+                  დარჩენილია: <span className="font-semibold text-amber-300">{trialDaysLeft} დღე</span> სრული წვდომით.
+                </div>
+              </div>
+            )}
+            <div className="mt-2 flex items-center gap-1.5 text-[10px] text-[#168A62]">
+              <IconCheck className="w-3 h-3" />
+              <span>დადასტურებული ანგარიში</span>
+            </div>
           </div>
-          {userProfile?.is_trial && trialDaysLeft > 0 && (
-            <div className="hidden sm:flex items-center gap-2 border border-[var(--brass)]/40 bg-[var(--brass-soft)] px-3 py-1.5">
-              <IconGift className="w-3.5 h-3.5 text-[var(--brass)]" />
-              <span className="text-xs text-[var(--paper)]">საცდელი — <span className="ezo-mono text-[var(--brass)]">{trialDaysLeft} დღე</span> დარჩენილია</span>
-            </div>
-          )}
-        </div>
 
-        {/* ⭐ Schedule strip — one bordered instrument panel, divided by hairlines ⭐ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-[var(--line)] divide-y sm:divide-y-0 sm:divide-x divide-[var(--line)] bg-[var(--ink-900)] mb-8">
-
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-[var(--muted)]">ანგარიშის სტატუსი</span>
-              <IconCheck className="w-3.5 h-3.5 text-[var(--sage)]" />
+          {/* Block 2: Buildings */}
+          <div className="bg-white border border-[#E8E8E2] rounded-xl p-4 hover:border-[#D9DDD8] transition-all">
+            <div className="w-8 h-8 rounded-lg bg-[#EAF2FF] text-[#3478D4] flex items-center justify-center mb-3">
+              <IconBuilding className="w-4 h-4 text-[#202522]" />
             </div>
-            <div className="text-sm text-[var(--paper)] font-medium mb-1">დადასტურებული</div>
-            <div className="text-xs text-[var(--muted)] truncate ezo-mono">{viewAsUser ? viewAsUser.email : user?.email}</div>
-          </div>
-
-          <div className="p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-[var(--muted)]">კორპუსები</span>
-              <IconBuilding className="w-3.5 h-3.5 text-[var(--muted)]" />
-            </div>
-            <div className="text-3xl text-[var(--paper)] ezo-mono tabular-nums mb-1">{buildings.length}</div>
-            {!viewAsUser ? (
+            <div className="text-2xl font-bold text-[#202522] mb-1">{buildings.length}</div>
+            <div className="text-xs text-[#555D58] mb-1.5">კორპუსები</div>
+            {!viewAsUser && (
               <Link 
                 href="/dashboard/add-building"
-                className="inline-flex items-center gap-1 text-xs text-[var(--brass)] hover:opacity-80 transition-opacity mt-auto"
+                className="inline-flex items-center gap-1 text-xs text-[#3478D4] hover:text-blue-300 transition-colors font-medium"
               >
                 <IconPlus className="w-3 h-3" />
                 დაამატე კორპუსი
               </Link>
-            ) : <div className="mt-auto" />}
+            )}
           </div>
 
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-[var(--muted)]">ბალანსი</span>
-              <IconChart className="w-3.5 h-3.5 text-[var(--muted)]" />
+          {/* Block 3: Balance */}
+          <div className="bg-white border border-[#E8E8E2] rounded-xl p-4 hover:border-[#D9DDD8] transition-all">
+            <div className="w-8 h-8 rounded-lg bg-[#E8F7F0] text-[#168A62] flex items-center justify-center mb-3">
+              <IconChart className="w-4 h-4 text-[#202522]" />
             </div>
-            <div className="text-3xl text-[var(--paper)] ezo-mono tabular-nums mb-1">₾0</div>
-            <div className="text-xs text-[var(--muted)]">ამ თვის შემოსავალი</div>
+            <div className="text-2xl font-bold text-[#202522] mb-1">₾0</div>
+            <div className="text-xs text-[#555D58] mb-1.5">ბალანსი</div>
+            <div className="text-[10px] text-[#8B918D]">ამ თვის შემოსავალი</div>
           </div>
 
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-[var(--muted)]">მზაობა</span>
-              <IconShield className="w-3.5 h-3.5 text-[var(--muted)]" />
+          {/* Block 4: Test/Placeholder */}
+          <div className="bg-white border border-[#E8E8E2] rounded-xl p-4 hover:border-[#D9DDD8] transition-all">
+            <div className="w-8 h-8 rounded-lg bg-[#F2ECFF] text-[#7B55C8] flex items-center justify-center mb-3">
+              <IconShield className="w-4 h-4 text-[#202522]" />
             </div>
-            <div className="text-3xl text-[var(--paper)] ezo-mono tabular-nums mb-1">100%</div>
-            <div className="text-xs text-[var(--muted)]">ანგარიში აქტიურია</div>
+            <div className="text-2xl font-bold text-[#202522] mb-1">100%</div>
+            <div className="text-xs text-[#555D58] mb-1.5">მზაობა</div>
+            <div className="text-[10px] text-[#8B918D]">ანგარიში აქტიურია</div>
           </div>
 
         </div>
 
-        {/* Onboarding — a punch list, since the content genuinely is a sequence */}
+        {/* Onboarding Steps */}
         {completedSteps < onboardingSteps.length && !viewAsUser && (
-          <div className="mb-8 border border-[var(--line)] bg-[var(--ink-900)] p-6">
-            <div className="flex items-center justify-between mb-5">
+          <div className="mb-6 bg-white border border-[#E8E8E2] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-base font-semibold text-[var(--paper)] ezo-display flex items-center gap-2">
-                  <IconSparkles className="w-4 h-4 text-[var(--brass)]" />
+                <h2 className="text-base font-bold text-[#202522] mb-1 flex items-center gap-2">
+                  <IconSparkles className="w-4 h-4 text-[#168A62]" />
                   დაწყების გზამკვლევი
                 </h2>
-                <p className="text-[var(--muted)] text-xs mt-1">შეავსე ეს ნაბიჯები სრული ფუნქციონალის მისაღებად</p>
+                <p className="text-[#737A75] text-xs">შეავსე ეს ნაბიჯები სრული ფუნქციონალის მისაღებად</p>
               </div>
-              <div className="text-right ezo-mono">
-                <div className="text-lg text-[var(--paper)]">{completedSteps}/{onboardingSteps.length}</div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-[#202522]">{completedSteps}/{onboardingSteps.length}</div>
+                <div className="text-[10px] text-[#8B918D]">ნაბიჯი შესრულებული</div>
               </div>
             </div>
             <div className="space-y-2">
               {onboardingSteps.map((step, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center gap-4 p-3 border transition-all ${step.done ? 'bg-[var(--sage)]/5 border-[var(--sage)]/30' : step.link ? 'bg-[var(--ink-800)] border-[var(--line)] hover:border-[var(--brass)]/50 cursor-pointer group' : 'bg-[var(--ink-800)] border-[var(--line)] opacity-50'}`}
-                  onClick={() => step.link && router.push(step.link)}
-                >
-                  <div className={`w-7 h-7 border flex items-center justify-center flex-shrink-0 ezo-mono text-xs ${step.done ? 'border-[var(--sage)] text-[var(--sage)]' : 'border-[var(--line)] text-[var(--muted)] group-hover:border-[var(--brass)] group-hover:text-[var(--brass)]'}`}>
-                    {step.done ? <IconCheck className="w-3.5 h-3.5" /> : String(i + 1).padStart(2, '0')}
+                <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${step.done ? 'bg-[#E8F7F0] border-[#BFE7D5]' : step.link ? 'bg-[#FAFAF8] border-[#E8E8E2] hover:border-[#168A62]/30 cursor-pointer group' : 'bg-[#FAFAF8] border-[#E8E8E2] opacity-50'}`} onClick={() => step.link && router.push(step.link)}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${step.done ? 'bg-[#168A62] text-white' : 'bg-[#EEF1ED] text-[#737A75] group-hover:bg-[#168A62]/20 group-hover:text-[#168A62]'}`}>
+                    {step.done ? <IconCheck className="w-4 h-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-[var(--paper)] mb-0.5">{step.title}</div>
-                    <div className="text-xs text-[var(--muted)] truncate">{step.desc}</div>
+                    <div className="text-sm font-semibold text-[#202522] mb-0.5">{step.title}</div>
+                    <div className="text-xs text-[#737A75] truncate">{step.desc}</div>
                   </div>
-                  {step.link && !step.done && <IconArrowRight className="w-4 h-4 text-[var(--muted)] group-hover:text-[var(--brass)] group-hover:translate-x-1 transition-all flex-shrink-0" />}
+                  {step.link && !step.done && <IconArrowRight className="w-4 h-4 text-[#8B918D] group-hover:text-[#168A62] group-hover:translate-x-1 transition-all flex-shrink-0" />}
                 </div>
               ))}
             </div>
-            <div className="mt-5 h-1 bg-[var(--ink-800)] overflow-hidden">
-              <div className="h-full bg-[var(--brass)] transition-all duration-700" style={{ width: progressWidth }} />
+            <div className="mt-4 h-1.5 bg-[#EEF1ED] rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000" style={{ width: progressWidth }} />
             </div>
           </div>
         )}
 
-        {/* Buildings List — plan tiles with registration corners */}
+        {/* Buildings List */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[var(--paper)] ezo-display flex items-center gap-2">
-              <IconBuilding className="w-4 h-4 text-[var(--brass)]" />
+            <h2 className="text-base font-bold text-[#202522] flex items-center gap-2">
+              <IconBuilding className="w-4 h-4 text-[#168A62]" />
               ჩემი კორპუსები
             </h2>
             {!viewAsUser && (
-              <Link href="/dashboard/add-building" className="text-xs text-[var(--brass)] hover:opacity-80 font-medium flex items-center gap-1 transition-opacity">
+              <Link href="/dashboard/add-building" className="text-xs text-[#168A62] hover:text-[#168A62] font-medium flex items-center gap-1 transition-colors">
+                <IconArrowRight className="w-3 h-3 rotate-[-90deg]" />
                 ახლის დამატება
-                <IconPlus className="w-3 h-3" />
               </Link>
             )}
           </div>
 
           {buildingsLoading ? (
-            <div className="border border-[var(--line)] bg-[var(--ink-900)] p-12 flex items-center justify-center">
-              <IconLoader className="w-5 h-5 text-[var(--brass)] animate-spin" />
+            <div className="bg-white border border-[#E8E8E2] rounded-xl p-12 flex items-center justify-center">
+              <IconLoader className="w-6 h-6 text-[#168A62] animate-spin" />
             </div>
           ) : buildings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {buildings.map((building) => (
-                <div key={building.id} className="group relative bg-[var(--ink-900)] border border-[var(--line)] hover:border-[var(--brass)]/60 transition-all flex flex-col">
-                  <CornerMarks />
-                  <div className="p-4 border-b border-[var(--line)] flex items-start justify-between">
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-[var(--paper)] text-sm truncate ezo-display" title={building.name || building.street}>{building.name || building.street}</h3>
-                      <p className="text-xs text-[var(--muted)] truncate mt-0.5">{building.city}{building.district ? `, ${building.district}` : ''}</p>
-                    </div>
-                    <IconBuilding className="w-4 h-4 text-[var(--muted)] flex-shrink-0 ml-2" />
-                  </div>
-                  <div className="p-4 flex-grow grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-lg text-[var(--paper)] ezo-mono tabular-nums">{building.apartments_count || 0}</div>
-                      <div className="text-[10px] text-[var(--muted)]">ბინა</div>
-                    </div>
-                    <div>
-                      <div className="text-lg text-[var(--paper)] ezo-mono tabular-nums">{building.entrances_count || 0}</div>
-                      <div className="text-[10px] text-[var(--muted)]">სადარბაზო</div>
+                <div key={building.id} className="group bg-white border border-[#E8E8E2] rounded-lg p-3 hover:border-[#168A62]/40 hover:bg-[#F4F5F2] transition-all flex flex-col">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#168A62] flex items-center justify-center flex-shrink-0">
+                      <IconBuilding className="w-4 h-4 text-[#202522]" />
                     </div>
                   </div>
-                  <div className="flex items-stretch border-t border-[var(--line)]">
+                  <h3 className="font-bold text-[#202522] text-xs mb-1 truncate" title={building.name || building.street}>{building.name || building.street}</h3>
+                  <p className="text-[10px] text-[#737A75] mb-2 truncate">{building.city}{building.district ? `, ${building.district}` : ''}</p>
+                  <div className="space-y-0.5 mb-3 flex-grow">
+                    <div className="flex items-center gap-1 text-[10px] text-[#737A75]"><IconCheck className="w-2.5 h-2.5 text-[#168A62] flex-shrink-0" /><span className="truncate">{building.apartments_count || 0} ბინა</span></div>
+                    <div className="flex items-center gap-1 text-[10px] text-[#737A75]"><IconCheck className="w-2.5 h-2.5 text-[#168A62] flex-shrink-0" /><span className="truncate">{building.entrances_count || 0} სადარბაზო</span></div>
+                  </div>
+                  <div className="flex flex-col gap-1 pt-2 border-t border-[#E8E8E2] mt-auto">
                     {!viewAsUser ? (
                       <>
-                        <Link href={`/dashboard/building/${building.id}/edit`} className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[var(--muted)] hover:text-[var(--paper)] hover:bg-[var(--ink-800)] text-xs font-medium transition-colors border-r border-[var(--line)]">
-                          <IconEdit className="w-3 h-3" />
-                          რედაქტირება
-                        </Link>
-                        <Link href={`/dashboard/building/${building.id}`} className="flex-1 flex items-center justify-center px-2 py-2.5 text-[var(--brass)] hover:bg-[var(--brass-soft)] text-xs font-medium transition-colors border-r border-[var(--line)]">
-                          მართვა
-                        </Link>
-                        <button onClick={() => handleDeleteBuilding(building.id)} className="flex items-center justify-center px-2.5 py-2.5 text-[var(--muted)] hover:text-[var(--brick)] hover:bg-[var(--brick)]/10 transition-colors">
-                          <IconTrash className="w-3.5 h-3.5" />
-                        </button>
+                        <Link href={`/dashboard/building/${building.id}/edit`} className="w-full px-2 py-1 bg-[#EAF2FF] hover:bg-[#DDEBFF] text-[#3478D4] text-[10px] font-medium rounded transition-colors text-center">რედაქტირება</Link>
+                        <Link href={`/dashboard/building/${building.id}`} className="w-full px-2 py-1 bg-[#168A62]/20 hover:bg-[#168A62]/30 text-[#168A62] text-[10px] font-medium rounded transition-colors text-center">მართვა</Link>
+                        <button onClick={() => handleDeleteBuilding(building.id)} className="w-full px-2 py-1 bg-[#FCEEEE] hover:bg-[#F8DDDD] text-[#C84444] text-[10px] font-medium rounded transition-colors text-center">წაშლა</button>
                       </>
                     ) : (
-                      <div className="w-full text-center text-[10px] text-[var(--muted)] py-2.5">მხოლოდ ნახვა</div>
+                      <div className="text-center text-[10px] text-[#8B918D] py-1 bg-[#FAFAF8] rounded border border-white/5">მხოლოდ ნახვა</div>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="relative border border-dashed border-[var(--line)] p-10 flex flex-col items-center justify-center text-center">
-              <div className="w-12 h-12 border border-[var(--line)] flex items-center justify-center mb-4"><IconBuilding className="w-5 h-5 text-[var(--muted)]" /></div>
-              <h3 className="font-semibold text-[var(--paper)] text-sm mb-1 ezo-display">{viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ჯერ არ არის დამატებული'}</h3>
-              <p className="text-xs text-[var(--muted)] mb-4 max-w-xs">{viewAsUser ? 'ეს მომხმარებელი ჯერ არ არის დაკავშირებული არცერთ კორპუსთან.' : 'დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.'}</p>
+            <div className="bg-white border border-[#E8E8E2] border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-full bg-[#F0F2EE] flex items-center justify-center mb-3"><IconBuilding className="w-6 h-6 text-[#737A75]" /></div>
+              <h3 className="font-bold text-[#202522] text-sm mb-1">{viewAsUser ? 'ამ მომხმარებელს კორპუსი არ აქვს' : 'კორპუსი ჯერ არ არის დამატებული'}</h3>
+              <p className="text-xs text-[#737A75] mb-3 max-w-xs">{viewAsUser ? 'ეს მომხმარებელი ჯერ არ არის დაკავშირებული არცერთ კორპუსთან.' : 'დაამატე შენი კორპუსის ინფორმაცია, რათა დაიწყო სრულფასოვანი მართვა.'}</p>
               {!viewAsUser && (
-                <Link href="/dashboard/add-building" className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--brass)] text-[var(--brass)] text-xs font-medium hover:bg-[var(--brass)] hover:text-[var(--ink-950)] transition-colors">
-                  <IconPlus className="w-3.5 h-3.5" />
-                  კორპუსის დამატება
+                <Link href="/dashboard/add-building" className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-[#168A62] to-[#168A62] text-[#202522] text-xs font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all">
+                  <IconArrowRight className="w-3 h-3 rotate-[-90deg]" />კორპუსის დამატება
                 </Link>
               )}
             </div>
@@ -552,13 +549,11 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#0B0F1A] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F7F4] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border border-[#2B364C] flex items-center justify-center">
-            <IconLoader className="w-5 h-5 text-[#C79A4B]" />
-          </div>
-          <div className="text-[#EAE3D3] font-semibold mb-1">EZO იტვირთება</div>
-          <div className="text-[#8992A6] text-sm">გთხოვთ მოიცადოთ...</div>
+          <div className="w-16 h-16 border-4 border-[#BFE7D5] border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-[#202522] font-semibold mb-1">EZO იტვირთება</div>
+          <div className="text-[#737A75] text-sm">გთხოვთ მოიცადოთ...</div>
         </div>
       </div>
     }>
