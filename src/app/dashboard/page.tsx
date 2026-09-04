@@ -132,13 +132,6 @@ const IconFileText = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
-const IconBell = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-)
-
 const IconTrendingUp = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -431,11 +424,6 @@ function DashboardContent() {
           </Link>
           
           <div className="flex items-center gap-3">
-            <button className="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-              <IconBell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full"></span>
-            </button>
-
             <div className="sm:hidden flex items-center gap-2">
               <div className="relative">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-sm flex items-center justify-center shadow-lg shadow-emerald-500/30">
@@ -453,6 +441,7 @@ function DashboardContent() {
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex items-center justify-center shadow-lg shadow-emerald-500/30">
                   {userInitial}
                 </div>
+                {/* ⭐ მხოლოდ ავატარის სტატუსის მანიშნებელი */}
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full"></span>
               </div>
               <div className="hidden lg:block">
@@ -548,7 +537,6 @@ function DashboardContent() {
 
                     <div className="relative z-10 p-4 sm:p-5">
                       <div className="flex items-start gap-4">
-                        {/* იკონა / ნომერი */}
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
                           step.done
                             ? 'bg-emerald-500 text-slate-900'
@@ -563,7 +551,6 @@ function DashboardContent() {
                           )}
                         </div>
 
-                        {/* კონტენტი */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className={`font-bold ${
@@ -583,7 +570,6 @@ function DashboardContent() {
                             {step.desc}
                           </p>
 
-                          {/* აქტიური ნაბიჯის CTA */}
                           {isActive && step.link && (
                             <div className="mt-4">
                               <div className="mb-3 p-3 bg-slate-800/50 rounded-xl border border-white/5">
@@ -664,26 +650,64 @@ function DashboardContent() {
              ═══════════════════════════════════════════════════════ */
           <div className="space-y-6">
             
-            {/* Trial Banner */}
-            {userProfile?.is_trial && trialDaysLeft > 0 && (
-              <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <IconGift className="w-6 h-6 text-amber-400 flex-shrink-0" />
-                  <div>
-                    <div className="text-base font-bold text-amber-200">🎁 უფასო საცდელი პერიოდი</div>
-                    <div className="text-sm text-amber-300/70">
-                      დარჩენილია: <span className="font-bold text-amber-200">{trialDaysLeft} დღე</span> სრული წვდომით.
-                    </div>
+            {/* ⭐ განახლებული 3-ნაწილიანი ბანერი */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* ნაწილი 1: აქტიური პაკეტის სტატუსი */}
+              <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                  <IconShield className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-emerald-200 mb-0.5">
+                    {userProfile?.is_trial ? '🎁 საცდელი პერიოდი' : '✅ აქტიური პაკეტი'}
+                  </div>
+                  <div className="text-xs text-emerald-300/70 truncate">
+                    {userProfile?.is_trial ? (
+                      <>დარჩენილია: <span className="font-bold text-emerald-200">{trialDaysLeft} დღე</span></>
+                    ) : (
+                      userProfile?.subscription_status === 'active' ? 'პროფესიონალური გეგმა' : 'უფასო გეგმა'
+                    )}
                   </div>
                 </div>
-                <Link 
-                  href="/pricing"
-                  className="text-sm bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-semibold transition-colors flex-shrink-0 shadow-lg shadow-amber-500/20"
-                >
-                  პაკეტის შეძენა →
-                </Link>
               </div>
-            )}
+
+              {/* ნაწილი 2: პაკეტების შეცვლა */}
+              <Link 
+                href="/pricing"
+                className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-4 hover:border-amber-500/40 transition-all group cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <IconGift className="w-6 h-6 text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-amber-200 mb-0.5">
+                    პაკეტის შეცვლა
+                  </div>
+                  <div className="text-xs text-amber-300/70">
+                    ნახე ყველა გეგმა →
+                  </div>
+                </div>
+              </Link>
+
+              {/* ნაწილი 3: პარამეტრები */}
+              <button className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-center gap-4 hover:border-blue-500/40 transition-all group">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <svg className="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="text-sm font-bold text-blue-200 mb-0.5">
+                    პარამეტრები
+                  </div>
+                  <div className="text-xs text-blue-300/70">
+                    კორპუსის მართვა
+                  </div>
+                </div>
+              </button>
+            </div>
 
             {/* Welcome Section */}
             <div className="mb-2">
@@ -748,7 +772,10 @@ function DashboardContent() {
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">ღია საჩივრები</span>
                   <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
-                    <IconBell className="w-4 h-4" />
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
                   </div>
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-white mb-1">{mockStats.openRequests}</div>
