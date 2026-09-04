@@ -441,7 +441,6 @@ function DashboardContent() {
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex items-center justify-center shadow-lg shadow-emerald-500/30">
                   {userInitial}
                 </div>
-                {/* ⭐ მხოლოდ ავატარის სტატუსის მანიშნებელი */}
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full"></span>
               </div>
               <div className="hidden lg:block">
@@ -646,12 +645,12 @@ function DashboardContent() {
           </div>
         ) : (
           /* ═══════════════════════════════════════════════════════
-             ACTIVE STATE - კორპუსი დამატებულია
+             ACTIVE STATE - კორპუსი დამატებულია (მობილურზე ოპტიმიზირებული)
              ═══════════════════════════════════════════════════════ */
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             
             {/* ⭐ განახლებული 3-ნაწილიანი ბანერი */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               
               {/* ნაწილი 1: აქტიური პაკეტის სტატუსი */}
               <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-4">
@@ -709,56 +708,46 @@ function DashboardContent() {
               </button>
             </div>
 
-            {/* Welcome Section */}
-            <div className="mb-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                {getGreeting()}, {userName}! 👋
-              </h1>
-              <p className="text-slate-400 text-sm">
-                აი, რა ხდება თქვენს კორპუსში დღეს.
-              </p>
-            </div>
-
-            {/* ⭐ KPI Cards - ზედა რიგი */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* ⭐ KPI Cards - ზედა რიგი (მობილურზე 2x2, დესკტოპზე 4 სვეტი) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {/* შეგროვებული */}
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-emerald-500/30 transition-all">
+              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-emerald-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">ამ თვის შეგროვება</span>
                   <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
                     <IconTrendingUp className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-white mb-1">₾{mockStats.collected.toLocaleString()}</div>
-                <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">₾{mockStats.collected.toLocaleString()}</div>
+                <span className="text-[10px] sm:text-xs text-emerald-400 font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  {mockStats.paidApartments}/{mockStats.totalApartments} ბინამ გადაიხადა
+                  {mockStats.paidApartments}/{mockStats.totalApartments} ბინამ
                 </span>
               </div>
 
               {/* დავალიანება */}
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-rose-500/30 transition-all">
+              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-rose-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">საერთო დავალიანება</span>
                   <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
                     <IconAlertCircle className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-white mb-1">₾{mockStats.debt.toLocaleString()}</div>
-                <span className="text-xs text-rose-400 font-semibold">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">₾{mockStats.debt.toLocaleString()}</div>
+                <span className="text-[10px] sm:text-xs text-rose-400 font-semibold">
                   {mockStats.totalApartments - mockStats.paidApartments} ბინას უჭირს
                 </span>
               </div>
 
               {/* შეგროვების მაჩვენებელი */}
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all">
+              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-blue-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-400">შეგროვების მაჩვენებელი</span>
+                  <span className="text-xs font-semibold text-slate-400">შეგროვების %</span>
                   <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
                     <IconCheck className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-white mb-1">{mockStats.collectionRate}%</div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">{mockStats.collectionRate}%</div>
                 <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-700"
@@ -768,7 +757,7 @@ function DashboardContent() {
               </div>
 
               {/* ღია საჩივრები */}
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-purple-500/30 transition-all">
+              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-purple-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">ღია საჩივრები</span>
                   <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
@@ -778,20 +767,20 @@ function DashboardContent() {
                     </svg>
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-white mb-1">{mockStats.openRequests}</div>
-                <span className="text-xs text-purple-400 font-semibold">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">{mockStats.openRequests}</div>
+                <span className="text-[10px] sm:text-xs text-purple-400 font-semibold">
                   მოითხოვს ყურადღებას
                 </span>
               </div>
             </div>
 
-            {/* ⭐ შუა რიგი - 2 სვეტი */}
-            <div className="grid lg:grid-cols-3 gap-6">
+            {/* ⭐ შუა რიგი - 2 სვეტი (მობილურზე 1 სვეტი, დესკტოპზე 2:1) */}
+            <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
               
               {/* მარცხენა სვეტი - ტოპ მოვალეები (2/3 სიგანე) */}
-              <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                     <IconAlertCircle className="w-5 h-5 text-rose-400" />
                     ყველაზე დიდი მოვალეები
                   </h3>
@@ -805,15 +794,15 @@ function DashboardContent() {
                       className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-white/5 hover:border-rose-500/30 transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-bold text-rose-400">{debtor.apartment.split(' ')[1]}</span>
                         </div>
-                        <div>
-                          <div className="text-sm font-semibold text-white">{debtor.apartment}</div>
-                          <div className="text-xs text-slate-400">{debtor.owner}</div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-white truncate">{debtor.apartment}</div>
+                          <div className="text-xs text-slate-400 truncate">{debtor.owner}</div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         <div className="text-sm font-bold text-rose-400">₾{debtor.amount}</div>
                         <div className="text-[10px] text-slate-500">{debtor.days} დღე</div>
                       </div>
@@ -827,9 +816,9 @@ function DashboardContent() {
               </div>
 
               {/* მარჯვენა სვეტი - ბოლო აქტივობა (1/3 სიგანე) */}
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                     <IconClock className="w-5 h-5 text-blue-400" />
                     ბოლო აქტივობა
                   </h3>
@@ -844,7 +833,7 @@ function DashboardContent() {
                           <ActivityIcon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs text-slate-300 mb-0.5">{activity.message}</div>
+                          <div className="text-xs text-slate-300 mb-0.5 break-words">{activity.message}</div>
                           <div className="text-[10px] text-slate-500">{activity.time}</div>
                         </div>
                       </div>
@@ -854,9 +843,9 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* ⭐ სწრაფი მოქმედებები */}
-            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-white mb-4">სწრაფი მოქმედებები</h3>
+            {/* ⭐ სწრაფი მოქმედებები (მობილურზე 1 სვეტი, დიდ ეკრანზე 3) */}
+            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-white mb-4">სწრაფი მოქმედებები</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button className="flex items-center justify-center gap-2 p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-500/40 rounded-xl transition-all group">
                   <IconPlus className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
