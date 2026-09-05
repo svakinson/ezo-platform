@@ -181,8 +181,8 @@ function Navbar() {
               <IconBuilding className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className={`text-xl lg:text-2xl font-bold transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>EZO</span>
-              <span className={`text-base lg:text-lg transition-colors ${scrolled ? 'text-slate-600' : 'text-white/70'}`}>ეზო</span>
+              <span className={`text-xl lg:text-2xl font-bold transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>Bino</span>
+              <span className={`text-base lg:text-lg transition-colors ${scrolled ? 'text-slate-600' : 'text-white/70'}`}>ბინო</span>
             </div>
           </Link>
 
@@ -277,8 +277,8 @@ function Hero() {
           </div>
         </div>
 
-        {/* Floating Cards - Scattered Layout */}
-        <div className="hidden xl:block absolute top-32 right-12">
+        {/* Floating Cards - Better Spaced Layout */}
+        <div className="hidden xl:block absolute top-28 right-8">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
@@ -286,13 +286,13 @@ function Hero() {
               </div>
               <div>
                 <div className="text-sm font-semibold text-white">გადახდა მიღებულია</div>
-                <div className="text-xs text-emerald-400 font-medium">+ 240  · ბინა 14</div>
+                <div className="text-xs text-emerald-400 font-medium">+ 240 ₾ · ბინა 14</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="hidden xl:block absolute top-72 right-48">
+        <div className="hidden xl:block absolute top-56 right-40">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_1s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center">
@@ -306,7 +306,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden xl:block absolute top-48 right-4">
+        <div className="hidden xl:block absolute top-80 right-8">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_2s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
@@ -320,7 +320,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden xl:block absolute bottom-48 right-32">
+        <div className="hidden xl:block absolute top-[28rem] right-32">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_3s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
@@ -334,7 +334,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden xl:block absolute bottom-24 right-12">
+        <div className="hidden xl:block absolute top-[32rem] right-8">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_4s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
@@ -377,29 +377,37 @@ function Hero() {
 function ProblemSolution() {
   return (
     <section className="py-16 sm:py-20 lg:py-28 bg-slate-50/50 relative overflow-hidden">
-      {/* Dashboard Background Elements - More Visible */}
-      <div className="absolute inset-0 opacity-[0.12] pointer-events-none">
-        {/* KPI Cards */}
-        <div className="absolute top-24 left-12 w-56 h-28 bg-emerald-500 rounded-2xl shadow-2xl"></div>
-        <div className="absolute top-24 left-72 w-56 h-28 bg-blue-500 rounded-2xl shadow-2xl"></div>
-        <div className="absolute top-24 left-[42rem] w-56 h-28 bg-rose-500 rounded-2xl shadow-2xl"></div>
+      {/* Dashboard Background - More Visible with Overlay */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Dashboard UI Elements */}
+        <div className="absolute inset-0 opacity-[0.15]">
+          {/* KPI Cards Row */}
+          <div className="absolute top-20 left-8 w-48 h-24 bg-emerald-500 rounded-xl shadow-2xl"></div>
+          <div className="absolute top-20 left-60 w-48 h-24 bg-blue-500 rounded-xl shadow-2xl"></div>
+          <div className="absolute top-20 left-[28rem] w-48 h-24 bg-rose-500 rounded-xl shadow-2xl"></div>
+          <div className="absolute top-20 left-[40rem] w-48 h-24 bg-amber-500 rounded-xl shadow-2xl"></div>
+          
+          {/* Chart */}
+          <div className="absolute top-56 left-8 w-[36rem] h-48 bg-white rounded-xl shadow-2xl"></div>
+          
+          {/* Table */}
+          <div className="absolute top-56 left-[40rem] w-80 h-48 bg-white rounded-xl shadow-2xl"></div>
+          
+          {/* Activity Feed */}
+          <div className="absolute top-[28rem] left-8 w-72 h-40 bg-white rounded-xl shadow-2xl"></div>
+          
+          {/* Stats Cards */}
+          <div className="absolute top-[28rem] left-80 w-64 h-40 bg-white rounded-xl shadow-2xl"></div>
+          <div className="absolute top-[28rem] left-[40rem] w-72 h-40 bg-white rounded-xl shadow-2xl"></div>
+        </div>
         
-        {/* Chart */}
-        <div className="absolute top-64 left-12 w-[40rem] h-48 bg-white rounded-2xl shadow-2xl"></div>
-        
-        {/* Table */}
-        <div className="absolute top-64 left-[44rem] w-96 h-48 bg-white rounded-2xl shadow-2xl"></div>
-        
-        {/* Activity */}
-        <div className="absolute top-[32rem] left-12 w-80 h-40 bg-white rounded-2xl shadow-2xl"></div>
-        
-        {/* Additional Cards */}
-        <div className="absolute top-[32rem] left-[36rem] w-72 h-40 bg-white rounded-2xl shadow-2xl"></div>
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/80 via-slate-50/90 to-slate-50/80"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">რატომ EZO?</div>
+          <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">რატომ Bino?</div>
           <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4">
             კორპუსის მართვა აღარასდროს იქნება ქაოსური
           </h2>
@@ -409,7 +417,7 @@ function ProblemSolution() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          <div className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-rose-100 shadow-sm">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 sm:p-6 lg:p-8 border border-rose-100 shadow-sm">
             <div className="flex items-center gap-3 mb-5 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-100 flex items-center justify-center">
                 <IconX className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600" />
@@ -435,12 +443,12 @@ function ProblemSolution() {
             </ul>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-emerald-100 shadow-sm">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 sm:p-6 lg:p-8 border border-emerald-100 shadow-sm">
             <div className="flex items-center gap-3 mb-5 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
                 <IconCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900">EZO-სთან ერთად</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">Bino-სთან ერთად</h3>
             </div>
             <ul className="space-y-3 sm:space-y-4">
               {[
@@ -506,7 +514,7 @@ function Features() {
     {
       icon: IconPhone,
       title: 'მობილური აპლიკაცია',
-      description: 'EZO ხელმისაწვდომია ნებისმიერი მოწყობილობიდან, ნებისმიერ დროს. Push შეტყობინებები და მობილური გადახდები.',
+      description: 'Bino ხელმისაწვდომია ნებისმიერი მოწყობილობიდან, ნებისმიერ დროს. Push შეტყობინებები და მობილური გადახდები.',
       color: 'teal',
       details: ['iOS და Android', 'Push შეტყობინებები', 'მობილური გადახდა', 'QR ვიზიტორებისთვის']
     }
@@ -590,7 +598,7 @@ function HowItWorks() {
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">მარტივი დასაწყისი</div>
           <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-4">
-            როგორ მუშაობს EZO?
+            როგორ მუშაობს Bino?
           </h2>
           <p className="text-base sm:text-lg text-slate-400">
             ციფრულ მართვაზე გადასვლა რამდენიმე წუთში შეგიძლია.
@@ -629,21 +637,21 @@ function Testimonials() {
       name: 'ნინო კავთარაძე',
       role: 'კორპუსის ადმინისტრატორი',
       building: 'ვაჟა-ფშაველას 42',
-      content: 'EZO-ს გამოყენების შემდეგ მაცხოვრებლებს აღარ სჭირდებათ სხვადასხვა ჩატში ინფორმაციის ძებნა. ყველაფერი ერთ ადგილას გვაქვს — გადახდები, ხარჯები და განცხადებები. დროის 70% დავზოგეთ.',
+      content: 'Bino-ს გამოყენების შემდეგ მაცხოვრებლებს აღარ სჭირდებათ სხვადასხვა ჩატში ინფორმაციის ძებნა. ყველაფერი ერთ ადგილას გვაქვს — გადახდები, ხარჯები და განცხადებები. დროის 70% დავზოგეთ.',
       rating: 5
     },
     {
       name: 'გიორგი ბერიძე',
       role: 'მაცხოვრებელი',
       building: 'საბურთალო, ქუჩა 15',
-      content: 'ბოლოს და ბოლოს გავიგე სად იხარჯება ჩვენი ყოველთვიური შენატანი. გამჭვირვალობა არის ყველაზე დიდი ირებულება. აპლიკაცია ძალიან მარტივი და ინტუიციურია.',
+      content: 'ბოლოს და ბოლოს გავიგე სად იხარჯება ჩვენი ყოველთვიური შენატანი. გამჭვირვალობა არის ყველაზე დიდი ღირებულება. აპლიკაცია ძალიან მარტივი და ინტუიციურია.',
       rating: 5
     },
     {
       name: 'ლევან მაისურაძე',
       role: 'ქონების მმართველი',
       building: '5 კორპუსი',
-      content: '5 კორპუსს ვმართავ EZO-ს საშუალებით. ყველაფერი ერთი დაფიდან. ანგარიშები ავტომატურად გენერირდება და მაცხოვრებლები უკმაყოფილოები არიან სერვისით.',
+      content: '5 კორპუსს ვმართავ Bino-ს საშუალებით. ყველაფერი ერთი დაფიდან. ანგარიშები ავტომატურად გენერირდება და მაცხოვრებლები უკმაყოფილოები არიან სერვისით.',
       rating: 5
     }
   ]
@@ -806,7 +814,7 @@ function FAQ() {
       answer: 'კორპუსის რეგისტრაცია სულ რამდენიმე წუთს იღებს. შეავსე მარტივი ფორმა, დაამატე ბინები და მოიწვიე მაცხოვრებლები. პირველი ანგარიში შეგიძლია იმავე დღეს ნახო.'
     },
     {
-      question: 'არის თუ არა EZO უსაფრთხო?',
+      question: 'არის თუ არა Bino უსაფრთხო?',
       answer: 'დიახ. ჩვენ ვიყენებთ საბანკო დონის SSL დაშიფვრას, როლურ წვდომას და რეგულარულ ბექაფებს. თქვენი მონაცემები დაცულია და არასდროს გაზიარდება მესამე პირებთან.'
     },
     {
@@ -815,11 +823,11 @@ function FAQ() {
     },
     {
       question: 'როგორ მუშაობს გადახდები?',
-      answer: 'EZO ინტეგრირებულია ქართულ ბანკებთან (TBC, Bank of Georgia). მაცხოვრებლებს შეუძლიათ გადაიხადონ ბარათით, ბანკის გადარიცხვით ან მობილური ბანკინგით. ყველა ტრანზაქცია ავტომატურად ირიცხება სისტემაში.'
+      answer: 'Bino ინტეგრირებულია ქართულ ბანკებთან (TBC, Bank of Georgia). მაცხოვრებლებს შეუძლიათ გადაიხადონ ბარათით, ბანკის გადარიცხვით ან მობილური ბანკინგით. ყველა ტრანზაქცია ავტომატურად ირიცხება სისტემაში.'
     },
     {
       question: 'არის თუ არა მობილური აპლიკაცია?',
-      answer: 'დიახ, EZO ხელმისაწვდომია iOS და Android-ზე. მობილური აპლიკაციით შეგიძლია გადაიხადო, ნახო განცხადებები, შეიტანო შეკეთების მოთხოვნა და მიიღო push შეტყობინებები.'
+      answer: 'დიახ, Bino ხელმისაწვდომია iOS და Android-ზე. მობილური აპლიკაციით შეგიძლია გადაიხადო, ნახო განცხადებები, შეიტანო შეკეთების მოთხოვნა და მიიღო push შეტყობინებები.'
     },
     {
       question: 'რა ხდება ჩემს მონაცემებთან?',
@@ -882,7 +890,7 @@ function Contact() {
               <IconChat className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
             </div>
             <h3 className="font-bold text-slate-900 mb-2 text-base sm:text-lg">ელ-ფოსტა</h3>
-            <a href="mailto:info@ezo.ge" className="text-emerald-600 hover:underline text-base sm:text-lg font-medium">info@ezo.ge</a>
+            <a href="mailto:info@bino.ge" className="text-emerald-600 hover:underline text-base sm:text-lg font-medium">info@bino.ge</a>
             <p className="text-slate-500 text-xs sm:text-sm mt-2">ვუპასუხებთ 24 საათის განმავლობაში</p>
           </div>
           <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200/60 hover:border-emerald-300 transition-colors">
@@ -910,7 +918,7 @@ function FinalCTA() {
               მზად ხარ კორპუსის მართვა გაამარტივო?
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-emerald-50 mb-6 sm:mb-8 leading-relaxed">
-              შეუერთდი 420+ კორპუსს, რომლებიც უკვე იყენებენ EZO-ს ყოველდღიური მართვისთვის. დაიწყე უფასოდ დღესვე.
+              შეუერთდი 420+ კორპუსს, რომლებიც უკვე იყენებენ Bino-ს ყოველდღიური მართვისთვის. დაიწყე უფასოდ დღესვე.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Link href="/register" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base">
@@ -953,8 +961,8 @@ function Footer() {
                 <IconBuilding className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-lg sm:text-xl font-bold text-white">EZO</span>
-                <span className="text-xs sm:text-sm text-white/60">ეზო</span>
+                <span className="text-lg sm:text-xl font-bold text-white">Bino</span>
+                <span className="text-xs sm:text-sm text-white/60">ბინო</span>
               </div>
             </Link>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mb-4 sm:mb-6">
@@ -1001,7 +1009,7 @@ function Footer() {
         </div>
 
         <div className="pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
-          <p className="text-xs sm:text-sm text-slate-500">© 2026 EZO. ყველა უფლება დაცულია.</p>
+          <p className="text-xs sm:text-sm text-slate-500">© 2026 Bino. ყველა უფლება დაცულია.</p>
           <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-500">
             <span>🇬🇪 დამზადებულია საქართველოში</span>
           </div>
