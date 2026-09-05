@@ -47,6 +47,15 @@ const IconStar = ({ className = "w-4 h-4" }: { className?: string }) => (
 )
 
 // ============ TYPES ============
+interface PlanInfo {
+  name: string
+  price: string
+  buildings: number
+  apartments: number
+  color: string
+  popular?: boolean
+}
+
 interface UpsellModalProps {
   isOpen: boolean
   onClose: () => void
@@ -56,8 +65,8 @@ interface UpsellModalProps {
 }
 
 // ============ HELPER FUNCTIONS ============
-const getPlanInfo = (plan: 'basic' | 'pro' | 'enterprise') => {
-  const plans = {
+const getPlanInfo = (plan: 'basic' | 'pro' | 'enterprise'): PlanInfo => {
+  const plans: Record<'basic' | 'pro' | 'enterprise', PlanInfo> = {
     basic: { name: 'Basic', price: '50', buildings: 1, apartments: 100, color: 'slate' },
     pro: { name: 'Pro', price: '100', buildings: 3, apartments: 300, color: 'emerald', popular: true },
     enterprise: { name: 'Enterprise', price: '200', buildings: 999999, apartments: 999999, color: 'purple' },
@@ -155,7 +164,7 @@ export default function UpsellModal({
               {plans.map((plan) => {
                 const info = getPlanInfo(plan)
                 const isCurrent = plan === currentPlan
-                const isPopular = info.popular
+                const isPopular = info.popular || false
 
                 return (
                   <div 
