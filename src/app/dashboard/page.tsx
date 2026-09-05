@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import UpsellModal from '@/components/UpsellModal'
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -152,6 +153,16 @@ const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+// ============ ჰელპერ ფუნქციები ============
+const getMaxBuildingsByPlan = (plan: 'basic' | 'pro' | 'enterprise'): number => {
+  const limits = {
+    basic: 1,
+    pro: 3,
+    enterprise: 999999,
+  }
+  return limits[plan] || 1
+}
+
 // ============ შიდა კომპონენტი ============
 function DashboardContent() {
   const router = useRouter()
@@ -165,9 +176,10 @@ function DashboardContent() {
   const [buildingsLoading, setBuildingsLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
   
-  // ⭐ ახალი: კორპუსის გადამრთველი
+  // ⭐ ახალი: კორპუსის გადამრთველი და Upsell Modal
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isUpsellModalOpen, setIsUpsellModalOpen] = useState(false)
 
   useEffect(() => {
     const checkSession = async () => {
@@ -195,7 +207,7 @@ function DashboardContent() {
 
         const { data: targetProfile } = await supabase
           .from('profiles')
-          .select('id, email, full_name, role, subscription_status, is_trial, trial_ends_at')
+          .select('id, email, full_name, role, subscription_status, subscription_plan, is_trial, trial_ends_at')
           .eq('id', viewAsId)
           .maybeSingle()
 
@@ -208,7 +220,7 @@ function DashboardContent() {
       } else {
         const { data: myProfile } = await supabase
           .from('profiles')
-          .select('id, email, full_name, role, subscription_status, is_trial, trial_ends_at')
+          .select('id, email, full_name, role, subscription_status, subscription_plan, is_trial, trial_ends_at')
           .eq('id', session.user.id)
           .maybeSingle()
         
@@ -299,6 +311,11 @@ function DashboardContent() {
     : 0
 
   const isPaidOrTrial = userProfile?.subscription_status === 'active' || userProfile?.is_trial;
+
+  // ⭐ ლიმიტის ლოგიკა
+  const currentPlan = (userProfile?.subscription_plan as 'basic' | 'pro' | 'enterprise') || 'basic'
+  const maxBuildings = getMaxBuildingsByPlan(currentPlan)
+  const isBuildingLimitReached = buildings.length >= maxBuildings
 
   // ⭐ ნაბიჯების სია - დინამიური
   const steps = [
@@ -703,7 +720,9 @@ function DashboardContent() {
                       <IconBuilding className="w-5 h-5 text-white" />
                     </div>
                     <div className="text-left min-w-0">
-                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">კორპუსი</div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                        კორპუსი {buildings.length}/{maxBuildings >= 999999 ? '∞' : maxBuildings}
+                      </div>
                       <div className="text-xs sm:text-sm font-bold text-white truncate">
                         {currentDropdownLabel}
                       </div>
@@ -756,10 +775,16 @@ function DashboardContent() {
                       </div>
                       
                       <div className="border-t border-white/10 p-2">
-                        <Link
-                          href="/dashboard/add-building"
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all"
-                          onClick={() => setIsDropdownOpen(false)}
+                        <button
+                          onClick={() => {
+                            setIsDropdownOpen(false)
+                            if (isBuildingLimitReached) {
+                              setIsUpsellModalOpen(true)
+                            } else {
+                              router.push('/dashboard/add-building')
+                            }
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left"
                         >
                           <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                             <IconPlus className="w-4 h-4 text-emerald-400" />
@@ -767,7 +792,7 @@ function DashboardContent() {
                           <div className="text-sm font-semibold text-emerald-400">
                             ახალი კორპუსის დამატება
                           </div>
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   </>
@@ -1052,6 +1077,15 @@ function DashboardContent() {
 
           </div>
         )}
+
+        {/* ⭐ Upsell Modal */}
+        <UpsellModal
+          isOpen={isUpsellModalOpen}
+          onClose={() => setIsUpsellModalOpen(false)}
+          currentPlan={currentPlan}
+          currentBuildings={buildings.length}
+          maxBuildings={maxBuildings}
+        />
 
       </main>
     </div>
