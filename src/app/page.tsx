@@ -277,7 +277,7 @@ function Hero() {
           </div>
         </div>
 
-        {/* Floating Cards - Better Spaced Layout */}
+        {/* Floating Cards - Right Side (no overlap) */}
         <div className="hidden xl:block absolute top-28 right-8">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
             <div className="flex items-center gap-3">
@@ -292,7 +292,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden xl:block absolute top-56 right-40">
+        <div className="hidden xl:block absolute top-56 right-44">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_1s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center">
@@ -306,7 +306,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden xl:block absolute top-80 right-8">
+        <div className="hidden xl:block absolute top-[22rem] right-8">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_2s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
@@ -320,7 +320,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden xl:block absolute top-[28rem] right-32">
+        <div className="hidden xl:block absolute top-[30rem] right-44">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_3s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
@@ -334,7 +334,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden xl:block absolute top-[32rem] right-8">
+        <div className="hidden xl:block absolute top-[37rem] right-8">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_4s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
@@ -348,7 +348,8 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden lg:block absolute bottom-40 right-16 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl max-w-[220px] animate-[float_6s_ease-in-out_infinite_1.5s]">
+        {/* 420+ Card - MOVED TO LEFT SIDE to avoid overlap */}
+        <div className="hidden xl:block absolute bottom-28 left-8 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl max-w-[220px] animate-[float_6s_ease-in-out_infinite_1.5s]">
           <div className="flex items-center gap-1 text-amber-400 mb-1.5">
             {[...Array(5)].map((_, i) => <IconStar key={i} className="w-3.5 h-3.5" />)}
           </div>
@@ -377,32 +378,90 @@ function Hero() {
 function ProblemSolution() {
   return (
     <section className="py-16 sm:py-20 lg:py-28 bg-slate-50/50 relative overflow-hidden">
-      {/* Dashboard Background - More Visible with Overlay */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Dashboard UI Elements */}
-        <div className="absolute inset-0 opacity-[0.15]">
-          {/* KPI Cards Row */}
-          <div className="absolute top-20 left-8 w-48 h-24 bg-emerald-500 rounded-xl shadow-2xl"></div>
-          <div className="absolute top-20 left-60 w-48 h-24 bg-blue-500 rounded-xl shadow-2xl"></div>
-          <div className="absolute top-20 left-[28rem] w-48 h-24 bg-rose-500 rounded-xl shadow-2xl"></div>
-          <div className="absolute top-20 left-[40rem] w-48 h-24 bg-amber-500 rounded-xl shadow-2xl"></div>
-          
-          {/* Chart */}
-          <div className="absolute top-56 left-8 w-[36rem] h-48 bg-white rounded-xl shadow-2xl"></div>
-          
-          {/* Table */}
-          <div className="absolute top-56 left-[40rem] w-80 h-48 bg-white rounded-xl shadow-2xl"></div>
-          
-          {/* Activity Feed */}
-          <div className="absolute top-[28rem] left-8 w-72 h-40 bg-white rounded-xl shadow-2xl"></div>
-          
-          {/* Stats Cards */}
-          <div className="absolute top-[28rem] left-80 w-64 h-40 bg-white rounded-xl shadow-2xl"></div>
-          <div className="absolute top-[28rem] left-[40rem] w-72 h-40 bg-white rounded-xl shadow-2xl"></div>
+      {/* Dashboard Background - NO OVERLAY, just blurred elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* KPI Cards Row */}
+        <div className="hidden lg:block absolute top-20 left-8 w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-xs text-slate-400 mb-1">ბალანსი</div>
+          <div className="text-2xl font-bold text-emerald-600">₾12,540</div>
+          <div className="text-xs text-emerald-500 mt-1">+12% ↑</div>
         </div>
         
-        {/* Overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/80 via-slate-50/90 to-slate-50/80"></div>
+        <div className="hidden lg:block absolute top-20 left-64 w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-xs text-slate-400 mb-1">შემოსავალი</div>
+          <div className="text-2xl font-bold text-blue-600">₾8,420</div>
+          <div className="text-xs text-blue-500 mt-1">96 ბინა</div>
+        </div>
+
+        <div className="hidden lg:block absolute top-20 left-[30rem] w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-xs text-slate-400 mb-1">ხარჯები</div>
+          <div className="text-2xl font-bold text-rose-600">₾4,120</div>
+          <div className="text-xs text-rose-500 mt-1">-3% ↓</div>
+        </div>
+
+        <div className="hidden lg:block absolute top-20 left-[48rem] w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-xs text-slate-400 mb-1">დავალიანება</div>
+          <div className="text-2xl font-bold text-amber-600">₾1,280</div>
+          <div className="text-xs text-amber-500 mt-1">7 ბინა</div>
+        </div>
+        
+        {/* Chart */}
+        <div className="hidden lg:block absolute top-56 left-8 w-[36rem] h-56 bg-white rounded-xl shadow-lg p-6 opacity-30">
+          <div className="text-sm font-semibold text-slate-700 mb-4">ფინანსური დინამიკა</div>
+          <div className="flex items-end gap-2 h-32">
+            {[40, 55, 45, 65, 50, 75, 60, 85, 70, 90, 80, 95].map((h, i) => (
+              <div key={i} className="flex-1 bg-emerald-500 rounded-t" style={{ height: `${h}%` }}></div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Table */}
+        <div className="hidden lg:block absolute top-56 left-[42rem] w-80 h-56 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-sm font-semibold text-slate-700 mb-3">ბოლო ტრანზაქციები</div>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex justify-between py-2 border-b border-slate-100">
+              <div className="text-xs text-slate-600">ბინა {i * 7}</div>
+              <div className="text-xs font-medium text-emerald-600">+₾180</div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Activity Feed */}
+        <div className="hidden lg:block absolute top-[28rem] left-8 w-80 h-44 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-sm font-semibold text-slate-700 mb-3">ბოლო აქტივობა</div>
+          {['გადახდა მიღებულია', 'შეკეთება დასრულდა', 'ახალი განცხადება'].map((item, i) => (
+            <div key={i} className="flex items-center gap-2 py-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+              <div className="text-xs text-slate-600">{item}</div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Stats Cards */}
+        <div className="hidden lg:block absolute top-[28rem] left-96 w-72 h-44 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-sm font-semibold text-slate-700 mb-3">სტატისტიკა</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center">
+              <div className="text-lg font-bold text-emerald-600">96%</div>
+              <div className="text-xs text-slate-500">გადახდილი</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-blue-600">12</div>
+              <div className="text-xs text-slate-500">აქტიური</div>
+            </div>
+          </div>
+        </div>
+        <div className="hidden lg:block absolute top-[28rem] left-[42rem] w-80 h-44 bg-white rounded-xl shadow-lg p-4 opacity-30">
+          <div className="text-sm font-semibold text-slate-700 mb-3">მომსახურებები</div>
+          <div className="space-y-2">
+            {['ლიფტი', 'დასუფთავება', 'ეზო'].map((item, i) => (
+              <div key={i} className="flex justify-between text-xs">
+                <span className="text-slate-600">{item}</span>
+                <span className="text-slate-700 font-medium">₾{45 + i * 20}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
