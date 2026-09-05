@@ -25,11 +25,9 @@ const IconBuilding = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconAlertCircle = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="12" />
-    <line x1="12" y1="16" x2="12.01" y2="16" />
+const IconStar = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 )
 
@@ -37,12 +35,6 @@ const IconArrowRight = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="5" y1="12" x2="19" y2="12" />
     <polyline points="12 5 19 12 12 19" />
-  </svg>
-)
-
-const IconStar = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 )
 
@@ -75,7 +67,7 @@ const getPlanInfo = (plan: 'basic' | 'pro' | 'enterprise'): PlanInfo => {
 }
 
 const formatBuildingLimit = (limit: number) => {
-  return limit >= 999999 ? '∞' : limit.toString()
+  return limit >= 999999 ? '' : limit.toString()
 }
 
 // ============ COMPONENT ============
@@ -83,8 +75,6 @@ export default function UpsellModal({
   isOpen, 
   onClose, 
   currentPlan, 
-  currentBuildings, 
-  maxBuildings 
 }: UpsellModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -99,168 +89,161 @@ export default function UpsellModal({
 
   if (!isOpen) return null
 
-  const currentPlanInfo = getPlanInfo(currentPlan)
   const plans: Array<'basic' | 'pro' | 'enterprise'> = ['basic', 'pro', 'enterprise']
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-slate-900 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="relative bg-slate-900 border border-white/10 rounded-3xl w-full max-w-5xl shadow-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="sticky top-0 bg-slate-900 border-b border-white/10 p-6 z-10">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-                <IconAlertCircle className="w-6 h-6 text-amber-400" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white mb-1">კორპუსის ლიმიტი ამოწურულია</h2>
-                <p className="text-sm text-slate-400">
-                  თქვენი მიმდინარე პაკეტი: <span className="font-semibold text-white">{currentPlanInfo.name}</span>
-                </p>
+        <div className="relative bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-500/20 border-b border-white/10 p-6 sm:p-8">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <IconX className="w-5 h-5" />
+          </button>
+          
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <IconBuilding className="w-6 h-6 text-white" />
               </div>
             </div>
-            <button 
-              onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <IconX className="w-5 h-5" />
-            </button>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+              განაახლე შენი პაკეტი
+            </h2>
+            <p className="text-slate-300 text-sm sm:text-base">
+              მეტი კორპუსის მართვა და მოწინავე ფუნქციები
+            </p>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          
-          {/* Current Status */}
-          <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <IconBuilding className="w-5 h-5 text-slate-400" />
-              <span className="text-sm font-medium text-slate-300">დამატებული კორპუსები</span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">{currentBuildings}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-3xl font-bold text-amber-400">{formatBuildingLimit(maxBuildings)}</span>
-              <span className="text-sm text-slate-400 ml-2">კორპუსი</span>
-            </div>
-            <div className="mt-3 text-sm text-slate-400">
-              {currentPlanInfo.name} პაკეტში შესაძლებელია მხოლოდ <span className="font-semibold text-white">{formatBuildingLimit(maxBuildings)} კორპუსის</span> მართვა.
-            </div>
-          </div>
+        {/* Plans Grid */}
+        <div className="p-6 sm:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {plans.map((plan) => {
+              const info = getPlanInfo(plan)
+              const isCurrent = plan === currentPlan
+              const isPopular = info.popular || false
 
-          {/* Plans Comparison */}
-          <div>
-            <h3 className="text-lg font-bold text-white mb-4">განაახლეთ პაკეტი მეტი კორპუსისთვის</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {plans.map((plan) => {
-                const info = getPlanInfo(plan)
-                const isCurrent = plan === currentPlan
-                const isPopular = info.popular || false
-
-                return (
-                  <div 
-                    key={plan}
-                    className={`relative rounded-2xl p-5 border transition-all ${
-                      isCurrent 
-                        ? 'bg-slate-800/50 border-white/20' 
-                        : isPopular
-                          ? 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50'
-                          : 'bg-slate-800/30 border-white/10 hover:border-white/20'
-                    }`}
-                  >
-                    {isPopular && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                        <IconStar className="w-3 h-3" />
-                        რეკომენდებული
-                      </div>
-                    )}
-
-                    {isCurrent && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-600 text-white text-xs font-bold rounded-full">
-                        მიმდინარე
-                      </div>
-                    )}
-
-                    <div className="mb-4">
-                      <h4 className="text-lg font-bold text-white mb-1">{info.name}</h4>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white">₾{info.price}</span>
-                        <span className="text-sm text-slate-400">/თვე</span>
-                      </div>
+              return (
+                <div 
+                  key={plan}
+                  className={`relative rounded-2xl p-6 border transition-all duration-300 ${
+                    isCurrent 
+                      ? 'bg-slate-800/50 border-white/20' 
+                      : isPopular
+                        ? 'bg-gradient-to-b from-emerald-500/10 to-teal-500/10 border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                        : 'bg-slate-800/30 border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold rounded-full flex items-center gap-1.5 shadow-lg">
+                      <IconStar className="w-3.5 h-3.5" />
+                      ყველაზე პოპულარული
                     </div>
+                  )}
 
-                    <ul className="space-y-2 mb-4">
-                      <li className="flex items-center gap-2 text-sm">
-                        <IconCheck className={`w-4 h-4 ${isCurrent ? 'text-slate-400' : isPopular ? 'text-emerald-400' : 'text-slate-400'}`} />
-                        <span className={isCurrent ? 'text-slate-400' : 'text-slate-300'}>
-                          {formatBuildingLimit(info.buildings)} კორპუსი
-                        </span>
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <IconCheck className={`w-4 h-4 ${isCurrent ? 'text-slate-400' : isPopular ? 'text-emerald-400' : 'text-slate-400'}`} />
-                        <span className={isCurrent ? 'text-slate-400' : 'text-slate-300'}>
-                          {info.apartments >= 999999 ? '∞' : info.apartments} ბინა
-                        </span>
-                      </li>
-                      {isPopular && (
-                        <>
-                          <li className="flex items-center gap-2 text-sm">
-                            <IconCheck className="w-4 h-4 text-emerald-400" />
-                            <span className="text-slate-300">პრიორიტეტული მხარდაჭერა</span>
-                          </li>
-                          <li className="flex items-center gap-2 text-sm">
-                            <IconCheck className="w-4 h-4 text-emerald-400" />
-                            <span className="text-slate-300">მოწინავე ანალიტიკა</span>
-                          </li>
-                        </>
-                      )}
-                    </ul>
+                  {isCurrent && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-slate-600 text-white text-xs font-bold rounded-full">
+                      მიმდინარე პაკეტი
+                    </div>
+                  )}
 
-                    {isCurrent ? (
-                      <div className="w-full py-2.5 text-center text-sm font-medium text-slate-400 bg-slate-700/50 rounded-lg">
-                        მიმდინარე პაკეტი
-                      </div>
-                    ) : (
-                      <Link 
-                        href="/pricing"
-                        onClick={onClose}
-                        className={`block w-full py-2.5 text-center text-sm font-semibold rounded-lg transition-all ${
-                          isPopular
-                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                            : 'bg-white/10 hover:bg-white/20 text-white'
-                        }`}
-                      >
-                        განახლება
-                      </Link>
-                    )}
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold text-white mb-2">{info.name}</h3>
+                    <div className="flex items-baseline justify-center gap-1 mb-1">
+                      <span className="text-4xl font-black text-white">₾{info.price}</span>
+                      <span className="text-slate-400">/თვე</span>
+                    </div>
                   </div>
-                )
-              })}
-            </div>
+
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-center gap-3 text-sm">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        isCurrent ? 'bg-slate-700' : isPopular ? 'bg-emerald-500/20' : 'bg-slate-700'
+                      }`}>
+                        <IconCheck className={`w-3 h-3 ${
+                          isCurrent ? 'text-slate-400' : isPopular ? 'text-emerald-400' : 'text-slate-400'
+                        }`} />
+                      </div>
+                      <span className={isCurrent ? 'text-slate-400' : 'text-slate-300'}>
+                        {formatBuildingLimit(info.buildings)} კორპუსი
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-3 text-sm">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        isCurrent ? 'bg-slate-700' : isPopular ? 'bg-emerald-500/20' : 'bg-slate-700'
+                      }`}>
+                        <IconCheck className={`w-3 h-3 ${
+                          isCurrent ? 'text-slate-400' : isPopular ? 'text-emerald-400' : 'text-slate-400'
+                        }`} />
+                      </div>
+                      <span className={isCurrent ? 'text-slate-400' : 'text-slate-300'}>
+                        {info.apartments >= 999999 ? '∞' : info.apartments} ბინა
+                      </span>
+                    </li>
+                    {isPopular && (
+                      <>
+                        <li className="flex items-center gap-3 text-sm">
+                          <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <IconCheck className="w-3 h-3 text-emerald-400" />
+                          </div>
+                          <span className="text-slate-300">პრიორიტეტული მხარდაჭერა</span>
+                        </li>
+                        <li className="flex items-center gap-3 text-sm">
+                          <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <IconCheck className="w-3 h-3 text-emerald-400" />
+                          </div>
+                          <span className="text-slate-300">მოწინავე ანალიტიკა</span>
+                        </li>
+                      </>
+                    )}
+                  </ul>
+
+                  {isCurrent ? (
+                    <div className="w-full py-3 text-center text-sm font-medium text-slate-400 bg-slate-700/50 rounded-xl">
+                      მიმდინარე პაკეტი
+                    </div>
+                  ) : (
+                    <Link 
+                      href="/pricing"
+                      onClick={onClose}
+                      className={`block w-full py-3 text-center text-sm font-semibold rounded-xl transition-all ${
+                        isPopular
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25'
+                          : 'bg-white/10 hover:bg-white/20 text-white'
+                      }`}
+                    >
+                      არჩევა
+                    </Link>
+                  )}
+                </div>
+              )
+            })}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/10">
+          {/* Bottom CTA */}
+          <div className="mt-8 text-center">
             <Link 
               href="/pricing"
               onClick={onClose}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/25"
             >
-              <span>განახლება Pro პაკეტზე</span>
+              <span>ყველა პაკეტის ნახვა</span>
               <IconArrowRight className="w-4 h-4" />
             </Link>
             <button 
               onClick={onClose}
-              className="flex-1 px-6 py-3 text-slate-400 hover:text-white font-medium rounded-xl transition-colors"
+              className="block w-full mt-4 text-slate-400 hover:text-white text-sm font-medium transition-colors"
             >
               შესაძლოა მოგვიანებით
             </button>
