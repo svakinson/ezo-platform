@@ -180,9 +180,9 @@ function Navbar() {
             <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               <IconBuilding className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
               <span className={`text-xl lg:text-2xl font-bold transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>EZO</span>
-              <span className={`text-xs lg:text-sm transition-colors ${scrolled ? 'text-slate-600' : 'text-white/70'}`}>ეზო</span>
+              <span className={`text-base lg:text-lg transition-colors ${scrolled ? 'text-slate-600' : 'text-white/70'}`}>ეზო</span>
             </div>
           </Link>
 
@@ -237,18 +237,16 @@ function Hero() {
 
       <div className="relative flex-1 flex items-center pt-16 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-full mb-10 backdrop-blur-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-sm font-medium text-emerald-300">ახალი თაობის პლატფორმა კორპუსებისთვის</span>
-            </div>
-
+          <div className="max-w-2xl">
             <h1 className="tracking-[-0.02em] mb-8">
-              <span className="block text-4xl sm:text-5xl lg:text-[4.75rem] font-extrabold text-white leading-[1.15]">
-                ხედავ ყველაფერს,
+              <span className="block leading-[1.15]">
+                <span className="text-4xl sm:text-5xl lg:text-[4.75rem] font-extrabold text-white">ხედავ </span>
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white/70 italic">ყველაფერს,</span>
               </span>
-              <span className="block text-3xl sm:text-4xl lg:text-5xl font-medium text-emerald-400 leading-[1.15] mt-3">
-                რაც შენს კორპუსში ხდება
+              <span className="block leading-[1.15] mt-3">
+                <span className="text-xl sm:text-2xl lg:text-3xl font-light text-emerald-400">რაც </span>
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-emerald-400">შენს კორპუსში </span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-emerald-400">ხდება</span>
               </span>
             </h1>
 
@@ -279,8 +277,8 @@ function Hero() {
           </div>
         </div>
 
-        {/* Floating Cards - Right Side */}
-        <div className="hidden xl:block absolute top-32 right-12 space-y-4">
+        {/* Floating Cards - Scattered Layout */}
+        <div className="hidden xl:block absolute top-32 right-12">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
@@ -288,11 +286,13 @@ function Hero() {
               </div>
               <div>
                 <div className="text-sm font-semibold text-white">გადახდა მიღებულია</div>
-                <div className="text-xs text-emerald-400 font-medium">+ 240 ₾ · ბინა 14</div>
+                <div className="text-xs text-emerald-400 font-medium">+ 240  · ბინა 14</div>
               </div>
             </div>
           </div>
+        </div>
 
+        <div className="hidden xl:block absolute top-72 right-48">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_1s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center">
@@ -304,7 +304,9 @@ function Hero() {
               </div>
             </div>
           </div>
+        </div>
 
+        <div className="hidden xl:block absolute top-48 right-4">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_2s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
@@ -316,7 +318,9 @@ function Hero() {
               </div>
             </div>
           </div>
+        </div>
 
+        <div className="hidden xl:block absolute bottom-48 right-32">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_3s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
@@ -328,7 +332,9 @@ function Hero() {
               </div>
             </div>
           </div>
+        </div>
 
+        <div className="hidden xl:block absolute bottom-24 right-12">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_4s]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
@@ -371,18 +377,24 @@ function Hero() {
 function ProblemSolution() {
   return (
     <section className="py-16 sm:py-20 lg:py-28 bg-slate-50/50 relative overflow-hidden">
-      {/* Dashboard Background Elements */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-32 bg-slate-800 rounded-2xl blur-xl"></div>
-        <div className="absolute top-40 right-20 w-96 h-48 bg-emerald-900 rounded-2xl blur-xl"></div>
-        <div className="absolute bottom-32 left-1/3 w-80 h-40 bg-blue-900 rounded-2xl blur-xl"></div>
-        <div className="absolute top-1/2 right-1/3 w-72 h-36 bg-purple-900 rounded-2xl blur-xl"></div>
+      {/* Dashboard Background Elements - More Visible */}
+      <div className="absolute inset-0 opacity-[0.12] pointer-events-none">
+        {/* KPI Cards */}
+        <div className="absolute top-24 left-12 w-56 h-28 bg-emerald-500 rounded-2xl shadow-2xl"></div>
+        <div className="absolute top-24 left-72 w-56 h-28 bg-blue-500 rounded-2xl shadow-2xl"></div>
+        <div className="absolute top-24 left-[42rem] w-56 h-28 bg-rose-500 rounded-2xl shadow-2xl"></div>
         
-        {/* Dashboard Cards */}
-        <div className="absolute top-32 left-20 w-56 h-24 bg-white rounded-xl shadow-lg blur-sm"></div>
-        <div className="absolute top-48 right-32 w-64 h-28 bg-white rounded-xl shadow-lg blur-sm"></div>
-        <div className="absolute bottom-40 left-1/4 w-60 h-32 bg-white rounded-xl shadow-lg blur-sm"></div>
-        <div className="absolute top-1/2 right-1/4 w-52 h-20 bg-white rounded-xl shadow-lg blur-sm"></div>
+        {/* Chart */}
+        <div className="absolute top-64 left-12 w-[40rem] h-48 bg-white rounded-2xl shadow-2xl"></div>
+        
+        {/* Table */}
+        <div className="absolute top-64 left-[44rem] w-96 h-48 bg-white rounded-2xl shadow-2xl"></div>
+        
+        {/* Activity */}
+        <div className="absolute top-[32rem] left-12 w-80 h-40 bg-white rounded-2xl shadow-2xl"></div>
+        
+        {/* Additional Cards */}
+        <div className="absolute top-[32rem] left-[36rem] w-72 h-40 bg-white rounded-2xl shadow-2xl"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -624,7 +636,7 @@ function Testimonials() {
       name: 'გიორგი ბერიძე',
       role: 'მაცხოვრებელი',
       building: 'საბურთალო, ქუჩა 15',
-      content: 'ბოლოს და ბოლოს გავიგე სად იხარჯება ჩვენი ყოველთვიური შენატანი. გამჭვირვალობა არის ყველაზე დიდი ღირებულება. აპლიკაცია ძალიან მარტივი და ინტუიციურია.',
+      content: 'ბოლოს და ბოლოს გავიგე სად იხარჯება ჩვენი ყოველთვიური შენატანი. გამჭვირვალობა არის ყველაზე დიდი ირებულება. აპლიკაცია ძალიან მარტივი და ინტუიციურია.',
       rating: 5
     },
     {
@@ -936,13 +948,13 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-8 sm:mb-12">
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5 mb-4">
+            <Link href="/" className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <IconBuilding className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex items-baseline gap-2">
                 <span className="text-lg sm:text-xl font-bold text-white">EZO</span>
-                <span className="text-xs text-white/60">ეზო</span>
+                <span className="text-xs sm:text-sm text-white/60">ეზო</span>
               </div>
             </Link>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mb-4 sm:mb-6">
