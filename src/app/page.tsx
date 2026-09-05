@@ -277,9 +277,9 @@ function Hero() {
           </div>
         </div>
 
-        {/* Floating Cards - Right Side (no overlap) */}
+        {/* Floating Cards - Staggered Animation like incoming messages */}
         <div className="hidden xl:block absolute top-28 right-8">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_0s_forwards] opacity-0 translate-x-8">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                 <IconCheck className="w-5 h-5 text-emerald-400" />
@@ -293,7 +293,7 @@ function Hero() {
         </div>
 
         <div className="hidden xl:block absolute top-56 right-44">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_1s]">
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_1.5s_forwards] opacity-0 translate-x-8">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center">
                 <IconWallet className="w-5 h-5 text-rose-400" />
@@ -307,7 +307,7 @@ function Hero() {
         </div>
 
         <div className="hidden xl:block absolute top-[22rem] right-8">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_2s]">
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_3s_forwards] opacity-0 translate-x-8">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                 <IconWrench className="w-5 h-5 text-blue-400" />
@@ -321,7 +321,7 @@ function Hero() {
         </div>
 
         <div className="hidden xl:block absolute top-[30rem] right-44">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_3s]">
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_4.5s_forwards] opacity-0 translate-x-8">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
                 <IconVote className="w-5 h-5 text-amber-400" />
@@ -335,7 +335,7 @@ function Hero() {
         </div>
 
         <div className="hidden xl:block absolute top-[37rem] right-8">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_4s]">
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_6s_forwards] opacity-0 translate-x-8">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
                 <IconBell className="w-5 h-5 text-purple-400" />
@@ -347,15 +347,6 @@ function Hero() {
             </div>
           </div>
         </div>
-
-        {/* 420+ Card - MOVED TO LEFT SIDE to avoid overlap */}
-        <div className="hidden xl:block absolute bottom-28 left-8 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl max-w-[220px] animate-[float_6s_ease-in-out_infinite_1.5s]">
-          <div className="flex items-center gap-1 text-amber-400 mb-1.5">
-            {[...Array(5)].map((_, i) => <IconStar key={i} className="w-3.5 h-3.5" />)}
-          </div>
-          <div className="text-sm font-semibold text-white">420+ კორპუსი</div>
-          <div className="text-xs text-slate-300">გვენდობა ყოველდღიურად</div>
-        </div>
       </div>
 
       <a href="#features" className="relative self-center mb-8 flex flex-col items-center gap-2 text-slate-400 hover:text-white transition-colors">
@@ -366,9 +357,15 @@ function Hero() {
       </a>
       
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+        @keyframes slideIn {
+          0% {
+            opacity: 0;
+            transform: translateX(2rem);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(0);
+          }
         }
       `}</style>
     </section>
@@ -377,93 +374,7 @@ function Hero() {
 
 function ProblemSolution() {
   return (
-    <section className="py-16 sm:py-20 lg:py-28 bg-slate-50/50 relative overflow-hidden">
-      {/* Dashboard Background - NO OVERLAY, just blurred elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* KPI Cards Row */}
-        <div className="hidden lg:block absolute top-20 left-8 w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-xs text-slate-400 mb-1">ბალანსი</div>
-          <div className="text-2xl font-bold text-emerald-600">₾12,540</div>
-          <div className="text-xs text-emerald-500 mt-1">+12% ↑</div>
-        </div>
-        
-        <div className="hidden lg:block absolute top-20 left-64 w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-xs text-slate-400 mb-1">შემოსავალი</div>
-          <div className="text-2xl font-bold text-blue-600">₾8,420</div>
-          <div className="text-xs text-blue-500 mt-1">96 ბინა</div>
-        </div>
-
-        <div className="hidden lg:block absolute top-20 left-[30rem] w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-xs text-slate-400 mb-1">ხარჯები</div>
-          <div className="text-2xl font-bold text-rose-600">₾4,120</div>
-          <div className="text-xs text-rose-500 mt-1">-3% ↓</div>
-        </div>
-
-        <div className="hidden lg:block absolute top-20 left-[48rem] w-52 h-28 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-xs text-slate-400 mb-1">დავალიანება</div>
-          <div className="text-2xl font-bold text-amber-600">₾1,280</div>
-          <div className="text-xs text-amber-500 mt-1">7 ბინა</div>
-        </div>
-        
-        {/* Chart */}
-        <div className="hidden lg:block absolute top-56 left-8 w-[36rem] h-56 bg-white rounded-xl shadow-lg p-6 opacity-30">
-          <div className="text-sm font-semibold text-slate-700 mb-4">ფინანსური დინამიკა</div>
-          <div className="flex items-end gap-2 h-32">
-            {[40, 55, 45, 65, 50, 75, 60, 85, 70, 90, 80, 95].map((h, i) => (
-              <div key={i} className="flex-1 bg-emerald-500 rounded-t" style={{ height: `${h}%` }}></div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Table */}
-        <div className="hidden lg:block absolute top-56 left-[42rem] w-80 h-56 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-sm font-semibold text-slate-700 mb-3">ბოლო ტრანზაქციები</div>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex justify-between py-2 border-b border-slate-100">
-              <div className="text-xs text-slate-600">ბინა {i * 7}</div>
-              <div className="text-xs font-medium text-emerald-600">+₾180</div>
-            </div>
-          ))}
-        </div>
-        
-        {/* Activity Feed */}
-        <div className="hidden lg:block absolute top-[28rem] left-8 w-80 h-44 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-sm font-semibold text-slate-700 mb-3">ბოლო აქტივობა</div>
-          {['გადახდა მიღებულია', 'შეკეთება დასრულდა', 'ახალი განცხადება'].map((item, i) => (
-            <div key={i} className="flex items-center gap-2 py-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-              <div className="text-xs text-slate-600">{item}</div>
-            </div>
-          ))}
-        </div>
-        
-        {/* Stats Cards */}
-        <div className="hidden lg:block absolute top-[28rem] left-96 w-72 h-44 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-sm font-semibold text-slate-700 mb-3">სტატისტიკა</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center">
-              <div className="text-lg font-bold text-emerald-600">96%</div>
-              <div className="text-xs text-slate-500">გადახდილი</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-blue-600">12</div>
-              <div className="text-xs text-slate-500">აქტიური</div>
-            </div>
-          </div>
-        </div>
-        <div className="hidden lg:block absolute top-[28rem] left-[42rem] w-80 h-44 bg-white rounded-xl shadow-lg p-4 opacity-30">
-          <div className="text-sm font-semibold text-slate-700 mb-3">მომსახურებები</div>
-          <div className="space-y-2">
-            {['ლიფტი', 'დასუფთავება', 'ეზო'].map((item, i) => (
-              <div key={i} className="flex justify-between text-xs">
-                <span className="text-slate-600">{item}</span>
-                <span className="text-slate-700 font-medium">₾{45 + i * 20}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
+    <section className="py-16 sm:py-20 lg:py-28 bg-gradient-to-b from-slate-50 via-slate-50/80 to-white relative overflow-hidden">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">რატომ Bino?</div>
@@ -475,8 +386,8 @@ function ProblemSolution() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 sm:p-6 lg:p-8 border border-rose-100 shadow-sm">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-rose-100 shadow-sm">
             <div className="flex items-center gap-3 mb-5 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-100 flex items-center justify-center">
                 <IconX className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600" />
@@ -502,7 +413,7 @@ function ProblemSolution() {
             </ul>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 sm:p-6 lg:p-8 border border-emerald-100 shadow-sm">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-emerald-100 shadow-sm">
             <div className="flex items-center gap-3 mb-5 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
                 <IconCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
@@ -664,7 +575,7 @@ function HowItWorks() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 relative">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 relative max-w-5xl mx-auto">
           <div className="hidden lg:block absolute top-24 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
 
           {steps.map((step, i) => {
@@ -728,7 +639,7 @@ function Testimonials() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
           {testimonials.map((testimonial, i) => (
             <div key={i} className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow duration-300">
               <div className="flex items-center gap-1 mb-3 sm:mb-4">
@@ -821,7 +732,7 @@ function Pricing() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
             <div key={i} className={`relative rounded-2xl p-5 sm:p-6 lg:p-8 ${plan.popular ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-xl scale-105 z-10' : 'bg-white border border-slate-200/60 shadow-sm'}`}>
               {plan.popular && (
@@ -943,7 +854,7 @@ function Contact() {
         <p className="text-base sm:text-lg text-slate-600 mb-8 sm:mb-10">
           გაქვთ კითხვები ან გსურთ პერსონალური დემო? ჩვენი გუნდი მზადაა დაგეხმაროთ.
         </p>
-        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 text-left">
+        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto">
           <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200/60 hover:border-emerald-300 transition-colors">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 flex items-center justify-center mb-3 sm:mb-4">
               <IconChat className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
