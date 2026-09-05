@@ -99,6 +99,19 @@ const IconStar = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconBell = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+)
+
+const IconVote = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2v20M2 12h20" />
+  </svg>
+)
+
 // ============ COMPONENTS ============
 
 function BuildingFacade() {
@@ -163,11 +176,14 @@ function Navbar() {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 shadow-sm border-b border-slate-200/60 backdrop-blur-md' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               <IconBuilding className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
-            <span className={`text-xl lg:text-2xl font-bold transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>EZO</span>
+            <div className="flex flex-col">
+              <span className={`text-xl lg:text-2xl font-bold transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>EZO</span>
+              <span className={`text-xs lg:text-sm transition-colors ${scrolled ? 'text-slate-600' : 'text-white/70'}`}>ეზო</span>
+            </div>
           </Link>
 
           <div className="hidden lg:flex items-center gap-8">
@@ -222,30 +238,30 @@ function Hero() {
       <div className="relative flex-1 flex items-center pt-16 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-full mb-10 backdrop-blur-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-sm font-medium text-emerald-300">ახალი თაობის პლატფორმა კორპუსებისთვის</span>
             </div>
 
-            <h1 className="tracking-[-0.02em] mb-6">
-              <span className="block text-4xl sm:text-5xl lg:text-[4.75rem] font-extrabold text-white leading-[1.1]">
+            <h1 className="tracking-[-0.02em] mb-8">
+              <span className="block text-4xl sm:text-5xl lg:text-[4.75rem] font-extrabold text-white leading-[1.15]">
                 ხედავ ყველაფერს,
               </span>
-              <span className="block text-3xl sm:text-4xl lg:text-5xl font-medium text-emerald-400 leading-[1.15] mt-2">
+              <span className="block text-3xl sm:text-4xl lg:text-5xl font-medium text-emerald-400 leading-[1.15] mt-3">
                 რაც შენს კორპუსში ხდება
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg lg:text-xl text-slate-300 leading-relaxed mb-8 max-w-lg">
+            <p className="text-base sm:text-lg lg:text-xl text-slate-300 leading-relaxed mb-10 max-w-lg">
               დარიცხვები, შეკეთებები და გადაწყვეტილებები ერთნაირად ჩანს ყველასთვის — თავმჯდომარეს ნაკლები საქმე რჩება, მეზობელს კი მეტი სიმშვიდე.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 sm:py-4 bg-emerald-500 text-slate-950 font-semibold rounded-lg hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">
+              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 bg-emerald-500 text-slate-950 font-semibold rounded-lg hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">
                 დაიწყე უფასოდ
                 <IconArrowRight className="w-4 h-4" />
               </Link>
-              <a href="#how-it-works" className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 sm:py-4 text-white font-semibold rounded-lg border border-white/20 hover:bg-white/5 transition-colors backdrop-blur-sm">
+              <a href="#how-it-works" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 text-white font-semibold rounded-lg border border-white/20 hover:bg-white/5 transition-colors backdrop-blur-sm">
                 როგორ მუშაობს
               </a>
             </div>
@@ -263,19 +279,70 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden lg:block absolute top-28 right-10 xl:right-24 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-              <IconCheck className="w-5 h-5 text-emerald-400" />
+        {/* Floating Cards - Right Side */}
+        <div className="hidden xl:block absolute top-32 right-12 space-y-4">
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <IconCheck className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">გადახდა მიღებულია</div>
+                <div className="text-xs text-emerald-400 font-medium">+ 240 ₾ · ბინა 14</div>
+              </div>
             </div>
-            <div>
-              <div className="text-sm font-semibold text-white">გადახდა მიღებულია</div>
-              <div className="text-xs text-emerald-400 font-medium">+ 240 ₾ · ბინა 14</div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_1s]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center">
+                <IconWallet className="w-5 h-5 text-rose-400" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">დავალიანება</div>
+                <div className="text-xs text-rose-400 font-medium">- 180 ₾ · ბინა 7</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_2s]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <IconWrench className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">ლიფტის მომსახურება</div>
+                <div className="text-xs text-blue-400 font-medium">იანვარი · 45 ₾</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_3s]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <IconVote className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">ხმის მიცემა</div>
+                <div className="text-xs text-amber-400 font-medium">3 ახალი გამოკითხვა</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[float_6s_ease-in-out_infinite_4s]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <IconBell className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">შეტყობინება</div>
+                <div className="text-xs text-purple-400 font-medium">წყალი გაითიშება 14:00</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="hidden lg:block absolute bottom-40 right-16 xl:right-32 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl max-w-[220px] animate-[float_6s_ease-in-out_infinite_1s]">
+        <div className="hidden lg:block absolute bottom-40 right-16 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl max-w-[220px] animate-[float_6s_ease-in-out_infinite_1.5s]">
           <div className="flex items-center gap-1 text-amber-400 mb-1.5">
             {[...Array(5)].map((_, i) => <IconStar key={i} className="w-3.5 h-3.5" />)}
           </div>
@@ -303,8 +370,22 @@ function Hero() {
 
 function ProblemSolution() {
   return (
-    <section className="py-16 sm:py-20 lg:py-28 bg-slate-50/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 sm:py-20 lg:py-28 bg-slate-50/50 relative overflow-hidden">
+      {/* Dashboard Background Elements */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div className="absolute top-20 left-10 w-64 h-32 bg-slate-800 rounded-2xl blur-xl"></div>
+        <div className="absolute top-40 right-20 w-96 h-48 bg-emerald-900 rounded-2xl blur-xl"></div>
+        <div className="absolute bottom-32 left-1/3 w-80 h-40 bg-blue-900 rounded-2xl blur-xl"></div>
+        <div className="absolute top-1/2 right-1/3 w-72 h-36 bg-purple-900 rounded-2xl blur-xl"></div>
+        
+        {/* Dashboard Cards */}
+        <div className="absolute top-32 left-20 w-56 h-24 bg-white rounded-xl shadow-lg blur-sm"></div>
+        <div className="absolute top-48 right-32 w-64 h-28 bg-white rounded-xl shadow-lg blur-sm"></div>
+        <div className="absolute bottom-40 left-1/4 w-60 h-32 bg-white rounded-xl shadow-lg blur-sm"></div>
+        <div className="absolute top-1/2 right-1/4 w-52 h-20 bg-white rounded-xl shadow-lg blur-sm"></div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">რატომ EZO?</div>
           <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4">
@@ -859,7 +940,10 @@ function Footer() {
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <IconBuilding className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-lg sm:text-xl font-bold text-white">EZO</span>
+              <div className="flex flex-col">
+                <span className="text-lg sm:text-xl font-bold text-white">EZO</span>
+                <span className="text-xs text-white/60">ეზო</span>
+              </div>
             </Link>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mb-4 sm:mb-6">
               ციფრული პლატფორმა თანამედროვე საცხოვრებელი კორპუსების გამჭვირვალე და მარტივი მართვისთვის.
@@ -907,7 +991,7 @@ function Footer() {
         <div className="pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
           <p className="text-xs sm:text-sm text-slate-500">© 2026 EZO. ყველა უფლება დაცულია.</p>
           <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-500">
-            <span>🇬 დამზადებულია საქართველოში</span>
+            <span>🇬🇪 დამზადებულია საქართველოში</span>
           </div>
         </div>
       </div>
