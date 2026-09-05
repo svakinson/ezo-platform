@@ -774,25 +774,51 @@ function DashboardContent() {
                         ))}
                       </div>
                       
+                      {/* ⭐ ახალი კორპუსის დამატება ღილაკი (ლიმიტის შემოწმებით) */}
                       <div className="border-t border-white/10 p-2">
-                        <button
-                          onClick={() => {
-                            setIsDropdownOpen(false)
-                            if (isBuildingLimitReached) {
+                        {isBuildingLimitReached ? (
+                          <button
+                            onClick={() => {
+                              setIsDropdownOpen(false)
                               setIsUpsellModalOpen(true)
-                            } else {
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-800/50 border border-white/10 hover:bg-slate-800 transition-all text-left group relative overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                              <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                              </svg>
+                            </div>
+                            <div className="relative flex-1">
+                              <div className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+                                ახალი კორპუსის დამატება
+                              </div>
+                              <div className="text-[10px] text-slate-500">
+                                საჭიროა პაკეტის განახლება
+                              </div>
+                            </div>
+                            <span className="relative px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/30">
+                              Pro
+                            </span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setIsDropdownOpen(false)
                               router.push('/dashboard/add-building')
-                            }
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                            <IconPlus className="w-4 h-4 text-emerald-400" />
-                          </div>
-                          <div className="text-sm font-semibold text-emerald-400">
-                            ახალი კორპუსის დამატება
-                          </div>
-                        </button>
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                              <IconPlus className="w-4 h-4 text-emerald-400" />
+                            </div>
+                            <div className="text-sm font-semibold text-emerald-400">
+                              ახალი კორპუსის დამატება
+                            </div>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </>
