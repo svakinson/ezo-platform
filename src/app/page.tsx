@@ -224,19 +224,23 @@ function Hero() {
       <div className="relative flex-1 flex items-center pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-7 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 backdrop-blur-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               <span className="text-sm font-medium text-emerald-300">ახალი თაობის პლატფორმა კორპუსებისთვის</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight mb-6">
-              შენი კორპუსი,
-              <span className="block text-emerald-400 font-normal mt-1">გამჭვირვალედ მართული</span>
+            <h1 className="tracking-[-0.02em] mb-8">
+              <span className="block text-5xl sm:text-6xl lg:text-[4.75rem] font-extrabold text-white leading-[1.05]">
+                ბოლოს და ბოლოს,
+              </span>
+              <span className="block text-4xl sm:text-5xl lg:text-6xl font-medium text-emerald-400 leading-[1.1] mt-2">
+                წესრიგშია თქვენი კორპუსი
+              </span>
             </h1>
 
-            <p className="text-lg lg:text-xl text-slate-300 leading-relaxed mb-9 max-w-lg">
-              EZO აერთიანებს ფინანსებს, კომუნიკაციას და მოვლას ერთ სივრცეში.
-              დაივიწყეთ ქაოსი — მიიღეთ სრული კონტროლი თქვენს კორპუსზე.
+            <p className="text-lg lg:text-xl text-slate-300 leading-relaxed mb-10 max-w-lg">
+              აღარც Excel-ის ცხრილები, აღარც დაკარგული ქვითრები. ფინანსები, შეკეთებები
+              და კომუნიკაცია — ერთ სივრცეში, სადაც ყველას თანაბრად შეუძლია ნახვა.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-14">
