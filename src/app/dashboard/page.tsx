@@ -153,16 +153,6 @@ const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
-// ============ ჰელპერ ფუნქციები ============
-const getMaxBuildingsByPlan = (plan: 'basic' | 'pro' | 'enterprise'): number => {
-  const limits = {
-    basic: 1,
-    pro: 3,
-    enterprise: 999999,
-  }
-  return limits[plan] || 1
-}
-
 // ============ შიდა კომპონენტი ============
 function DashboardContent() {
   const router = useRouter()
@@ -176,7 +166,9 @@ function DashboardContent() {
   const [buildingsLoading, setBuildingsLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
   
-  // ⭐ ახალი: კორპუსის გადამრთველი და Upsell Modal
+  // ⭐ დინამიური ლიმიტი ბაზიდან
+  const [maxBuildingsLimit, setMaxBuildingsLimit] = useState<number>(20)
+  
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isUpsellModalOpen, setIsUpsellModalOpen] = useState(false)
@@ -192,6 +184,7 @@ function DashboardContent() {
       setUser(session.user)
       
       const viewAsId = searchParams.get('view_as')
+      let profile: any = null
 
       if (viewAsId) {
         const { data: adminProfile } = await supabase
@@ -212,6 +205,7 @@ function DashboardContent() {
           .maybeSingle()
 
         if (targetProfile) {
+          profile = targetProfile
           setViewAsUser(targetProfile)
         } else {
           router.replace('/dashboard')
@@ -225,8 +219,28 @@ function DashboardContent() {
           .maybeSingle()
         
         if (myProfile) {
+          profile = myProfile
           setUserProfile(myProfile)
         }
+      }
+
+      // ⭐ დინამიურად ვიღებთ ლიმიტს subscription_plans ცხრილიდან
+      if (profile) {
+        const planNameMap: Record<string, string> = {
+          'basic': 'Basic',
+          'pro': 'Pro',
+          'enterprise': 'Enterprise',
+          'trial': '14-დღიანი უფასო ტესტი'
+        }
+        const dbPlanName = planNameMap[profile.subscription_plan?.toLowerCase() || 'basic'] || 'Basic'
+
+        const { data: planData } = await supabase
+          .from('subscription_plans')
+          .select('max_buildings')
+          .eq('name', dbPlanName)
+          .maybeSingle()
+
+        setMaxBuildingsLimit(planData?.max_buildings || 20)
       }
 
       setLoading(false)
@@ -312,10 +326,9 @@ function DashboardContent() {
 
   const isPaidOrTrial = userProfile?.subscription_status === 'active' || userProfile?.is_trial;
 
-  // ⭐ ლიმიტის ლოგიკა
-  const currentPlan = (userProfile?.subscription_plan as 'basic' | 'pro' | 'enterprise') || 'basic'
-  const maxBuildings = getMaxBuildingsByPlan(currentPlan)
-  const isBuildingLimitReached = buildings.length >= maxBuildings
+  // ⭐ ლიმიტის ლოგიკა ახლა იყენებს ბაზიდან წამოსულ მნიშვნელობას
+  const currentPlan = (userProfile?.subscription_plan || 'basic').toLowerCase()
+  const isBuildingLimitReached = buildings.length >= maxBuildingsLimit
 
   // ⭐ ნაბიჯების სია - დინამიური
   const steps = [
@@ -413,11 +426,9 @@ function DashboardContent() {
     },
   ]
 
-  // ⭐ არჩეული კორპუსის მონაცემები
   const selectedBuilding = buildings.find(b => b.id === selectedBuildingId)
   const isAllSelected = selectedBuildingId === 'all'
 
-  // ჯამური სტატისტიკა (ყველა კორპუსისთვის)
   const totalStats = {
     collected: mockBuildingsData.reduce((sum, b) => sum + b.collected, 0),
     debt: mockBuildingsData.reduce((sum, b) => sum + b.debt, 0),
@@ -427,10 +438,8 @@ function DashboardContent() {
     paidApartments: Math.round(mockBuildingsData.reduce((sum, b) => sum + (b.apartments * b.collectionRate / 100), 0)),
   }
 
-  // კონკრეტული კორპუსის სტატისტიკა
   const buildingStats = mockBuildingsData.find(b => b.id === selectedBuildingId) || mockBuildingsData[0]
 
-  // ⭐ Dropdown-ისთვის Mock Data
   const dropdownOptions = [
     { id: 'all', label: 'ყველა კორპუსი', icon: '📊' },
     ...mockBuildingsData.map(b => ({
@@ -444,13 +453,11 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 relative overflow-hidden">
-      {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
       </div>
 
-      {/* View As Banner */}
       {viewAsUser && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 backdrop-blur-md px-4 py-2.5 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-2 text-xs sm:text-sm">
@@ -467,7 +474,6 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Header */}
       <header className={`sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-white/10 ${viewAsUser ? 'top-[41px]' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
@@ -512,16 +518,10 @@ function DashboardContent() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
         
         {!hasBuilding ? (
-          /* ═══════════════════════════════════════════════════════
-             EMPTY STATE - მომხმარებელს კორპუსი არ აქვს
-             ═══════════════════════════════════════════════════════ */
           <div className="space-y-6">
-            
-            {/* სექცია 1: მისასალმებელი + პროგრესი */}
             <div className="relative bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 sm:p-8 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-teal-500/5" />
               <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
@@ -551,7 +551,6 @@ function DashboardContent() {
                   )}
                 </div>
 
-                {/* პროგრეს ბარი */}
                 <div className="bg-white/5 rounded-full h-2 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700 shadow-lg shadow-emerald-500/50"
@@ -565,7 +564,6 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* სექცია 2: ნაბიჯების სია */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-4">
                 <IconSparkles className="w-5 h-5 text-emerald-400" />
@@ -675,7 +673,6 @@ function DashboardContent() {
               })}
             </div>
 
-            {/* სექცია 3: სარგებლის ბარათები */}
             <div className="mt-8">
               <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
                 რას მიიღებ EZO-ით
@@ -701,15 +698,10 @@ function DashboardContent() {
 
           </div>
         ) : (
-          /* ═══════════════════════════════════════════════════════
-             ACTIVE STATE - კორპუსი დამატებულია
-             ═══════════════════════════════════════════════════════ */
           <div className="space-y-4 sm:space-y-6">
             
-            {/* ⭐ 4 ელემენტი ერთ ხაზზე (Dropdown + 3 ბანერი) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               
-              {/* 1. კორპუსის გადამრთველი (Dropdown) */}
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -721,7 +713,8 @@ function DashboardContent() {
                     </div>
                     <div className="text-left min-w-0">
                       <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                        კორპუსი {buildings.length}/{maxBuildings >= 999999 ? '∞' : maxBuildings}
+                        {/* ⭐ აქ გამოიყენება დინამიური ლიმიტი */}
+                        კორპუსი {buildings.length}/{maxBuildingsLimit >= 999999 ? '∞' : maxBuildingsLimit}
                       </div>
                       <div className="text-xs sm:text-sm font-bold text-white truncate">
                         {currentDropdownLabel}
@@ -731,7 +724,6 @@ function DashboardContent() {
                   <IconChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform flex-shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu */}
                 {isDropdownOpen && (
                   <>
                     <div 
@@ -774,7 +766,6 @@ function DashboardContent() {
                         ))}
                       </div>
                       
-                      {/* ⭐ ახალი კორპუსის დამატება ღილაკი (ლიმიტის შემოწმებით) */}
                       <div className="border-t border-white/10 p-2">
                         {isBuildingLimitReached ? (
                           <button
@@ -825,7 +816,6 @@ function DashboardContent() {
                 )}
               </div>
 
-              {/* 2. პაკეტის სტატუსი */}
               <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
                   <IconShield className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
@@ -844,7 +834,6 @@ function DashboardContent() {
                 </div>
               </div>
 
-              {/* 3. პაკეტის შეცვლა */}
               <Link 
                 href="/pricing"
                 className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:border-amber-500/40 transition-all group cursor-pointer"
@@ -862,7 +851,6 @@ function DashboardContent() {
                 </div>
               </Link>
 
-              {/* 4. პარამეტრები */}
               <button className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:border-blue-500/40 transition-all group">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -881,9 +869,7 @@ function DashboardContent() {
               </button>
             </div>
 
-            {/* ⭐ KPI Cards - ზედა რიგი */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {/* შეგროვებული */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-emerald-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">ამ თვის შეგროვება</span>
@@ -900,7 +886,6 @@ function DashboardContent() {
                 </span>
               </div>
 
-              {/* დავალიანება */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-rose-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">საერთო დავალიანება</span>
@@ -919,7 +904,6 @@ function DashboardContent() {
                 </span>
               </div>
 
-              {/* შეგროვების მაჩვენებელი */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-blue-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">შეგროვების %</span>
@@ -938,7 +922,6 @@ function DashboardContent() {
                 </div>
               </div>
 
-              {/* ღია საჩივრები */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-purple-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-slate-400">ღია საჩივრები</span>
@@ -958,7 +941,6 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* ⭐ თუ "ყველა კორპუსი" არის არჩეული - კორპუსების ბარათები */}
             {isAllSelected && (
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -1000,10 +982,8 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* ⭐ შუა რიგი - 2 სვეტი */}
             <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
               
-              {/* მარცხენა სვეტი - ტოპ მოვალეები */}
               <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -1048,7 +1028,6 @@ function DashboardContent() {
                 </button>
               </div>
 
-              {/* მარჯვენა სვეტი - ბოლო აქტივობა */}
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -1082,7 +1061,6 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* ⭐ სწრაფი მოქმედებები */}
             <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-bold text-white mb-4">სწრაფი მოქმედებები</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1104,13 +1082,12 @@ function DashboardContent() {
           </div>
         )}
 
-        {/* ⭐ Upsell Modal */}
         <UpsellModal
           isOpen={isUpsellModalOpen}
           onClose={() => setIsUpsellModalOpen(false)}
           currentPlan={currentPlan}
           currentBuildings={buildings.length}
-          maxBuildings={maxBuildings}
+          maxBuildings={maxBuildingsLimit}
         />
 
       </main>
@@ -1118,7 +1095,6 @@ function DashboardContent() {
   )
 }
 
-// ============ მთავარი ექსპორტი ============
 export default function DashboardPage() {
   return (
     <Suspense fallback={

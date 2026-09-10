@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -277,7 +278,6 @@ function Hero() {
           </div>
         </div>
 
-        {/* Floating Cards - Staggered Animation like incoming messages */}
         <div className="hidden xl:block absolute top-28 right-8">
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_0s_forwards] opacity-0 translate-x-8">
             <div className="flex items-center gap-3">
@@ -667,107 +667,139 @@ function Testimonials() {
 }
 
 function Pricing() {
-  const plans = [
-    {
-      name: 'სტარტერი',
-      description: 'მცირე კორპუსებისთვის',
-      price: '0',
-      period: 'სამუდამოდ უფასო',
-      features: [
-        '10 ბინამდე',
-        'ფინანსური თრექინგი',
-        'განცხადებების დაფა',
-        'შეკეთებების მოთხოვნები',
-        'Email მხარდაჭერა'
-      ],
-      cta: 'დაიწყე უფასოდ',
-      popular: false
-    },
-    {
-      name: 'პროფესიონალი',
-      description: 'საშუალო და დიდი კორპუსებისთვის',
-      price: '49',
-      period: 'თვეში',
-      features: [
-        '100 ბინამდე',
-        'ყველა სტარტერის ფუნქცია',
-        'ავტომატური გადახდები',
-        'SMS შეტყობინებები',
-        'ანალიტიკა და ანგარიშები',
-        'მობილური აპლიკაცია',
-        'პრიორიტეტული მხარდაჭერა'
-      ],
-      cta: '14 დღიანი უფასო ტესტი',
-      popular: true
-    },
-    {
-      name: 'საწარმო',
-      description: 'მრავალკორპუსიანი მმართველებისთვის',
-      price: '149',
-      period: 'თვეში',
-      features: [
-        'უსაზღვრო ბინები',
-        'ყველა პროფესიონალის ფუნქცია',
-        'მრავალკორპუსიანი მართვა',
-        'API წვდომა',
-        'თეთრი ეტიკეტი',
-        'პერსონალური მენეჯერი',
-        'SLA გარანტია'
-      ],
-      cta: 'დაგვიკავშირდი',
-      popular: false
+  const [plans, setPlans] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        // ვფილტრავთ უფასო ტესტს მთავარი ფასების ცხრილიდან, რადგან ის ცალკე აქტივირდება
+        .not('name', 'ilike', '%უფასო ტესტი%')
+        .order('price_monthly', { ascending: true })
+
+      if (!error && data) {
+        setPlans(data)
+      }
+      setLoading(false)
     }
-  ]
+    fetchPlans()
+  }, [])
+
+  if (loading) {
+    return (
+      <section id="pricing" className="py-16 sm:py-20 lg:py-28 bg-slate-50/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-slate-200 rounded w-1/3 mx-auto"></div>
+            <div className="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-96 bg-slate-200 rounded-2xl"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
-    <section id="pricing" className="py-16 sm:py-20 lg:py-28">
+    <section id="pricing" className="py-16 sm:py-20 lg:py-28 bg-slate-50/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">ტარიფები</div>
-          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-4">
             მარტივი და გამჭვირვალე ფასები
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+            აირჩიე შენს კორპუსზე მორგებული გეგმა
           </h2>
           <p className="text-base sm:text-lg text-slate-600">
-            აირჩიე შენს კორპუსზე მორგებული გეგმა. ყოველთვის შეგიძლია განახლება ან გაუქმება.
+            ყველა პაკეტი იწყება 14-დღიანი უფასო ტესტით. ბარათის მითითება არ არის საჭირო. <br className="hidden sm:block"/>
+            <span className="text-emerald-600 font-semibold">წლიური გადახდისას მიიღე 2 თვე უფასოდ!</span>
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, i) => (
-            <div key={i} className={`relative rounded-2xl p-5 sm:p-6 lg:p-8 ${plan.popular ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-xl scale-105 z-10' : 'bg-white border border-slate-200/60 shadow-sm'}`}>
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 sm:px-4 py-1.5 bg-amber-400 text-slate-900 text-xs font-bold rounded-full">
-                  ყველაზე პოპულარული
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto items-start">
+          {plans.map((plan) => {
+            const isPopular = plan.name.toLowerCase().includes('pro') || plan.name.toLowerCase().includes('სტანდარტი')
+            
+            return (
+              <div 
+                key={plan.id} 
+                className={`relative rounded-2xl p-6 lg:p-8 transition-all duration-300 ${
+                  isPopular 
+                    ? 'bg-slate-900 text-white shadow-2xl shadow-emerald-900/20 scale-105 z-10 border-2 border-emerald-500' 
+                    : 'bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1'
+                }`}
+              >
+                {isPopular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-emerald-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1.5 whitespace-nowrap">
+                    <IconStar className="w-3.5 h-3.5 fill-white" />
+                    რეკომენდებულია
+                  </div>
+                )}
+                
+                <div className="mb-6">
+                  <h3 className={`text-xl font-bold mb-2 ${isPopular ? 'text-white' : 'text-slate-900'}`}>
+                    {plan.name}
+                  </h3>
+                  <p className={`text-sm ${isPopular ? 'text-slate-300' : 'text-slate-500'}`}>
+                    {plan.description}
+                  </p>
                 </div>
-              )}
-              <div className="mb-5 sm:mb-6">
-                <h3 className={`text-lg sm:text-xl font-bold mb-2 ${plan.popular ? 'text-white' : 'text-slate-900'}`}>{plan.name}</h3>
-                <p className={`text-xs sm:text-sm ${plan.popular ? 'text-emerald-100' : 'text-slate-600'}`}>{plan.description}</p>
-              </div>
-              <div className="mb-5 sm:mb-6">
-                <div className="flex items-baseline gap-1">
-                  <span className={`text-3xl sm:text-4xl font-bold ${plan.popular ? 'text-white' : 'text-slate-900'}`}>₾{plan.price}</span>
-                  <span className={`text-xs sm:text-sm ${plan.popular ? 'text-emerald-100' : 'text-slate-500'}`}>/{plan.period}</span>
+
+                <div className="mb-6 pb-6 border-b border-dashed border-slate-700/30">
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-4xl font-extrabold ${isPopular ? 'text-white' : 'text-slate-900'}`}>
+                      ₾{plan.price_monthly}
+                    </span>
+                    <span className={`text-sm ${isPopular ? 'text-slate-400' : 'text-slate-500'}`}>
+                      /თვე
+                    </span>
+                  </div>
                 </div>
+
+                <ul className="space-y-3 mb-8">
+                  {Array.isArray(plan.features) && plan.features.map((feature: string, j: number) => (
+                    <li key={j} className="flex items-start gap-3">
+                      <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        isPopular ? 'bg-emerald-500/20' : 'bg-emerald-100'
+                      }`}>
+                        <IconCheck className={`w-3 h-3 ${isPopular ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                      </div>
+                      <span className={`text-sm ${isPopular ? 'text-slate-200' : 'text-slate-700'}`}>
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button 
+                  className={`w-full py-3.5 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base ${
+                    isPopular 
+                      ? 'bg-emerald-500 text-white hover:bg-emerald-400 shadow-lg shadow-emerald-500/25' 
+                      : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                  }`}
+                >
+                  {plan.price_monthly === 0 ? 'უფასოდ დაწყება' : '14-დღიანი უფასო ტესტი'}
+                </button>
+                
+                {isPopular && (
+                  <p className="text-center text-xs text-slate-400 mt-3">
+                    ბარათის მითითება არ არის საჭირო
+                  </p>
+                )}
               </div>
-              <ul className="space-y-2.5 sm:space-y-3 mb-6 sm:mb-8">
-                {plan.features.map((feature, j) => (
-                  <li key={j} className="flex items-start gap-2.5 sm:gap-3">
-                    <IconCheck className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${plan.popular ? 'text-emerald-200' : 'text-emerald-600'}`} />
-                    <span className={`text-xs sm:text-sm ${plan.popular ? 'text-emerald-50' : 'text-slate-700'}`}>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <button className={`w-full py-2.5 sm:py-3 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base ${plan.popular ? 'bg-white text-emerald-700 hover:bg-emerald-50' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
-                {plan.cta}
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
-        <div className="mt-8 sm:mt-12 text-center">
-          <p className="text-sm sm:text-base text-slate-600">
-            გაქვს კითხვები? <a href="#contact" className="text-emerald-600 font-semibold hover:underline">დაგვიკავშირდი</a> პერსონალური შეთავაზებისთვის.
+        <div className="mt-12 text-center">
+          <p className="text-sm text-slate-600">
+            გაქვს სპეციფიკური მოთხოვნა? <a href="#contact" className="text-emerald-600 font-semibold hover:underline">დაგვიკავშირდი</a> ინდივიდუალური შეთავაზებისთვის.
           </p>
         </div>
       </div>
