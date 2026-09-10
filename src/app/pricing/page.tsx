@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { PLANS } from '@/lib/plans'
 import Link from 'next/link'
 
 // ============ ICONS ============
@@ -10,6 +11,7 @@ const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <rect x="4" y="2" width="16" height="20" rx="2" />
     <path d="M9 22v-4h6v4" />
+    <path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01" />
   </svg>
 )
 
@@ -104,16 +106,15 @@ const IconGift = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+const IconStar = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 )
 
 // ============ ANIMATED DASHBOARD MOCKUP ============
 function AnimatedDashboard() {
-  const [payments, setPayments] = useState([
+  const [payments] = useState([
     { id: 1, name: "ბინა 12", type: "დენი", amount: 45, status: "paid", delay: 0 },
     { id: 2, name: "ბინა 23", type: "კონსიერჟი", amount: 80, status: "paid", delay: 1500 },
     { id: 3, name: "ბინა 34", type: "წყალი", amount: 32, status: "pending", delay: 3000 },
@@ -122,16 +123,7 @@ function AnimatedDashboard() {
   const [visiblePayments, setVisiblePayments] = useState<number[]>([])
 
   useEffect(() => {
-    payments.forEach((payment) => {
-      setTimeout(() => {
-        setVisiblePayments(prev => [...prev, payment.id])
-        if (payment.status === 'paid') {
-          setTotalCollected(prev => prev + payment.amount)
-        }
-      }, payment.delay)
-    })
-
-    const interval = setInterval(() => {
+    const runAnimation = () => {
       setVisiblePayments([])
       setTotalCollected(0)
       setTimeout(() => {
@@ -144,37 +136,39 @@ function AnimatedDashboard() {
           }, payment.delay)
         })
       }, 500)
-    }, 8000)
+    }
 
+    runAnimation()
+    const interval = setInterval(runAnimation, 8000)
     return () => clearInterval(interval)
-  }, [])
+  }, [payments])
 
   return (
-    <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
+    <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-6">
         <div className="w-3 h-3 rounded-full bg-rose-500" />
         <div className="w-3 h-3 rounded-full bg-amber-500" />
         <div className="w-3 h-3 rounded-full bg-emerald-500" />
-        <span className="ml-3 text-xs text-slate-500 font-medium">EZO Dashboard — რეალურ დროში</span>
+        <span className="ml-3 text-xs text-slate-500 font-medium">Bino Dashboard — რეალურ დროში</span>
       </div>
       
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-slate-800/50 rounded-lg p-3 border border-white/5">
-          <div className="text-xs text-slate-400 mb-1">სულ ბინები</div>
-          <div className="text-xl font-bold text-white">47</div>
+          <div className="text-[10px] text-slate-400 mb-1">სულ ბინები</div>
+          <div className="text-lg font-bold text-white">47</div>
         </div>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-emerald-500/20">
-          <div className="text-xs text-slate-400 mb-1">შემოსული</div>
-          <div className="text-xl font-bold text-emerald-400">₾{totalCollected}</div>
+          <div className="text-[10px] text-slate-400 mb-1">შემოსული</div>
+          <div className="text-lg font-bold text-emerald-400">₾{totalCollected}</div>
         </div>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-white/5">
-          <div className="text-xs text-slate-400 mb-1">ლოდინში</div>
-          <div className="text-xl font-bold text-amber-400">12</div>
+          <div className="text-[10px] text-slate-400 mb-1">ლოდინში</div>
+          <div className="text-lg font-bold text-amber-400">12</div>
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs text-slate-500 mb-2 font-medium">ბოლო გადახდები:</div>
+        <div className="text-[10px] text-slate-500 mb-2 font-medium uppercase tracking-wider">ბოლო გადახდები:</div>
         {payments.map((payment) => (
           <div
             key={payment.id}
@@ -221,13 +215,13 @@ function AnimatedDashboard() {
   )
 }
 
+// ============ MAIN PRICING PAGE ============
 export default function PricingPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
-  const [plans, setPlans] = useState<any[]>([])
   const [referralCode, setReferralCode] = useState('')
   const [copied, setCopied] = useState(false)
 
@@ -239,15 +233,6 @@ export default function PricingPage() {
         return
       }
       setUser(user)
-
-      // მივიღოთ ყველა აქტიური პაკეტი ბაზიდან
-      const { data: plansData } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('price_monthly', { ascending: true })
-
-      setPlans(plansData || [])
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -287,79 +272,25 @@ export default function PricingPage() {
 
   const userName = user?.email?.split('@')[0] || 'მომხმარებელი'
 
-  // ⭐ ვიპოვოთ უფასო ტესტის პაკეტი (ფასი 0)
-  const freeTrialPlan = plans.find(p => Number(p.price_monthly) === 0)
-  
-  // ⭐ გადახდილი პაკეტები (ფასი > 0) - მხოლოდ ეს გამოჩნდება პაკეტების სიაში
-  const paidPlans = plans.filter(p => Number(p.price_monthly) > 0)
-
   const problems = [
-    {
-      title: "ვინმემ არ გადაიხადა? ვერ გაიგებ ვინ.",
-      desc: "ხელით ცხრილები ან საერთოდ არაფერი — ყოველ თვე თავიდან უნდა გამოარკვიო ვინ არის ვალში."
-    },
-    {
-      title: "ქვითრები WhatsApp-ში იკარგება.",
-      desc: "ბანკის ქვითარი გამოგზავნილია, მაგრამ ერთი კვირის შემდეგ ვეღარ პოულობ ჩატის ისტორიაში."
-    },
-    {
-      title: "თავმჯდომარე იცვლება — ყველა ინფორმაცია იკარგება.",
-      desc: "ახალ თავმჯდომარეს არაფერი გადაეცემა. ისტორია, ვალები, ხარჯები — ყველაფერი თავიდან."
-    },
-    {
-      title: "შეკრებები უშედეგოა, რადგან არ არის მონაცემები.",
-      desc: "კითხვას სვამენ 'სად წავიდა ფული?' და კონკრეტული პასუხი არავის აქვს."
-    }
+    { title: "ვინმემ არ გადაიხადა? ვერ გაიგებ ვინ.", desc: "ხელით ცხრილები ან საერთოდ არაფერი — ყოველ თვე თავიდან უნდა გამოარკვიო ვინ არის ვალში." },
+    { title: "ქვითრები WhatsApp-ში იკარგება.", desc: "ბანკის ქვითარი გამოგზავნილია, მაგრამ ერთი კვირის შემდეგ ვეღარ პოულობ ჩატის ისტორიაში." },
+    { title: "თავმჯდომარე იცვლება — ინფორმაცია იკარგება.", desc: "ახალ თავმჯდომარეს არაფერი გადაეცემა. ისტორია, ვალები, ხარჯები — ყველაფერი თავიდან." },
+    { title: "შეკრებები უშედეგოა.", desc: "კითხვას სვამენ 'სად წავიდა ფული?' და კონკრეტული პასუხი არავის აქვს." }
   ]
 
   const solutions = [
-    {
-      problem: "ვინმემ არ გადაიხადა?",
-      solution: "ბინების რეესტრი რეალურ დროში",
-      practical: "ერთი შეხედვით ხედავ ვინ არის ვალში და რამდენი"
-    },
-    {
-      problem: "ქვითრები იკარგება",
-      solution: "ცენტრალიზებული არქივი",
-      practical: "ყველა ქვითარი ერთ ადგილას, ძებნა წამებში"
-    },
-    {
-      problem: "ინფორმაცია იკარგება თავმჯდომარის შეცვლისას",
-      solution: "მუდმივი არქივი",
-      practical: "ახალი თავმჯდომარე ერთ წუთში ხედავს მთელ ისტორიას"
-    },
-    {
-      problem: "შეკრებები უშედეგოა",
-      solution: "მზა ფინანსური ანგარიშები",
-      practical: "შეკრებაზე მიდიხარ ციფრებით, არა ვარაუდებით"
-    }
+    { problem: "ვინმემ არ გადაიხადა?", solution: "ბინების რეესტრი რეალურ დროში", practical: "ერთი შეხედვით ხედავ ვინ არის ვალში" },
+    { problem: "ქვითრები იკარგება", solution: "ცენტრალიზებული არქივი", practical: "ყველა ქვითარი ერთ ადგილას, ძებნა წამებში" },
+    { problem: "ინფორმაცია იკარგება", solution: "მუდმივი არქივი", practical: "ახალი თავმჯდომარე ერთ წუთში ხედავს ისტორიას" },
+    { problem: "შეკრებები უშედეგოა", solution: "მზა ფინანსური ანგარიშები", practical: "შეკრებაზე მიდიხარ ციფრებით" }
   ]
 
   const features = [
-    {
-      icon: IconBuilding,
-      title: "კორპუსის რეესტრი",
-      desc: "ბინები, მფლობელები, საკონტაქტო ინფორმაცია ერთ ადგილას",
-      detail: "დაამატებ ბინებს — სისტემა ავტომატურად ააწყობს რეესტრს"
-    },
-    {
-      icon: IconZap,
-      title: "გადახდების მართვა",
-      desc: "ავტომატურად ხედავ ვინ გადაიხადა, ვინ არა, რამდენი ვალია",
-      detail: "პირველი გადახდის ჩანაწერი — 5 წუთში მზადია"
-    },
-    {
-      icon: IconShield,
-      title: "ქვითრების არქივი",
-      desc: "ატვირთე ქვითარი, იპოვე წამებში, ვეღარასდროს დაკარგო",
-      detail: "ყველა ქვითარი ციფრულად, ძიება წამებში"
-    },
-    {
-      icon: IconUsers,
-      title: "ფინანსური ანგარიშები",
-      desc: "შემოსავალი, ხარჯი, ბალანსი — მზა, საჩვენებელი ფორმატში",
-      detail: "შეკრებაზე მიდიხარ მზა ანგარიშით"
-    }
+    { icon: IconBuilding, title: "კორპუსის რეესტრი", desc: "ბინები, მფლობელები, საკონტაქტო ინფორმაცია", detail: "დაამატებ ბინებს — სისტემა ავტომატურად ააწყობს" },
+    { icon: IconZap, title: "გადახდების მართვა", desc: "ავტომატურად ხედავ ვინ გადაიხადა, ვინ არა", detail: "პირველი გადახდის ჩანაწერი — 5 წუთში მზად" },
+    { icon: IconShield, title: "ქვითრების არქივი", desc: "ატვირთე ქვითარი, იპოვე წამებში", detail: "ყველა ქვითარი ციფრულად, ძიება წამებში" },
+    { icon: IconUsers, title: "ფინანსური ანგარიშები", desc: "შემოსავალი, ხარჯი, ბალანსი — მზა ფორმატში", detail: "შეკრებაზე მიდიხარ მზა ანგარიშით" }
   ]
 
   const faqs = [
@@ -367,31 +298,10 @@ export default function PricingPage() {
     { q: "ბარათი საჭიროა საცდელის დასაწყებად?", a: "არა. 14 დღე სრულად უფასოა, ბარათის გარეშე." },
     { q: "14 დღის შემდეგ რა ხდება?", a: "თუ პაკეტს არ გააგრძელებ, წვდომა შეიზღუდება, მონაცემები 30 დღე შენარჩუნდება." },
     { q: "შემიძლია გავაუქმო?", a: "დიახ, ნებისმიერ დროს." },
-    { q: "თუ ჯერ ზუსტად არ ვიცი რამდენი ბინაა/ადმინისტრატორი მჭირდება?", a: "შეგიძლია ნებისმიერ დროს განაახლო." },
+    { q: "თუ ზუსტად არ ვიცი რამდენი ბინა მჭირდება?", a: "შეგიძლია ნებისმიერ დროს განაახლო." },
     { q: "სად ინახება ჩემი მონაცემები?", a: "დაცულ Supabase სერვერებზე, SSL დაშიფვრით." },
     { q: "თუ არ გავაგრძელებ, შემიძლია მონაცემების გატანა?", a: "დიახ, ნებისმიერ დროს შეგიძლია მონაცემების ექსპორტი." }
   ]
-
-  const getPlanPrice = (plan: any) => {
-    if (billingCycle === 'yearly') {
-      return plan.price_yearly || (plan.price_monthly * 10)
-    }
-    return plan.price_monthly || plan.price || 0
-  }
-
-  const getPlanFeatures = (plan: any) => {
-    const baseFeatures = [
-      `${plan.max_buildings >= 999999 ? 'უსაზღვრო' : plan.max_buildings} ბინა`,
-      `${plan.max_admins >= 999999 ? 'უსაზღვრო' : plan.max_admins} ადმინისტრატორი`,
-      `${plan.storage_limit_gb >= 999999 ? 'უსაზღვრო' : plan.storage_limit_gb} GB არქივი`,
-    ]
-
-    if (plan.features && Array.isArray(plan.features)) {
-      return [...baseFeatures, ...plan.features]
-    }
-
-    return baseFeatures
-  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -401,7 +311,7 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <IconBuilding className="w-6 h-6 text-emerald-400" />
-            <span className="text-xl font-bold text-white">EZO</span>
+            <span className="text-xl font-bold text-white">Bino</span>
           </Link>
 
           <div className="flex items-center gap-3 sm:gap-4">
@@ -447,7 +357,7 @@ export default function PricingPage() {
                 </div>
 
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-                  თქვენს კორპუსში 47 ბინაა. 12-მა არ გადაიხადა კომუნალური.
+                  თქვენს კორპუსში 47 ბინაა. 12-მა არ გადაიხადა.
                   <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
                     თქვენ არ იცით — ვის რა ვალი აქვს.
@@ -455,14 +365,13 @@ export default function PricingPage() {
                 </h1>
                 
                 <p className="text-base sm:text-lg text-slate-400 mb-8 leading-relaxed">
-                  EZO აგროვებს ყველა ბინის, გადახდისა და ქვითრის ინფორმაციას ერთ ადგილას — 
+                  Bino აგროვებს ყველა ბინის, გადახდისა და ქვითრის ინფორმაციას ერთ ადგილას — 
                   რომ თავმჯდომარემ იცოდეს ზუსტად რა ხდება, ყოველგვარი ქაოსის გარეშე.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  {/* ⭐ Hero ღილაკი გადადის უფასო ტესტის პაკეტზე */}
                   <Link 
-                    href={freeTrialPlan ? `/payment?plan_id=${freeTrialPlan.id}` : '/payment'} 
+                    href="/dashboard/add-building" 
                     className="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group text-base"
                   >
                     დაიწყე უფასოდ 14 დღით
@@ -482,7 +391,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ===== PROBLEM & SOLUTION — SPLIT LAYOUT ===== */}
+        {/* ===== PROBLEM & SOLUTION ===== */}
         <section className="py-16 lg:py-24 bg-slate-900/30 border-y border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
@@ -490,9 +399,7 @@ export default function PricingPage() {
               <div>
                 <div className="mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">ეს ნაცნობია?</h2>
-                  <p className="text-slate-400 text-sm sm:text-base">
-                    თუ თქვენ ხართ კორპუსის თავმჯდომარე ან წარმომადგენელი, ეს ალბათ ნაცნობია:
-                  </p>
+                  <p className="text-slate-400 text-sm sm:text-base">თუ თქვენ ხართ კორპუსის თავმჯდომარე, ეს ალბათ ნაცნობია:</p>
                 </div>
 
                 <div className="space-y-4">
@@ -514,10 +421,8 @@ export default function PricingPage() {
 
               <div>
                 <div className="mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">EZO ამას ასე აგვარებს</h2>
-                  <p className="text-slate-400 text-sm sm:text-base">
-                    თითოეულ პრობლემას — კონკრეტული გადაწყვეტა
-                  </p>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Bino ამას ასე აგვარებს</h2>
+                  <p className="text-slate-400 text-sm sm:text-base">თითოეულ პრობლემას — კონკრეტული გადაწყვეტა</p>
                 </div>
 
                 <div className="space-y-4">
@@ -530,9 +435,7 @@ export default function PricingPage() {
                         <div className="flex-1">
                           <div className="text-xs text-slate-500 mb-1">პრობლემა: {item.problem}</div>
                           <h3 className="text-base font-bold text-white mb-1.5">{item.solution}</h3>
-                          <p className="text-emerald-400 text-sm font-medium">
-                            პრაქტიკულად: {item.practical}
-                          </p>
+                          <p className="text-emerald-400 text-sm font-medium">პრაქტიკულად: {item.practical}</p>
                         </div>
                       </div>
                     </div>
@@ -593,7 +496,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ===== PRICING SECTION ===== */}
+        {/* ===== PRICING CARDS ===== */}
         <section id="pricing" className="py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -604,9 +507,7 @@ export default function PricingPage() {
                 <button
                   onClick={() => setBillingCycle('monthly')}
                   className={`px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    billingCycle === 'monthly'
-                      ? 'bg-emerald-500 text-white'
-                      : 'text-slate-400 hover:text-white'
+                    billingCycle === 'monthly' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   ყოველთვიური
@@ -614,9 +515,7 @@ export default function PricingPage() {
                 <button
                   onClick={() => setBillingCycle('yearly')}
                   className={`px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                    billingCycle === 'yearly'
-                      ? 'bg-emerald-500 text-white'
-                      : 'text-slate-400 hover:text-white'
+                    billingCycle === 'yearly' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   ყოველწლიური
@@ -625,19 +524,17 @@ export default function PricingPage() {
               </div>
             </div>
 
-            {/* ⭐ Plans Grid - მხოლოდ გადახდილი პაკეტები (Basic, Pro, Enterprise) */}
             <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {paidPlans.map((plan) => {
-                const isPro = plan.name === 'Pro'
-                const price = getPlanPrice(plan)
-                const features = getPlanFeatures(plan)
+              {PLANS.map((plan) => {
+                const isPro = plan.popular
+                const price = billingCycle === 'yearly' ? Math.round(plan.price * 0.83) : plan.price
 
                 return (
                   <div
                     key={plan.id}
                     className={`relative rounded-2xl p-6 lg:p-8 transition-all ${
                       isPro
-                        ? 'bg-slate-800/80 border-2 border-emerald-500/50 scale-105'
+                        ? 'bg-slate-800/80 border-2 border-emerald-500/50 scale-105 shadow-[0_0_40px_rgba(16,185,129,0.15)]'
                         : 'bg-slate-800/50 border border-white/10 hover:border-emerald-500/50'
                     }`}
                   >
@@ -648,58 +545,99 @@ export default function PricingPage() {
                     )}
 
                     <div className="mb-6">
-                      <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                      <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">{plan.nameGe}</h3>
                       <p className="text-slate-400 text-sm">{plan.description}</p>
                     </div>
 
                     <div className="mb-6">
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl lg:text-5xl font-bold text-white">₾{price}</span>
-                        <span className="text-slate-400 text-sm">
-                          {billingCycle === 'yearly' ? '/ წელი' : '/ თვე'}
-                        </span>
+                        <span className="text-slate-400 text-sm">{billingCycle === 'yearly' ? '/თვე (წლიურად)' : '/თვე'}</span>
                       </div>
                       {billingCycle === 'yearly' && (
                         <div className="text-xs text-emerald-400 mt-1">
-                          ₾{Math.round(price / 12)}/თვეში · 2 თვე უფასო
+                          დაზოგე ₾{plan.price - price} თვეში · 2 თვე უფასო
                         </div>
                       )}
                     </div>
 
                     <ul className="space-y-3 mb-8">
-                      {features.map((feature: string, i: number) => (
+                      {plan.features.slice(0, 8).map((feature, i) => (
                         <li key={i} className="flex items-start gap-3">
-                          <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                          <span className="text-slate-300 text-sm">{feature}</span>
+                          {feature.included ? (
+                            <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <IconX className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5" />
+                          )}
+                          <span className={feature.included ? 'text-slate-300 text-sm' : 'text-slate-600 text-sm'}>
+                            {feature.text}
+                          </span>
                         </li>
                       ))}
                     </ul>
 
-                    {/* ყველა გადახდილ პაკეტს აქვს ერთნაირი ღილაკი */}
                     <Link
-                      href={`/payment?plan_id=${plan.id}&billing=${billingCycle}`}
-                      className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${
-                        isPro ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'
+                      href="/dashboard"
+                      className={`block w-full py-3 text-center font-semibold rounded-xl transition-all hover:-translate-y-0.5 ${
+                        isPro ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25' : 'bg-slate-700 hover:bg-slate-600 text-white'
                       }`}
                     >
-                      პაკეტის შეძენა
+                      {plan.cta}
                     </Link>
                   </div>
                 )
               })}
             </div>
+          </div>
+        </section>
 
-            <div className="text-center mt-8">
-              <p className="text-xs sm:text-sm text-slate-400">
-                 ხელმისაწვდომია 14-დღიანი უფასო ტესტი · ბარათი არ საჭიროა · გაუქმება ნებისმიერ დროს
-              </p>
+        {/* ===== COMPARISON TABLE ===== */}
+        <section className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">დეტალური შედარება</h2>
+              <p className="text-slate-400 text-sm">ნახე ყველა ფუნქცია და აირჩიე საუკეთესო</p>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/50">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-4 px-6 text-slate-400 font-medium text-sm">ფუნქცია</th>
+                    {PLANS.map(plan => (
+                      <th key={plan.id} className="text-center py-4 px-6 text-white font-bold text-sm">
+                        {plan.nameGe}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {PLANS[0].features.map((feature, idx) => (
+                    <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                      <td className="py-4 px-6 text-sm text-slate-300">{feature.text}</td>
+                      {PLANS.map(plan => {
+                        const planFeature = plan.features.find(f => f.text === feature.text)
+                        return (
+                          <td key={plan.id} className="text-center py-4 px-6">
+                            {planFeature?.included ? (
+                              <IconCheck className="w-5 h-5 text-emerald-400 mx-auto" />
+                            ) : (
+                              <IconX className="w-5 h-5 text-slate-600 mx-auto" />
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
 
         {/* ===== REFERRAL SECTION ===== */}
         {referralCode && (
-          <section className="py-16 lg:py-20 bg-slate-900/30 border-y border-white/5">
+          <section className="py-16 lg:py-20">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full mb-4">
@@ -793,7 +731,7 @@ export default function PricingPage() {
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-white/10 bg-slate-950 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-500 text-xs sm:text-sm">
-          © {new Date().getFullYear()} EZO Platform. ყველა უფლება დაცულია.
+          © {new Date().getFullYear()} Bino Platform. ყველა უფლება დაცულია.
         </div>
       </footer>
     </div>
