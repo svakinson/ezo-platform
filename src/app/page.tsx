@@ -1,228 +1,291 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
-// ============ ICONS ============
-const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="2" width="16" height="20" rx="2" />
-    <path d="M9 22v-4h6v4" />
-    <path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01" />
-  </svg>
-)
+// ============================================================
+// BINO — Premium SaaS Landing Page
+// ============================================================
 
-const IconWallet = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
-  </svg>
-)
+const Icon = ({
+  name,
+  className = 'w-5 h-5',
+}: {
+  name: string
+  className?: string
+}) => {
+  const common = {
+    className,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
 
-const IconWrench = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-  </svg>
-)
+  const paths: Record<string, ReactNode> = {
+    building: (
+      <>
+        <rect x="4" y="2" width="16" height="20" rx="2" />
+        <path d="M9 22v-4h6v4" />
+        <path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01" />
+      </>
+    ),
 
-const IconChat = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg>
-)
+    wallet: (
+      <>
+        <path d="M21 12V7H5a2 2 0 1 1 0-4h14v4" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+      </>
+    ),
 
-const IconShield = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-  </svg>
-)
+    wrench: (
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    ),
 
-const IconChart = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 3v18h18" />
-    <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-  </svg>
-)
+    chat: (
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    ),
 
-const IconPhone = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-    <line x1="12" y1="18" x2="12.01" y2="18" />
-  </svg>
-)
+    shield: (
+      <>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="m9 12 2 2 4-4" />
+      </>
+    ),
 
-const IconCheck = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-)
+    chart: (
+      <>
+        <path d="M3 3v18h18" />
+        <path d="m7 14 4-4 3 3 5-6" />
+      </>
+    ),
 
-const IconArrowRight = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-)
+    phone: (
+      <>
+        <rect x="5" y="2" width="14" height="20" rx="2" />
+        <path d="M12 18h.01" />
+      </>
+    ),
 
-const IconPlus = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-)
+    check: <polyline points="20 6 9 17 4 12" />,
 
-const IconMinus = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-)
+    arrow: (
+      <>
+        <path d="M5 12h14" />
+        <path d="m13 6 6 6-6 6" />
+      </>
+    ),
 
-const IconMenu = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="3" y1="12" x2="21" y2="12" />
-    <line x1="3" y1="6" x2="21" y2="6" />
-    <line x1="3" y1="18" x2="21" y2="18" />
-  </svg>
-)
+    menu: <path d="M4 6h16M4 12h16M4 18h16" />,
 
-const IconX = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-)
+    x: (
+      <>
+        <path d="m6 6 12 12" />
+        <path d="M18 6 6 18" />
+      </>
+    ),
 
-const IconStar = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-  </svg>
-)
+    plus: (
+      <>
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+      </>
+    ),
 
-const IconBell = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-)
+    minus: <path d="M5 12h14" />,
 
-const IconVote = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2v20M2 12h20" />
-  </svg>
-)
-
-// ============ COMPONENTS ============
-
-function BuildingFacade() {
-  const litWindows = new Set([2, 7, 11, 14, 19, 23, 28, 31, 36, 40, 44, 47, 52, 56, 61, 65, 70, 74, 79, 83, 88, 91, 96, 101])
-  const cols = 14
-  const rows = 10
-  const total = cols * rows
-
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <div
-        className="absolute inset-0 grid gap-[3px] p-[3px]"
-        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}
-      >
-        {Array.from({ length: total }).map((_, i) => {
-          const lit = litWindows.has(i)
-          return (
-            <div
-              key={i}
-              className={lit ? 'window-lit rounded-[2px]' : 'rounded-[2px]'}
-              style={{
-                background: lit ? 'rgba(245, 195, 97, 0.85)' : 'rgba(255,255,255,0.035)',
-                animationDelay: lit ? `${(i % 9) * 0.7}s` : undefined,
-              }}
-            />
-          )
-        })}
-      </div>
-
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(100deg, #070a09 8%, rgba(7,10,9,0.9) 38%, rgba(7,10,9,0.35) 68%, rgba(7,10,9,0.6) 100%), linear-gradient(0deg, #070a09 0%, rgba(7,10,9,0.05) 30%, transparent 55%)',
-        }}
+    star: (
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="m12 2 3.09 6.26 6.91 1-5 4.87 1.18 6.87L12 17.77l-6.18 3.23L7 14.13 2 9.26l6.91-1L12 2Z"
       />
+    ),
 
-      <style>{`
-        .window-lit { animation: windowGlow 5s ease-in-out infinite; }
-        @keyframes windowGlow {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
-        }
-      `}</style>
-    </div>
+    bell: (
+      <>
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </>
+    ),
+
+    users: (
+      <>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </>
+    ),
+
+    zap: (
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"
+      />
+    ),
+  }
+
+  return <svg {...common}>{paths[name]}</svg>
+}
+
+function GlowOrb({ className = '' }: { className?: string }) {
+  return (
+    <div
+      aria-hidden
+      className={`pointer-events-none absolute rounded-full blur-3xl opacity-40 ${className}`}
+    />
+  )
+}
+
+function Logo({ dark = false }: { dark?: boolean }) {
+  return (
+    <Link href="/" className="group flex items-center gap-2.5">
+      <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[13px] bg-gradient-to-br from-emerald-300 via-teal-400 to-cyan-500 shadow-[0_8px_30px_rgba(45,212,191,.25)]">
+        <span className="absolute inset-[1px] rounded-[12px] bg-[#07120f]" />
+
+        <Icon
+          name="building"
+          className="relative z-10 h-5 w-5 text-emerald-300 transition-transform duration-500 group-hover:scale-110"
+        />
+      </span>
+
+      <span className="leading-none">
+        <span
+          className={`block text-[20px] font-black tracking-[-.04em] ${
+            dark ? 'text-white' : 'text-slate-950'
+          }`}
+        >
+          Bino
+        </span>
+
+        <span
+          className={`mt-0.5 block text-[10px] font-semibold uppercase tracking-[.18em] ${
+            dark ? 'text-white/45' : 'text-slate-400'
+          }`}
+        >
+          ბინო
+        </span>
+      </span>
+    </Link>
   )
 }
 
 function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const fn = () => setScrolled(window.scrollY > 18)
+
+    window.addEventListener('scroll', fn, { passive: true })
+    fn()
+
+    return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  const linkColor = scrolled ? 'text-slate-600 hover:text-emerald-600' : 'text-white/85 hover:text-white'
+  const links = [
+    ['#features', 'შესაძლებლობები'],
+    ['#how-it-works', 'როგორ მუშაობს'],
+    ['#pricing', 'ტარიფები'],
+    ['#faq', 'FAQ'],
+  ]
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 shadow-sm border-b border-slate-200/60 backdrop-blur-md' : 'bg-transparent'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <IconBuilding className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-xl lg:text-2xl font-bold transition-colors ${scrolled ? 'text-slate-900' : 'text-white'}`}>Bino</span>
-              <span className={`text-base lg:text-lg transition-colors ${scrolled ? 'text-slate-600' : 'text-white/70'}`}>ბინო</span>
-            </div>
-          </Link>
+    <nav
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
+        scrolled ? 'py-2' : 'py-4'
+      }`}
+    >
+      <div
+        className={`mx-auto max-w-7xl px-4 transition-all duration-500 sm:px-6 lg:px-8 ${
+          scrolled
+            ? 'rounded-2xl border border-slate-200/60 bg-white/75 shadow-[0_16px_60px_rgba(15,23,42,.08)] backdrop-blur-2xl'
+            : ''
+        }`}
+      >
+        <div className="flex h-14 items-center justify-between">
+          <Logo dark={!scrolled} />
 
-          <div className="hidden lg:flex items-center gap-8">
-            <a href="#features" className={`text-sm font-medium transition-colors ${linkColor}`}>შესაძლებლობები</a>
-            <a href="#how-it-works" className={`text-sm font-medium transition-colors ${linkColor}`}>როგორ მუშაობს</a>
-            <a href="#pricing" className={`text-sm font-medium transition-colors ${linkColor}`}>ტარიფები</a>
-            <a href="#faq" className={`text-sm font-medium transition-colors ${linkColor}`}>FAQ</a>
+          <div className="hidden items-center gap-8 lg:flex">
+            {links.map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className={`text-sm font-semibold transition-colors ${
+                  scrolled
+                    ? 'text-slate-600 hover:text-emerald-600'
+                    : 'text-white/65 hover:text-white'
+                }`}
+              >
+                {label}
+              </a>
+            ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <Link href="/login" className={`px-4 py-2 text-sm font-medium transition-colors ${linkColor}`}>
+          <div className="hidden items-center gap-2 lg:flex">
+            <Link
+              href="/login"
+              className={`px-4 py-2.5 text-sm font-bold transition-colors ${
+                scrolled ? 'text-slate-700' : 'text-white/80'
+              } hover:text-emerald-500`}
+            >
               შესვლა
             </Link>
-            <Link href="/register" className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg">
-              დაიწყე უფასოდ
+
+            <Link
+              href="/register"
+              className="group relative overflow-hidden rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-black text-[#06110e] shadow-[0_8px_30px_rgba(52,211,153,.22)] transition-all hover:-translate-y-0.5 hover:bg-emerald-300"
+            >
+              <span className="relative z-10">დაიწყე უფასოდ</span>
+
+              <span className="absolute inset-0 -translate-x-full bg-white/30 transition-transform duration-500 group-hover:translate-x-0" />
             </Link>
           </div>
 
-          <button onClick={() => setIsOpen(!isOpen)} className={`lg:hidden p-2 transition-colors ${scrolled ? 'text-slate-700' : 'text-white'}`}>
-            {isOpen ? <IconX /> : <IconMenu />}
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className={`rounded-xl p-2 lg:hidden ${
+              scrolled ? 'text-slate-800' : 'text-white'
+            }`}
+            aria-label="მენიუ"
+          >
+            <Icon name={open ? 'x' : 'menu'} />
           </button>
         </div>
 
-        {isOpen && (
-          <div className="lg:hidden py-4 border-t border-slate-200/60 bg-white rounded-b-2xl shadow-lg">
-            <div className="flex flex-col gap-1">
-              <a href="#features" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">შესაძლებლობები</a>
-              <a href="#how-it-works" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">როგორ მუშაობს</a>
-              <a href="#pricing" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">ტარიფები</a>
-              <a href="#faq" onClick={() => setIsOpen(false)} className="px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg">FAQ</a>
-              <div className="pt-3 mt-2 border-t border-slate-200/60 flex flex-col gap-2 px-4">
-                <Link href="/login" onClick={() => setIsOpen(false)} className="py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left">
-                  შესვლა
-                </Link>
-                <Link href="/register" onClick={() => setIsOpen(false)} className="py-3 bg-emerald-600 text-white text-sm font-semibold rounded-lg text-center">
-                  დაიწყე უფასოდ
-                </Link>
-              </div>
+        {open && (
+          <div className="border-t border-slate-200/60 py-3 pb-4 lg:hidden">
+            {links.map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                {label}
+              </a>
+            ))}
+
+            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3">
+              <Link
+                href="/login"
+                className="rounded-xl py-3 text-center text-sm font-bold text-slate-700"
+              >
+                შესვლა
+              </Link>
+
+              <Link
+                href="/register"
+                className="rounded-xl bg-emerald-500 py-3 text-center text-sm font-bold text-white"
+              >
+                დაიწყე უფასოდ
+              </Link>
             </div>
           </div>
         )}
@@ -231,209 +294,376 @@ function Navbar() {
   )
 }
 
-function Hero() {
+function DashboardMockup() {
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden bg-[#070a09]">
-      <BuildingFacade />
+    <div className="relative mx-auto w-full max-w-[650px] [perspective:1600px]">
+      <div className="absolute -inset-10 rounded-[50%] bg-emerald-400/15 blur-[90px]" />
 
-      <div className="relative flex-1 flex items-center pt-16 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="max-w-2xl">
-            <h1 className="tracking-[-0.02em] mb-8">
-              <span className="block leading-[1.15]">
-                <span className="text-4xl sm:text-5xl lg:text-[4.75rem] font-extrabold text-white">ხედავ </span>
-                <span className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white/70 italic">ყველაფერს,</span>
-              </span>
-              <span className="block leading-[1.15] mt-3">
-                <span className="text-xl sm:text-2xl lg:text-3xl font-light text-emerald-400">რაც </span>
-                <span className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-emerald-400">შენს კორპუსში </span>
-                <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-emerald-400">ხდება</span>
-              </span>
-            </h1>
+      <div className="relative rotate-[1.5deg] rounded-[26px] border border-white/15 bg-white/[.07] p-2 shadow-[0_40px_120px_rgba(0,0,0,.5)] backdrop-blur-xl transition-transform duration-700 hover:rotate-0">
+        <div className="overflow-hidden rounded-[20px] border border-white/10 bg-[#f7faf9]">
+          <div className="flex h-11 items-center gap-2 border-b border-slate-200 bg-white px-4">
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
 
-            <p className="text-base sm:text-lg lg:text-xl text-slate-300 leading-relaxed mb-10 max-w-lg">
-              დარიცხვები, შეკეთებები და გადაწყვეტილებები ერთნაირად ჩანს ყველასთვის — თავმჯდომარეს ნაკლები საქმე რჩება, მეზობელს კი მეტი სიმშვიდე.
-            </p>
+            <div className="ml-5 h-5 w-44 rounded-md bg-slate-100" />
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 bg-emerald-500 text-slate-950 font-semibold rounded-lg hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">
-                დაიწყე უფასოდ
-                <IconArrowRight className="w-4 h-4" />
-              </Link>
-              <a href="#how-it-works" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 text-white font-semibold rounded-lg border border-white/20 hover:bg-white/5 transition-colors backdrop-blur-sm">
-                როგორ მუშაობს
-              </a>
-            </div>
-
-            <div className="flex items-center gap-4 sm:gap-6 text-sm text-slate-400">
-              <div className="flex items-center gap-1.5">
-                <IconCheck className="w-4 h-4 text-emerald-400" />
-                <span>უფასო ტესტი</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <IconCheck className="w-4 h-4 text-emerald-400" />
-                <span>ბარათის გარეშე</span>
-              </div>
-            </div>
+            <div className="ml-auto h-7 w-7 rounded-full bg-emerald-100" />
           </div>
-        </div>
 
-        <div className="hidden xl:block absolute top-28 right-8">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_0s_forwards] opacity-0 translate-x-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <IconCheck className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-white">გადახდა მიღებულია</div>
-                <div className="text-xs text-emerald-400 font-medium">+ 240 ₾ · ბინა 14</div>
-              </div>
-            </div>
-          </div>
-        </div>
+          <div className="grid min-h-[330px] grid-cols-[112px_1fr]">
+            <aside className="hidden border-r border-slate-200 bg-[#f2f7f5] p-3 sm:block">
+              <div className="mb-7 h-7 w-20 rounded bg-emerald-100" />
 
-        <div className="hidden xl:block absolute top-56 right-44">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_1.5s_forwards] opacity-0 translate-x-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center">
-                <IconWallet className="w-5 h-5 text-rose-400" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-white">დავალიანება</div>
-                <div className="text-xs text-rose-400 font-medium">- 180 ₾ · ბინა 7</div>
-              </div>
-            </div>
-          </div>
-        </div>
+              {[
+                ['chart', 'დაფა'],
+                ['wallet', 'ფინანსები'],
+                ['wrench', 'შეკეთებები'],
+                ['chat', 'კომუნიკაცია'],
+              ].map(([i, t], n) => (
+                <div
+                  key={t}
+                  className={`mb-1 flex items-center gap-2 rounded-lg px-2 py-2 text-[8px] font-bold ${
+                    n === 0
+                      ? 'bg-white text-emerald-700 shadow-sm'
+                      : 'text-slate-400'
+                  }`}
+                >
+                  <Icon name={i} className="h-3 w-3" />
+                  {t}
+                </div>
+              ))}
+            </aside>
 
-        <div className="hidden xl:block absolute top-[22rem] right-8">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_3s_forwards] opacity-0 translate-x-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <IconWrench className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-white">ლიფტის მომსახურება</div>
-                <div className="text-xs text-blue-400 font-medium">იანვარი · 45 ₾</div>
-              </div>
-            </div>
-          </div>
-        </div>
+            <div className="p-4 sm:p-5">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-[8px] font-bold text-slate-400">
+                    კორპუსის დაფა
+                  </p>
 
-        <div className="hidden xl:block absolute top-[30rem] right-44">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_4.5s_forwards] opacity-0 translate-x-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                <IconVote className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-white">ხმის მიცემა</div>
-                <div className="text-xs text-amber-400 font-medium">3 ახალი გამოკითხვა</div>
-              </div>
-            </div>
-          </div>
-        </div>
+                  <h3 className="mt-1 text-lg font-black text-slate-900">
+                    ვაჟა-ფშაველას 42
+                  </h3>
+                </div>
 
-        <div className="hidden xl:block absolute top-[37rem] right-8">
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-4 shadow-2xl animate-[slideIn_0.5s_ease-out_6s_forwards] opacity-0 translate-x-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <IconBell className="w-5 h-5 text-purple-400" />
+                <div className="rounded-lg bg-emerald-50 px-2 py-1 text-[8px] font-bold text-emerald-700">
+                  LIVE
+                </div>
               </div>
-              <div>
-                <div className="text-sm font-semibold text-white">შეტყობინება</div>
-                <div className="text-xs text-purple-400 font-medium">წყალი გაითიშება 14:00</div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {[
+                  ['შემოსავალი', '₾ 12,480', '+8.4%'],
+                  ['ხარჯები', '₾ 7,230', '-3.2%'],
+                  ['დავალიანება', '₾ 1,180', '12 ბინა'],
+                ].map(([a, b, c], i) => (
+                  <div
+                    key={a}
+                    className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+                  >
+                    <p className="text-[7px] font-bold text-slate-400">
+                      {a}
+                    </p>
+
+                    <p className="mt-1 text-sm font-black text-slate-900">
+                      {b}
+                    </p>
+
+                    <p
+                      className={`mt-1 text-[7px] font-bold ${
+                        i === 2 ? 'text-rose-500' : 'text-emerald-600'
+                      }`}
+                    >
+                      {c}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3 grid grid-cols-[1.25fr_.75fr] gap-3">
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="flex justify-between">
+                    <span className="text-[8px] font-black text-slate-700">
+                      ხარჯების დინამიკა
+                    </span>
+
+                    <span className="text-[7px] text-slate-400">2026</span>
+                  </div>
+
+                  <div className="mt-4 flex h-24 items-end gap-1.5">
+                    {[35, 48, 42, 67, 53, 75, 62, 88, 70, 94, 82, 100].map(
+                      (h, i) => (
+                        <div
+                          key={i}
+                          className="flex-1 rounded-t bg-gradient-to-t from-emerald-500 to-teal-300"
+                          style={{
+                            height: `${h}%`,
+                            opacity: 0.35 + i / 25,
+                          }}
+                        />
+                      )
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <span className="text-[8px] font-black text-slate-700">
+                    გადახდები
+                  </span>
+
+                  <div className="mx-auto mt-4 h-24 w-24 rounded-full border-[12px] border-emerald-400/25 border-r-teal-400 border-t-emerald-500" />
+
+                  <p className="-mt-14 text-center text-sm font-black text-slate-900">
+                    86%
+                  </p>
+
+                  <p className="mt-10 text-center text-[7px] text-slate-400">
+                    შეგროვებულია
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <a href="#features" className="relative self-center mb-8 flex flex-col items-center gap-2 text-slate-400 hover:text-white transition-colors">
-        <span className="text-xs tracking-wide">ჩამოსქროლე</span>
-        <span className="w-5 h-9 rounded-full border border-white/25 flex items-start justify-center p-1.5">
-          <span className="w-1 h-1.5 rounded-full bg-white/70 animate-bounce"></span>
+      <div className="absolute -left-5 top-16 hidden items-center gap-3 rounded-2xl border border-white/15 bg-[#101b18]/85 px-4 py-3 shadow-2xl backdrop-blur-xl animate-float sm:flex">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400/15 text-emerald-300">
+          <Icon name="check" />
         </span>
-      </a>
-      
-      <style>{`
-        @keyframes slideIn {
-          0% {
-            opacity: 0;
-            transform: translateX(2rem);
-          }
-          100% {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
+
+        <span>
+          <b className="block text-xs text-white">გადახდა მიღებულია</b>
+
+          <small className="text-[10px] font-bold text-emerald-300">
+            + ₾240 · ბინა 14
+          </small>
+        </span>
+      </div>
+
+      <div className="absolute -right-7 bottom-10 hidden items-center gap-3 rounded-2xl border border-white/15 bg-[#101b18]/85 px-4 py-3 shadow-2xl backdrop-blur-xl animate-float2 sm:flex">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-purple-400/15 text-purple-300">
+          <Icon name="bell" />
+        </span>
+
+        <span>
+          <b className="block text-xs text-white">ახალი შეტყობინება</b>
+
+          <small className="text-[10px] font-bold text-purple-300">
+            წყალი გაითიშება 14:00
+          </small>
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function Hero() {
+  return (
+    <section className="relative min-h-[900px] overflow-hidden bg-[#06100d] pt-28 text-white lg:min-h-screen">
+      <GlowOrb className="-left-40 top-40 h-96 w-96 bg-emerald-400" />
+      <GlowOrb className="right-0 top-20 h-[520px] w-[520px] bg-cyan-400" />
+      <GlowOrb className="bottom-0 left-1/3 h-80 w-80 bg-violet-500" />
+
+      <div className="absolute inset-0 opacity-[.18] [background-image:linear-gradient(rgba(255,255,255,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.07)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(circle_at_center,black,transparent_78%)]" />
+
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-emerald-300/10 to-transparent" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-14 pb-24 pt-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-8 lg:pt-20">
+          <div className="max-w-2xl">
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/8 px-3 py-1.5 text-[11px] font-bold text-emerald-200 shadow-[0_0_30px_rgba(52,211,153,.08)]">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
+              საცხოვრებელი კორპუსის მართვა 2.0
+            </div>
+
+            <h1 className="text-balance text-5xl font-black leading-[.98] tracking-[-.055em] sm:text-6xl lg:text-[78px]">
+              შენი კორპუსი.
+              <br />
+              <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
+                სრული კონტროლი.
+              </span>
+            </h1>
+
+            <p className="mt-7 max-w-xl text-base leading-7 text-white/58 sm:text-lg">
+              დარიცხვები, ხარჯები, შეკეთებები და გადაწყვეტილებები — ერთ ლამაზ,
+              გამჭვირვალე სივრცეში. ნაკლები ქაოსი. მეტი სიმშვიდე.
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/register"
+                className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-emerald-400 px-6 py-4 text-sm font-black text-[#06110e] shadow-[0_15px_50px_rgba(52,211,153,.2)] transition-all hover:-translate-y-1 hover:bg-emerald-300"
+              >
+                დაიწყე უფასოდ
+
+                <span className="transition-transform group-hover:translate-x-1">
+                  <Icon name="arrow" className="h-4 w-4" />
+                </span>
+              </Link>
+
+              <a
+                href="#features"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/[.04] px-6 py-4 text-sm font-bold text-white/80 backdrop-blur-xl transition-all hover:bg-white/[.08] hover:text-white"
+              >
+                ნახე შესაძლებლობები
+              </a>
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-[11px] font-semibold text-white/40">
+              <span className="flex items-center gap-2">
+                <Icon
+                  name="check"
+                  className="h-3.5 w-3.5 text-emerald-300"
+                />
+                14-დღიანი ტესტი
+              </span>
+
+              <span className="flex items-center gap-2">
+                <Icon
+                  name="check"
+                  className="h-3.5 w-3.5 text-emerald-300"
+                />
+                ბარათის გარეშე
+              </span>
+
+              <span className="flex items-center gap-2">
+                <Icon
+                  name="check"
+                  className="h-3.5 w-3.5 text-emerald-300"
+                />
+                გაუქმება ნებისმიერ დროს
+              </span>
+            </div>
+          </div>
+
+          <DashboardMockup />
+        </div>
+
+        <div className="grid border-t border-white/10 py-7 sm:grid-cols-3">
+          <div className="border-white/10 px-4 py-2 sm:border-r">
+            <p className="text-2xl font-black">420+</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/35">
+              კორპუსი
+            </p>
+          </div>
+
+          <div className="border-white/10 px-4 py-2 sm:border-r">
+            <p className="text-2xl font-black">70%</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/35">
+              ნაკლები ადმინისტრაციული დრო
+            </p>
+          </div>
+
+          <div className="px-4 py-2">
+            <p className="text-2xl font-black">24/7</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/35">
+              წვდომა პლატფორმაზე
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
   )
 }
 
 function ProblemSolution() {
   return (
-    <section className="py-16 sm:py-20 lg:py-28 bg-gradient-to-b from-slate-50 via-slate-50/80 to-white relative overflow-hidden">
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">რატომ Bino?</div>
-          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4">
-            კორპუსის მართვა აღარასდროს იქნება ქაოსური
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600">
-            ჩვენ ვხედავთ პრობლემებს, რომლებიც ყოველდღიურად აწუხებს კორპუსებს — და ვქმნით მათთვის გამოსავალს.
+    <section className="relative overflow-hidden bg-[#f5f8f7] py-24 lg:py-32">
+      <GlowOrb className="-right-32 top-0 h-80 w-80 bg-emerald-200" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
+          <div>
+            <p className="mb-3 text-xs font-black uppercase tracking-[.2em] text-emerald-600">
+              რატომ Bino?
+            </p>
+
+            <h2 className="text-4xl font-black tracking-[-.045em] text-slate-950 sm:text-5xl">
+              კორპუსის მართვა
+              <br />
+              <span className="text-slate-400">არ უნდა იყოს ქაოსი.</span>
+            </h2>
+          </div>
+
+          <p className="max-w-xl text-base leading-7 text-slate-500">
+            Bino ცვლის დაუსრულებელ ჩატებს, Excel-ის ცხრილებს და გაურკვეველ
+            ხარჯებს ერთ თანამედროვე სისტემად, სადაც ყველას ზუსტად ის
+            ინფორმაცია აქვს, რაც სჭირდება.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto">
-          <div className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-rose-100 shadow-sm">
-            <div className="flex items-center gap-3 mb-5 sm:mb-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-100 flex items-center justify-center">
-                <IconX className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600" />
+        <div className="mt-14 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm">
+            <div className="mb-7 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-rose-50 text-rose-500">
+                  <Icon name="x" />
+                </span>
+
+                <b className="text-lg text-slate-900">დღეს</b>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900">დღეს</h3>
+
+              <span className="rounded-full bg-rose-50 px-3 py-1 text-[10px] font-black text-rose-500">
+                ქაოსი
+              </span>
             </div>
-            <ul className="space-y-3 sm:space-y-4">
+
+            <ul className="space-y-4">
               {[
-                'ფინანსური ჩანაწერები Excel-ში ან ქაღალდზე',
+                'ფინანსები Excel-ში ან ქაღალდზე',
                 'გადასახადების შეგროვება ხელით',
-                'მნიშვნელოვანი ინფორმაცია იკარგება ჩატებში',
-                'შეკეთებების მოთხოვნები პასუხის გარეშე',
-                'მაცხოვრებლები არ იციან სად იხარჯება ფული',
-                'ანგარიშების მომზადება საათებს მოითხოვს'
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
-                  </div>
-                  <span className="text-sm sm:text-base text-slate-600">{item}</span>
+                'ინფორმაცია იკარგება ჩატებში',
+                'შეკეთების მოთხოვნები იკარგება',
+                'მაცხოვრებლებს არ აქვთ ხარჯების სრული სურათი',
+                'ანგარიშების მომზადება საათებს მოითხოვს',
+              ].map((t) => (
+                <li
+                  key={t}
+                  className="flex gap-3 text-sm font-medium text-slate-500"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />
+                  {t}
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-emerald-100 shadow-sm">
-            <div className="flex items-center gap-3 mb-5 sm:mb-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                <IconCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+          <div className="relative overflow-hidden rounded-[28px] bg-[#07140f] p-7 text-white shadow-[0_30px_80px_rgba(6,20,15,.16)]">
+            <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
+
+            <div className="relative mb-7 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-400/12 text-emerald-300">
+                  <Icon name="check" />
+                </span>
+
+                <b className="text-lg">Bino-სთან ერთად</b>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900">Bino-სთან ერთად</h3>
+
+              <span className="rounded-full border border-emerald-300/15 bg-emerald-300/8 px-3 py-1 text-[10px] font-black text-emerald-300">
+                კონტროლი
+              </span>
             </div>
-            <ul className="space-y-3 sm:space-y-4">
+
+            <ul className="relative space-y-4">
               {[
-                'ავტომატური ფინანსური ანგარიშები რეალურ დროში',
-                'ონლაინ გადახდები და ავტომატური შეხსენებები',
-                'ცენტრალიზებული შეტყობინებები და განცხადებები',
-                'შეკეთებების სრული თრექინგი სტატუსებით',
-                'სრული გამჭვირვალობა ყველა ხარჯზე',
-                'ერთი დაწკაპუნებით ანგარიშების გენერირება'
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <IconCheck className="w-3 h-3 text-emerald-600" />
-                  </div>
-                  <span className="text-sm sm:text-base text-slate-700 font-medium">{item}</span>
+                'ფინანსური სურათი რეალურ დროში',
+                'ონლაინ გადახდები და შეხსენებები',
+                'ცენტრალიზებული განცხადებები',
+                'შეკეთებების სრული თრექინგი',
+                'გამჭვირვალე ხარჯები ყველასთვის',
+                'ანგარიში ერთი დაწკაპუნებით',
+              ].map((t) => (
+                <li
+                  key={t}
+                  className="flex gap-3 text-sm font-semibold text-white/70"
+                >
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-400/15 text-emerald-300">
+                    <Icon name="check" className="h-3 w-3" />
+                  </span>
+                  {t}
                 </li>
               ))}
             </ul>
@@ -444,96 +674,126 @@ function ProblemSolution() {
   )
 }
 
+const features = [
+  [
+    'wallet',
+    'ფინანსური მართვა',
+    'სრული კონტროლი შენატანებზე, ხარჯებსა და ბიუჯეტზე.',
+    'ავტომატური ინვოისები|ხარჯების კატეგორიზაცია|ბიუჯეტის დაგეგმვა|გადახდის ისტორია',
+    'emerald',
+  ],
+  [
+    'wrench',
+    'მოვლა და შეკეთებები',
+    'დაარეგისტრირე პრობლემა და აკონტროლე მისი მოგვარება თავიდან ბოლომდე.',
+    'ფოტო ატვირთვა|სტატუსის თრექინგი|კონტრაქტორები|ისტორიის ლოგი',
+    'blue',
+  ],
+  [
+    'chat',
+    'კომუნიკაციის ჰაბი',
+    'ერთი არხი მეზობლებთან, განცხადებებთან, გამოკითხვებთან და შეტყობინებებთან.',
+    'განცხადებების დაფა|პირდაპირი მესიჯები|გამოკითხვები|SMS და Email',
+    'violet',
+  ],
+  [
+    'shield',
+    'უსაფრთხოება',
+    'როლებზე დაფუძნებული წვდომა, დაშიფვრა და აუდიტის ლოგი.',
+    'SSL დაშიფვრა|როლური წვდომა|აუდიტის ლოგი|GDPR',
+    'amber',
+  ],
+  [
+    'chart',
+    'ანალიტიკა',
+    'გაანალიზე ფინანსები და ხარჯები ვიზუალური დაფებითა და ანგარიშებით.',
+    'ფინანსური დაფები|ტრენდების ანალიზი|PDF/Excel|შედარებითი ანალიზი',
+    'rose',
+  ],
+  [
+    'phone',
+    'მობილური აპი',
+    'ყველაფერი ჯიბეში — გადახდები, შეტყობინებები და მოთხოვნები ნებისმიერ დროს.',
+    'iOS და Android|Push შეტყობინებები|მობილური გადახდა|QR ვიზიტორებისთვის',
+    'cyan',
+  ],
+]
+
+const glowClasses: Record<string, string> = {
+  emerald: 'bg-emerald-400',
+  blue: 'bg-blue-400',
+  violet: 'bg-violet-400',
+  amber: 'bg-amber-400',
+  rose: 'bg-rose-400',
+  cyan: 'bg-cyan-400',
+}
+
 function Features() {
-  const features = [
-    {
-      icon: IconWallet,
-      title: 'ფინანსური მართვა',
-      description: 'სრული კონტროლი შენატანებზე, ხარჯებსა და ბიუჯეტზე. ავტომატური გადახდები, ქვითრები და ყოველთვიური ანგარიშები.',
-      color: 'emerald',
-      details: ['ავტომატური ინვოისები', 'ხარჯების კატეგორიზაცია', 'ბიუჯეტის დაგეგმვა', 'გადახდის ისტორია']
-    },
-    {
-      icon: IconWrench,
-      title: 'მოვლა და შეკეთებები',
-      description: 'დაარეგისტრირე პრობლემა, მიანიჭე პრიორიტეტი და აკონტროლე მისი მოგვარება დასაწყისიდან დასასრულამდე.',
-      color: 'blue',
-      details: ['ფოტო ატვირთვა', 'სტატუსის თრექინგი', 'კონტრაქტორების მართვა', 'ისტორიის ლოგი']
-    },
-    {
-      icon: IconChat,
-      title: 'კომუნიკაციის ჰაბი',
-      description: 'პირდაპირი არხი მეზობლებთან და შენობის მენეჯმენტთან. განცხადებები, გამოკითხვები და საგანგებო შეტყობინებები.',
-      color: 'purple',
-      details: ['განცხადებების დაფა', 'პირდაპირი მესიჯები', 'გამოკითხვები', 'SMS და Email']
-    },
-    {
-      icon: IconShield,
-      title: 'უსაფრთხოება და კონფიდენციალურობა',
-      description: 'შენი მონაცემები დაცულია თანამედროვე დაშიფვრის სტანდარტებით. როლზე დაფუძნებული წვდომა და აუდიტის ლოგი.',
-      color: 'amber',
-      details: ['SSL დაშიფვრა', 'როლური წვდომა', 'აუდიტის ლოგი', 'GDPR შესაბამისობა']
-    },
-    {
-      icon: IconChart,
-      title: 'ანალიტიკა და ანგარიშები',
-      description: 'დეტალური ანგარიშები, სტატისტიკა და ხარჯების ვიზუალიზაცია. მიიღე ინსაითები და მიიღე სწორი გადაწყვეტილებები.',
-      color: 'rose',
-      details: ['ფინანსური დაფები', 'ტრენდების ანალიზი', 'ექსპორტი PDF/Excel', 'შედარებითი ანალიზი']
-    },
-    {
-      icon: IconPhone,
-      title: 'მობილური აპლიკაცია',
-      description: 'Bino ხელმისაწვდომია ნებისმიერი მოწყობილობიდან, ნებისმიერ დროს. Push შეტყობინებები და მობილური გადახდები.',
-      color: 'teal',
-      details: ['iOS და Android', 'Push შეტყობინებები', 'მობილური გადახდა', 'QR ვიზიტორებისთვის']
-    }
-  ]
-
-  const colorMap: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
-    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', gradient: 'from-emerald-500 to-teal-600' },
-    blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', gradient: 'from-blue-500 to-cyan-600' },
-    purple: { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200', gradient: 'from-purple-500 to-pink-600' },
-    amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', gradient: 'from-amber-500 to-orange-600' },
-    rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', gradient: 'from-rose-500 to-pink-600' },
-    teal: { bg: 'bg-teal-50', text: 'text-teal-600', border: 'border-teal-200', gradient: 'from-teal-500 to-cyan-600' }
-  }
-
   return (
-    <section id="features" className="py-16 sm:py-20 lg:py-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">შესაძლებლობები</div>
-          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4">
-            ყველაფერი, რაც კორპუსს სჭირდება
+    <section
+      id="features"
+      className="relative bg-white py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="mb-3 text-xs font-black uppercase tracking-[.2em] text-emerald-600">
+            შესაძლებლობები
+          </p>
+
+          <h2 className="text-4xl font-black tracking-[-.05em] text-slate-950 sm:text-5xl">
+            ერთი პლატფორმა.
+            <br />
+            <span className="text-slate-400">
+              ყველაფერი, რაც კორპუსს სჭირდება.
+            </span>
           </h2>
-          <p className="text-base sm:text-lg text-slate-600">
-            ერთი პლატფორმა ყოველდღიური ოპერაციებისთვის — ფინანსებიდან კომუნიკაციამდე.
+
+          <p className="mt-5 text-base leading-7 text-slate-500">
+            მძლავრი ინსტრუმენტები, რომლებიც რთულ ადმინისტრირებას მარტივ
+            ყოველდღიურ პროცესად აქცევს.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {features.map((feature, i) => {
-            const colors = colorMap[feature.color]
-            const Icon = feature.icon
-            return (
-              <div key={i} className="group bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-slate-200/60 hover:border-slate-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center mb-4 sm:mb-5 shadow-md group-hover:scale-105 transition-transform duration-300`}>
-                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map(
+            ([icon, title, desc, details, color], i) => (
+              <div
+                key={title}
+                className={`group relative overflow-hidden rounded-[26px] border border-slate-200/80 bg-white p-7 transition-all duration-500 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_25px_70px_rgba(15,23,42,.09)] ${
+                  i === 0 ? 'lg:col-span-2' : ''
+                }`}
+              >
+                <div
+                  className={`absolute -right-20 -top-20 h-44 w-44 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-20 ${glowClasses[color]}`}
+                />
+
+                <div className="relative">
+                  <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-slate-950 text-white shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+                    <Icon name={icon} />
+                  </div>
+
+                  <h3 className="text-xl font-black text-slate-950">
+                    {title}
+                  </h3>
+
+                  <p className="mt-3 max-w-lg text-sm leading-6 text-slate-500">
+                    {desc}
+                  </p>
+
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {details.split('|').map((d) => (
+                      <span
+                        key={d}
+                        className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-bold text-slate-500"
+                      >
+                        {d}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3">{feature.title}</h3>
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 sm:mb-5">{feature.description}</p>
-                <ul className="space-y-1.5 sm:space-y-2">
-                  {feature.details.map((detail, j) => (
-                    <li key={j} className="flex items-center gap-2 text-xs sm:text-sm text-slate-600">
-                      <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 flex-shrink-0" />
-                      <span>{detail}</span>
-                    </li>
-                  ))}
-                </ul>
               </div>
             )
-          })}
+          )}
         </div>
       </div>
     </section>
@@ -542,59 +802,78 @@ function Features() {
 
 function HowItWorks() {
   const steps = [
-    {
-      number: '01',
-      title: 'დაარეგისტრირე კორპუსი',
-      description: 'შექმენი შენი შენობის პროფილი რამდენიმე მარტივი ნაბიჯით. დაამატე მისამართი, ბინების რაოდენობა და საერთო სივრცეები.',
-      icon: IconBuilding
-    },
-    {
-      number: '02',
-      title: 'მოიწვიე მაცხოვრებლები',
-      description: 'გაუგზავნე მეზობლებს მოწვევა ელფოსტით ან SMS-ით. შექმენი ციფრული საზოგადოება წუთებში.',
-      icon: IconChat
-    },
-    {
-      number: '03',
-      title: 'მართე მარტივად',
-      description: 'ფინანსები, პრობლემები და კომუნიკაცია ერთ სივრცეში. მიიღე სრული კონტროლი და გამჭვირვალობა.',
-      icon: IconChart
-    }
+    [
+      '01',
+      'დაარეგისტრირე კორპუსი',
+      'შექმენი შენობის პროფილი რამდენიმე მარტივი ნაბიჯით და დაამატე ბინები.',
+      'building',
+    ],
+    [
+      '02',
+      'მოიწვიე მაცხოვრებლები',
+      'გაუგზავნე მოწვევა ელფოსტით ან SMS-ით და შექმენი ციფრული საზოგადოება.',
+      'users',
+    ],
+    [
+      '03',
+      'მართე მარტივად',
+      'ფინანსები, პრობლემები და კომუნიკაცია ერთ სივრცეში — სრული კონტროლით.',
+      'chart',
+    ],
   ]
 
   return (
-    <section id="how-it-works" className="py-16 sm:py-20 lg:py-28 bg-slate-900 text-white relative overflow-hidden">
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">მარტივი დასაწყისი</div>
-          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-4">
-            როგორ მუშაობს Bino?
+    <section
+      id="how-it-works"
+      className="relative overflow-hidden bg-[#06100d] py-24 text-white lg:py-32"
+    >
+      <GlowOrb className="left-1/3 top-1/3 h-96 w-96 bg-emerald-500" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="mb-3 text-xs font-black uppercase tracking-[.2em] text-emerald-300">
+            მარტივი დასაწყისი
+          </p>
+
+          <h2 className="text-4xl font-black tracking-[-.05em] sm:text-5xl">
+            ქაოსიდან{' '}
+            <span className="text-emerald-300">კონტროლამდე.</span>
           </h2>
-          <p className="text-base sm:text-lg text-slate-400">
+
+          <p className="mt-5 text-base leading-7 text-white/45">
             ციფრულ მართვაზე გადასვლა რამდენიმე წუთში შეგიძლია.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 relative max-w-5xl mx-auto">
-          <div className="hidden lg:block absolute top-24 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
+        <div className="relative mt-14 grid gap-4 lg:grid-cols-3">
+          {steps.map(([n, t, d, ic], i) => (
+            <div
+              key={n}
+              className="group relative rounded-[28px] border border-white/10 bg-white/[.045] p-7 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-emerald-300/25 hover:bg-white/[.07]"
+            >
+              <div className="mb-9 flex items-center justify-between">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-300 to-teal-500 text-[#06100d] shadow-lg">
+                  <Icon name={ic} />
+                </span>
 
-          {steps.map((step, i) => {
-            const Icon = step.icon
-            return (
-              <div key={i} className="relative">
-                <div className="bg-slate-800/50 rounded-2xl p-5 sm:p-6 lg:p-8 border border-white/10 hover:border-emerald-500/30 transition-all duration-300 hover:bg-slate-800">
-                  <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
-                      <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-emerald-400">{step.number}</div>
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{step.title}</h3>
-                  <p className="text-sm sm:text-base text-slate-400 leading-relaxed">{step.description}</p>
-                </div>
+                <span className="text-5xl font-black tracking-[-.08em] text-white/[.08]">
+                  {n}
+                </span>
               </div>
-            )
-          })}
+
+              <h3 className="text-xl font-black">{t}</h3>
+
+              <p className="mt-3 text-sm leading-6 text-white/45">
+                {d}
+              </p>
+
+              {i < 2 && (
+                <div className="absolute -right-4 top-14 z-10 hidden h-8 w-8 place-items-center rounded-full border border-white/10 bg-[#06100d] text-emerald-300 lg:grid">
+                  <Icon name="arrow" className="h-4 w-4" />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -603,59 +882,76 @@ function HowItWorks() {
 
 function Testimonials() {
   const testimonials = [
-    {
-      name: 'ნინო კავთარაძე',
-      role: 'კორპუსის ადმინისტრატორი',
-      building: 'ვაჟა-ფშაველას 42',
-      content: 'Bino-ს გამოყენების შემდეგ მაცხოვრებლებს აღარ სჭირდებათ სხვადასხვა ჩატში ინფორმაციის ძებნა. ყველაფერი ერთ ადგილას გვაქვს — გადახდები, ხარჯები და განცხადებები. დროის 70% დავზოგეთ.',
-      rating: 5
-    },
-    {
-      name: 'გიორგი ბერიძე',
-      role: 'მაცხოვრებელი',
-      building: 'საბურთალო, ქუჩა 15',
-      content: 'ბოლოს და ბოლოს გავიგე სად იხარჯება ჩვენი ყოველთვიური შენატანი. გამჭვირვალობა არის ყველაზე დიდი ღირებულება. აპლიკაცია ძალიან მარტივი და ინტუიციურია.',
-      rating: 5
-    },
-    {
-      name: 'ლევან მაისურაძე',
-      role: 'ქონების მმართველი',
-      building: '5 კორპუსი',
-      content: '5 კორპუსს ვმართავ Bino-ს საშუალებით. ყველაფერი ერთი დაფიდან. ანგარიშები ავტომატურად გენერირდება და მაცხოვრებლები უკმაყოფილოები არიან სერვისით.',
-      rating: 5
-    }
+    [
+      'ნინო კავთარაძე',
+      'კორპუსის ადმინისტრატორი',
+      'Bino-ს გამოყენების შემდეგ მაცხოვრებლებს აღარ სჭირდებათ სხვადასხვა ჩატში ინფორმაციის ძებნა. ყველაფერი ერთ ადგილას გვაქვს.',
+      'ნ',
+    ],
+    [
+      'გიორგი ბერიძე',
+      'მაცხოვრებელი',
+      'ბოლოს და ბოლოს გავიგე სად იხარჯება ჩვენი ყოველთვიური შენატანი. გამჭვირვალობა ყველაზე დიდი ღირებულებაა.',
+      'გ',
+    ],
+    [
+      'ლევან მაისურაძე',
+      'ქონების მმართველი',
+      'რამდენიმე კორპუსს ვმართავ Bino-ს საშუალებით. ყველაფერი ერთი დაფიდან და ანგარიშები ავტომატურად გენერირდება.',
+      'ლ',
+    ],
   ]
 
   return (
-    <section className="py-16 sm:py-20 lg:py-28 bg-slate-50/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">რას ამბობენ მომხმარებლები</div>
-          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4">
-            420+ კორპუსი უკვე გვენდობა
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600">
-            ნახე რას ფიქრობენ ჩვენს პლატფორმაზე ადმინისტრატორები და მაცხოვრებლები.
-          </p>
+    <section className="bg-[#f5f8f7] py-24 lg:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+          <div>
+            <p className="mb-3 text-xs font-black uppercase tracking-[.2em] text-emerald-600">
+              რას ამბობენ მომხმარებლები
+            </p>
+
+            <h2 className="text-4xl font-black tracking-[-.05em] text-slate-950 sm:text-5xl">
+              ნდობა, რომელიც
+              <br />
+              ყოველდღე <span className="text-slate-400">იზრდება.</span>
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">
+            <span className="flex text-amber-400">★★★★★</span>
+
+            <span className="text-xs font-black text-slate-600">
+              4.9/5
+            </span>
+          </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5 sm:p-6 lg:p-8 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-1 mb-3 sm:mb-4">
-                {[...Array(testimonial.rating)].map((_, j) => (
-                  <IconStar key={j} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-                ))}
+        <div className="mt-14 grid gap-4 lg:grid-cols-3">
+          {testimonials.map(([name, role, text, initial]) => (
+            <div
+              key={name}
+              className="rounded-[26px] border border-slate-200 bg-white p-7 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+            >
+              <div className="mb-6 flex gap-1 text-amber-400">
+                ★★★★★
               </div>
-              <p className="text-sm sm:text-base text-slate-700 leading-relaxed mb-4 sm:mb-6">"{testimonial.content}"</p>
-              <div className="flex items-center gap-3 pt-3 sm:pt-4 border-t border-slate-100">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm sm:text-base">
-                  {testimonial.name[0]}
+
+              <p className="text-base font-semibold leading-7 text-slate-700">
+                “{text}”
+              </p>
+
+              <div className="mt-7 flex items-center gap-3 border-t border-slate-100 pt-5">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-black text-white">
+                  {initial}
                 </div>
+
                 <div>
-                  <div className="font-semibold text-slate-900 text-sm">{testimonial.name}</div>
-                  <div className="text-xs text-slate-500">{testimonial.role}</div>
-                  <div className="text-xs text-emerald-600">{testimonial.building}</div>
+                  <p className="text-sm font-black text-slate-900">
+                    {name}
+                  </p>
+
+                  <p className="text-xs text-slate-400">{role}</p>
                 </div>
               </div>
             </div>
@@ -671,197 +967,275 @@ function Pricing() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchPlans = async () => {
-      const { data, error } = await supabase
+    ;(async () => {
+      const { data } = await supabase
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
-        // ვფილტრავთ უფასო ტესტს - ის არ ჩანს Pricing გვერდზე
         .not('name', 'ilike', '%უფასო ტესტი%')
         .order('price_monthly', { ascending: true })
 
-      if (!error && data) {
-        setPlans(data)
-      }
+      if (data) setPlans(data)
+
       setLoading(false)
-    }
-    fetchPlans()
+    })()
   }, [])
 
-  if (loading) {
-    return (
-      <section id="pricing" className="py-16 sm:py-20 lg:py-28 bg-slate-50/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-slate-200 rounded w-1/3 mx-auto"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-96 bg-slate-200 rounded-2xl"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  const fallback = [
+    {
+      id: 'starter',
+      name: 'Starter',
+      description: 'პატარა კორპუსებისთვის',
+      price_monthly: 29,
+      features: [
+        'ფინანსური მართვა',
+        'განცხადებები',
+        'შეკეთებების თრექინგი',
+      ],
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      description: 'ზრდადი კორპუსებისთვის',
+      price_monthly: 59,
+      features: [
+        'ყველა Starter ფუნქცია',
+        'ანალიტიკა და ანგარიშები',
+        'ონლაინ გადახდები',
+        'მობილური წვდომა',
+      ],
+    },
+    {
+      id: 'business',
+      name: 'Business',
+      description: 'პროფესიონალი მმართველებისთვის',
+      price_monthly: 99,
+      features: [
+        'ყველა Pro ფუნქცია',
+        'მრავალი კორპუსი',
+        'გაფართოებული მხარდაჭერა',
+      ],
+    },
+  ]
+
+  const items = plans.length ? plans : fallback
 
   return (
-    <section id="pricing" className="py-16 sm:py-20 lg:py-28 bg-slate-50/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-4">
+    <section
+      id="pricing"
+      className="relative overflow-hidden bg-white py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="mb-3 text-xs font-black uppercase tracking-[.2em] text-emerald-600">
             ტარიფები
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
-            აირჩიე შენს კორპუსზე მორგებული გეგმა
+          </p>
+
+          <h2 className="text-4xl font-black tracking-[-.05em] text-slate-950 sm:text-5xl">
+            მარტივი ფასი.
+            <br />
+            <span className="text-slate-400">
+              რეალური ღირებულება.
+            </span>
           </h2>
-          <p className="text-base sm:text-lg text-slate-600">
-            მარტივი და გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე.
+
+          <p className="mt-5 text-base text-slate-500">
+            აირჩიე შენს კორპუსზე მორგებული გეგმა ყოველგვარი დამალული
+            ხარჯების გარეშე.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto items-start">
-          {plans.map((plan) => {
-            const isPopular = plan.name.toLowerCase().includes('pro') || plan.name.toLowerCase().includes('სტანდარტი')
-            
-            return (
-              <div 
-                key={plan.id} 
-                className={`relative rounded-2xl p-6 lg:p-8 transition-all duration-300 ${
-                  isPopular 
-                    ? 'bg-slate-900 text-white shadow-2xl shadow-emerald-900/20 scale-105 z-10 border-2 border-emerald-500' 
-                    : 'bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1'
-                }`}
-              >
-                {isPopular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-emerald-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1.5 whitespace-nowrap">
-                    <IconStar className="w-3.5 h-3.5 fill-white" />
-                    რეკომენდებულია
-                  </div>
-                )}
-                
-                <div className="mb-6">
-                  <h3 className={`text-xl font-bold mb-2 ${isPopular ? 'text-white' : 'text-slate-900'}`}>
-                    {plan.name}
-                  </h3>
-                  <p className={`text-sm ${isPopular ? 'text-slate-300' : 'text-slate-500'}`}>
-                    {plan.description}
-                  </p>
-                </div>
+        {loading ? (
+          <div className="mx-auto mt-14 h-96 max-w-5xl animate-pulse rounded-[30px] bg-slate-100" />
+        ) : (
+          <div className="mx-auto mt-14 grid max-w-6xl gap-4 lg:grid-cols-3 lg:items-stretch">
+            {items.map((p: any) => {
+              const isPro =
+                String(p.name)
+                  .toLowerCase()
+                  .includes('pro') ||
+                String(p.name)
+                  .toLowerCase()
+                  .includes('სტანდარტ')
 
-                <div className="mb-6 pb-6 border-b border-dashed border-slate-700/30">
-                  <div className="flex items-baseline gap-1">
-                    <span className={`text-4xl font-extrabold ${isPopular ? 'text-white' : 'text-slate-900'}`}>
-                      ₾{plan.price_monthly}
+              return (
+                <div
+                  key={p.id}
+                  className={`relative flex flex-col rounded-[28px] p-7 ${
+                    isPro
+                      ? 'bg-[#07140f] text-white shadow-[0_30px_90px_rgba(6,20,15,.18)] ring-1 ring-emerald-400/30 lg:-translate-y-3'
+                      : 'border border-slate-200 bg-white text-slate-950 shadow-sm'
+                  }`}
+                >
+                  <div className="mb-7">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-xl font-black">{p.name}</h3>
+
+                      {isPro && (
+                        <span className="rounded-full bg-emerald-400 px-2.5 py-1 text-[9px] font-black text-[#06110e]">
+                          რეკომენდებული
+                        </span>
+                      )}
+                    </div>
+
+                    <p
+                      className={`mt-2 text-sm ${
+                        isPro
+                          ? 'text-white/45'
+                          : 'text-slate-400'
+                      }`}
+                    >
+                      {p.description}
+                    </p>
+                  </div>
+
+                  <div className="mb-7 flex items-end gap-1 border-b border-dashed border-current/10 pb-7">
+                    <span className="text-5xl font-black tracking-[-.06em]">
+                      ₾{p.price_monthly}
                     </span>
-                    <span className={`text-sm ${isPopular ? 'text-slate-400' : 'text-slate-500'}`}>
+
+                    <span
+                      className={`pb-1 text-sm ${
+                        isPro
+                          ? 'text-white/35'
+                          : 'text-slate-400'
+                      }`}
+                    >
                       /თვე
                     </span>
                   </div>
+
+                  <ul className="mb-8 flex-1 space-y-3">
+                    {Array.isArray(p.features) &&
+                      p.features.map((f: string) => (
+                        <li
+                          key={f}
+                          className={`flex gap-2.5 text-sm ${
+                            isPro
+                              ? 'text-white/65'
+                              : 'text-slate-600'
+                          }`}
+                        >
+                          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-400/12 text-emerald-500">
+                            <Icon
+                              name="check"
+                              className="h-3 w-3"
+                            />
+                          </span>
+
+                          {f}
+                        </li>
+                      ))}
+                  </ul>
+
+                  <Link
+                    href="/register"
+                    className={`rounded-2xl py-3.5 text-center text-sm font-black transition-all hover:-translate-y-0.5 ${
+                      isPro
+                        ? 'bg-emerald-400 text-[#06110e] hover:bg-emerald-300'
+                        : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                    }`}
+                  >
+                    არჩევა
+                  </Link>
                 </div>
+              )
+            })}
+          </div>
+        )}
 
-                <ul className="space-y-3 mb-8">
-                  {Array.isArray(plan.features) && plan.features.map((feature: string, j: number) => (
-                    <li key={j} className="flex items-start gap-3">
-                      <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isPopular ? 'bg-emerald-500/20' : 'bg-emerald-100'
-                      }`}>
-                        <IconCheck className={`w-3 h-3 ${isPopular ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                      </div>
-                      <span className={`text-sm ${isPopular ? 'text-slate-200' : 'text-slate-700'}`}>
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* ✅ აქ არის გამოსწორება: ღილაკს ახლა მხოლოდ "არჩევა" აწერია */}
-                <Link
-                  href="/register"
-                  className={`block w-full py-3.5 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base text-center ${
-                    isPopular 
-                      ? 'bg-emerald-500 text-white hover:bg-emerald-400 shadow-lg shadow-emerald-500/25' 
-                      : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
-                  }`}
-                >
-                  არჩევა
-                </Link>
-                
-                {/* ✅ წაშლილია "ბარათის მითითება არ არის საჭირო" ტექსტი */}
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="mt-12 text-center">
-          <p className="text-sm text-slate-600">
-            გაქვს სპეციფიკური მოთხოვნა? <a href="#contact" className="text-emerald-600 font-semibold hover:underline">დაგვიკავშირდი</a> ინდივიდუალური შეთავაზებისთვის.
-          </p>
-        </div>
+        <p className="mt-8 text-center text-sm text-slate-400">
+          გაქვს სპეციფიკური მოთხოვნა?{' '}
+          <a
+            href="#contact"
+            className="font-bold text-emerald-600 hover:underline"
+          >
+            დაგვიკავშირდი
+          </a>
+          .
+        </p>
       </div>
     </section>
   )
 }
 
 function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0)
+  const [open, setOpen] = useState(0)
 
   const faqs = [
-    {
-      question: 'რამდენი ხანი სჭირდება რეგისტრაციას?',
-      answer: 'კორპუსის რეგისტრაცია სულ რამდენიმე წუთს იღებს. შეავსე მარტივი ფორმა, დაამატე ბინები და მოიწვიე მაცხოვრებლები. პირველი ანგარიში შეგიძლია იმავე დღეს ნახო.'
-    },
-    {
-      question: 'არის თუ არა Bino უსაფრთხო?',
-      answer: 'დიახ. ჩვენ ვიყენებთ საბანკო დონის SSL დაშიფვრას, როლურ წვდომას და რეგულარულ ბექაფებს. თქვენი მონაცემები დაცულია და არასდროს გაზიარდება მესამე პირებთან.'
-    },
-    {
-      question: 'შემიძლია გაუქმება ნებისმიერ დროს?',
-      answer: 'რა თქმა უნდა. არ არსებობს გრძელვადიანი კონტრაქტი. შეგიძლია გააუქმო გამოწერა ნებისმიერ დროს და შენი მონაცემები ექსპორტზე გაიტანო ნებისმიერ ფორმატში.'
-    },
-    {
-      question: 'როგორ მუშაობს გადახდები?',
-      answer: 'Bino ინტეგრირებულია ქართულ ბანკებთან (TBC, Bank of Georgia). მაცხოვრებლებს შეუძლიათ გადაიხადონ ბარათით, ბანკის გადარიცხვით ან მობილური ბანკინგით. ყველა ტრანზაქცია ავტომატურად ირიცხება სისტემაში.'
-    },
-    {
-      question: 'არის თუ არა მობილური აპლიკაცია?',
-      answer: 'დიახ, Bino ხელმისაწვდომია iOS და Android-ზე. მობილური აპლიკაციით შეგიძლია გადაიხადო, ნახო განცხადებები, შეიტანო შეკეთების მოთხოვნა და მიიღო push შეტყობინებები.'
-    },
-    {
-      question: 'რა ხდება ჩემს მონაცემებთან?',
-      answer: 'თქვენი მონაცემები ინახება დაცულ ღრუბლოვან სერვერებზე საქართველოში. ჩვენ ვიცავთ GDPR სტანდარტებს და გვაქვს მკაცრი კონფიდენციალურობის პოლიტიკა.'
-    }
+    [
+      'რამდენი ხანი სჭირდება რეგისტრაციას?',
+      'კორპუსის რეგისტრაცია რამდენიმე წუთს იღებს. შეავსე მარტივი ფორმა, დაამატე ბინები და მოიწვიე მაცხოვრებლები.',
+    ],
+    [
+      'არის თუ არა Bino უსაფრთხო?',
+      'დიახ. პლატფორმა იყენებს დაშიფვრას, როლურ წვდომას და რეგულარულ ბექაფებს.',
+    ],
+    [
+      'შემიძლია გაუქმება ნებისმიერ დროს?',
+      'რა თქმა უნდა. არ არსებობს გრძელვადიანი კონტრაქტი და გამოწერის გაუქმება ნებისმიერ დროს შეგიძლია.',
+    ],
+    [
+      'როგორ მუშაობს გადახდები?',
+      'მაცხოვრებლებს შეუძლიათ გადაიხადონ ბარათით, ბანკის გადარიცხვით ან მობილური ბანკინგით, ხოლო ტრანზაქციები სისტემაში აისახება.',
+    ],
+    [
+      'არის თუ არა მობილური აპლიკაცია?',
+      'დიახ. Bino ხელმისაწვდომია iOS და Android-ზე გადახდების, განცხადებებისა და მოთხოვნების სამართავად.',
+    ],
+    [
+      'რა ხდება ჩემს მონაცემებთან?',
+      'მონაცემები ინახება დაცულ ღრუბლოვან ინფრასტრუქტურაში და დაცულია მკაცრი კონფიდენციალურობის წესებით.',
+    ],
   ]
 
   return (
-    <section id="faq" className="py-16 sm:py-20 lg:py-28 bg-slate-50/50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12 sm:mb-16">
-          <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">FAQ</div>
-          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4">
-            ხშირად დასმული კითხვები
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600">
-            ვერ პოულობ პასუხს? <a href="#contact" className="text-emerald-600 font-semibold hover:underline">დაგვიკავშირდი</a>
+    <section
+      id="faq"
+      className="bg-[#f5f8f7] py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+        <div className="text-center">
+          <p className="mb-3 text-xs font-black uppercase tracking-[.2em] text-emerald-600">
+            FAQ
           </p>
+
+          <h2 className="text-4xl font-black tracking-[-.05em] text-slate-950 sm:text-5xl">
+            ხშირად დასმული
+            <br />
+            <span className="text-slate-400">კითხვები.</span>
+          </h2>
         </div>
 
-        <div className="space-y-3">
-          {faqs.map((faq, i) => (
-            <div key={i} className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
+        <div className="mt-12 space-y-3">
+          {faqs.map(([q, a], i) => (
+            <div
+              key={q}
+              className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition-shadow hover:shadow-sm"
+            >
               <button
-                onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="w-full flex items-center justify-between p-4 sm:p-5 lg:p-6 text-left hover:bg-slate-50 transition-colors duration-300"
+                onClick={() => setOpen(open === i ? -1 : i)}
+                className="flex w-full items-center justify-between gap-5 px-5 py-5 text-left sm:px-6"
               >
-                <span className="font-semibold text-sm sm:text-base text-slate-900 pr-3 sm:pr-4">{faq.question}</span>
-                <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 flex items-center justify-center transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`}>
-                  {openIndex === i ? <IconMinus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" /> : <IconPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />}
-                </div>
+                <span className="font-black text-slate-900">
+                  {q}
+                </span>
+
+                <span
+                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-slate-100 text-emerald-600 transition-transform ${
+                    open === i ? 'rotate-180' : ''
+                  }`}
+                >
+                  <Icon
+                    name={open === i ? 'minus' : 'plus'}
+                    className="h-4 w-4"
+                  />
+                </span>
               </button>
-              {openIndex === i && (
-                <div className="px-4 sm:px-5 lg:px-6 pb-4 sm:pb-5 lg:pb-6">
-                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">{faq.answer}</p>
+
+              {open === i && (
+                <div className="px-5 pb-6 text-sm leading-7 text-slate-500 sm:px-6">
+                  {a}
                 </div>
               )}
             </div>
@@ -874,31 +1248,54 @@ function FAQ() {
 
 function Contact() {
   return (
-    <section id="contact" className="py-16 sm:py-20 lg:py-28 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">კონტაქტი</div>
-        <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-slate-900 mb-4 sm:mb-6">
-          დაგვიკავშირდით
-        </h2>
-        <p className="text-base sm:text-lg text-slate-600 mb-8 sm:mb-10">
-          გაქვთ კითხვები ან გსურთ პერსონალური დემო? ჩვენი გუნდი მზადაა დაგეხმაროთ.
-        </p>
-        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto">
-          <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200/60 hover:border-emerald-300 transition-colors">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 flex items-center justify-center mb-3 sm:mb-4">
-              <IconChat className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+    <section
+      id="contact"
+      className="bg-white py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="relative overflow-hidden rounded-[34px] bg-[#07140f] p-8 text-white shadow-[0_30px_100px_rgba(6,20,15,.15)] sm:p-12 lg:p-16">
+          <GlowOrb className="-right-20 -top-20 h-80 w-80 bg-emerald-400" />
+          <GlowOrb className="-bottom-32 left-20 h-64 w-64 bg-cyan-400" />
+
+          <div className="relative grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="mb-3 text-xs font-black uppercase tracking-[.2em] text-emerald-300">
+                დაგვიკავშირდით
+              </p>
+
+              <h2 className="max-w-2xl text-4xl font-black tracking-[-.05em] sm:text-5xl">
+                გინდა ნახო, როგორ იმუშავებს Bino შენს კორპუსში?
+              </h2>
+
+              <p className="mt-5 max-w-xl text-base leading-7 text-white/45">
+                მოგვწერე ან დაგვირეკე — ჩვენი გუნდი დაგეხმარება
+                პლატფორმის შერჩევასა და დაწყებაში.
+              </p>
             </div>
-            <h3 className="font-bold text-slate-900 mb-2 text-base sm:text-lg">ელ-ფოსტა</h3>
-            <a href="mailto:info@bino.ge" className="text-emerald-600 hover:underline text-base sm:text-lg font-medium">info@bino.ge</a>
-            <p className="text-slate-500 text-xs sm:text-sm mt-2">ვუპასუხებთ 24 საათის განმავლობაში</p>
-          </div>
-          <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200/60 hover:border-emerald-300 transition-colors">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 flex items-center justify-center mb-3 sm:mb-4">
-              <IconPhone className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+
+            <div className="space-y-3 text-sm">
+              <a
+                href="mailto:info@bino.ge"
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.05] px-5 py-4 font-bold text-white/75 transition hover:bg-white/[.09] hover:text-white"
+              >
+                <Icon
+                  name="chat"
+                  className="text-emerald-300"
+                />
+                info@bino.ge
+              </a>
+
+              <a
+                href="tel:+995555123456"
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.05] px-5 py-4 font-bold text-white/75 transition hover:bg-white/[.09] hover:text-white"
+              >
+                <Icon
+                  name="phone"
+                  className="text-emerald-300"
+                />
+                +995 555 123 456
+              </a>
             </div>
-            <h3 className="font-bold text-slate-900 mb-2 text-base sm:text-lg">ტელეფონი</h3>
-            <a href="tel:+995555123456" className="text-emerald-600 hover:underline text-base sm:text-lg font-medium">+995 555 123 456</a>
-            <p className="text-slate-500 text-xs sm:text-sm mt-2">ორშაბათი - პარასკევი, 10:00 - 18:00</p>
           </div>
         </div>
       </div>
@@ -908,39 +1305,48 @@ function Contact() {
 
 function FinalCTA() {
   return (
-    <section className="py-16 sm:py-20 lg:py-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-16 overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-          <div className="relative text-center max-w-3xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
-              მზად ხარ კორპუსის მართვა გაამარტივო?
+    <section className="relative overflow-hidden bg-white pb-24 lg:pb-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 p-8 text-center text-[#04100c] sm:p-14 lg:p-20">
+          <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white_1px,transparent_1px)] [background-size:22px_22px]" />
+
+          <div className="relative mx-auto max-w-3xl">
+            <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-[#06100d]/10">
+              <Icon name="zap" className="h-7 w-7" />
+            </div>
+
+            <h2 className="text-4xl font-black tracking-[-.05em] sm:text-5xl lg:text-6xl">
+              კორპუსის მართვის
+              <br />
+              ახალი სტანდარტი იწყება აქ.
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-emerald-50 mb-6 sm:mb-8 leading-relaxed">
-              შეუერთდი 420+ კორპუსს, რომლებიც უკვე იყენებენ Bino-ს ყოველდღიური მართვისთვის. დაიწყე უფასოდ დღესვე.
+
+            <p className="mx-auto mt-5 max-w-xl text-base font-semibold leading-7 text-[#063a2c]/70">
+              შეუერთდი ასობით კორპუსს, რომლებიც ყოველდღიურ მართვას უფრო
+              მარტივად და გამჭვირვალედ აკეთებენ.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Link href="/register" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base">
+
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#06100d] px-7 py-4 text-sm font-black text-white shadow-xl transition hover:-translate-y-1"
+              >
                 დაიწყე უფასოდ
-                <IconArrowRight className="w-4 h-4" />
+                <Icon name="arrow" className="h-4 w-4" />
               </Link>
-              <a href="#contact" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-white/10 text-white font-semibold rounded-lg border border-white/20 hover:bg-white/20 transition-all backdrop-blur-sm text-sm sm:text-base">
+
+              <a
+                href="#contact"
+                className="inline-flex items-center justify-center rounded-2xl border border-[#06100d]/15 bg-white/20 px-7 py-4 text-sm font-black backdrop-blur hover:bg-white/30"
+              >
                 დემოს დაჯავშნა
               </a>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-3 mt-6 sm:mt-8 text-xs sm:text-sm text-emerald-100">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>უფასო 14-დღიანი ტესტი</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>ბარათის გარეშე</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>გაუქმება ნებისმიერ დროს</span>
-              </div>
+
+            <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-bold text-[#063a2c]/65">
+              <span>✓ 14-დღიანი ტესტი</span>
+              <span>✓ ბარათის გარეშე</span>
+              <span>✓ გაუქმება ნებისმიერ დროს</span>
             </div>
           </div>
         </div>
@@ -951,77 +1357,195 @@ function FinalCTA() {
 
 function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-300 pt-12 sm:pt-16 pb-6 sm:pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-8 sm:mb-12">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <IconBuilding className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg sm:text-xl font-bold text-white">Bino</span>
-                <span className="text-xs sm:text-sm text-white/60">ბინო</span>
-              </div>
-            </Link>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mb-4 sm:mb-6">
-              ციფრული პლატფორმა თანამედროვე საცხოვრებელი კორპუსების გამჭვირვალე და მარტივი მართვისთვის.
+    <footer className="bg-[#06100d] pt-14 text-white">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+          <div>
+            <Logo dark />
+
+            <p className="mt-5 max-w-xs text-sm leading-6 text-white/35">
+              ციფრული პლატფორმა თანამედროვე საცხოვრებელი კორპუსების
+              გამჭვირვალე და მარტივი მართვისთვის.
             </p>
-            <div className="flex gap-2 sm:gap-3">
-              {['Facebook', 'LinkedIn', 'Instagram'].map((social) => (
-                <a key={social} href="#" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-xs font-bold">
-                  {social[0]}
-                </a>
-              ))}
+          </div>
+
+          <div>
+            <h4 className="mb-4 text-xs font-black uppercase tracking-wider text-white/50">
+              პლატფორმა
+            </h4>
+
+            <div className="space-y-3 text-sm text-white/40">
+              <a
+                className="block hover:text-emerald-300"
+                href="#features"
+              >
+                შესაძლებლობები
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#pricing"
+              >
+                ტარიფები
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#how-it-works"
+              >
+                როგორ მუშაობს
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#contact"
+              >
+                კონტაქტი
+              </a>
             </div>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">პლატფორმა</h4>
-            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-              <li><a href="#features" className="hover:text-emerald-400 transition-colors">შესაძლებლობები</a></li>
-              <li><a href="#pricing" className="hover:text-emerald-400 transition-colors">ტარიფები</a></li>
-              <li><a href="#how-it-works" className="hover:text-emerald-400 transition-colors">როგორ მუშაობს</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">მობილური აპი</a></li>
-            </ul>
+            <h4 className="mb-4 text-xs font-black uppercase tracking-wider text-white/50">
+              კომპანია
+            </h4>
+
+            <div className="space-y-3 text-sm text-white/40">
+              <a
+                className="block hover:text-emerald-300"
+                href="#"
+              >
+                ჩვენ შესახებ
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#"
+              >
+                ბლოგი
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#"
+              >
+                კარიერა
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#contact"
+              >
+                დაგვიკავშირდი
+              </a>
+            </div>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">კომპანია</h4>
-            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">ჩვენ შესახებ</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">ბლოგი</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">კარიერა</a></li>
-              <li><a href="#contact" className="hover:text-emerald-400 transition-colors">კონტაქტი</a></li>
-            </ul>
-          </div>
+            <h4 className="mb-4 text-xs font-black uppercase tracking-wider text-white/50">
+              იურიდიული
+            </h4>
 
-          <div>
-            <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">იურიდიული</h4>
-            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">კონფიდენციალურობა</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">წესები და პირობები</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Cookie პოლიტიკა</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">GDPR</a></li>
-            </ul>
+            <div className="space-y-3 text-sm text-white/40">
+              <a
+                className="block hover:text-emerald-300"
+                href="#"
+              >
+                კონფიდენციალურობა
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#"
+              >
+                წესები და პირობები
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#"
+              >
+                Cookie პოლიტიკა
+              </a>
+
+              <a
+                className="block hover:text-emerald-300"
+                href="#"
+              >
+                GDPR
+              </a>
+            </div>
           </div>
         </div>
 
-        <div className="pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
-          <p className="text-xs sm:text-sm text-slate-500">© 2026 Bino. ყველა უფლება დაცულია.</p>
-          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-500">
-            <span>🇬🇪 დამზადებულია საქართველოში</span>
-          </div>
+        <div className="flex flex-col gap-3 border-t border-white/8 py-6 text-xs text-white/25 sm:flex-row sm:items-center sm:justify-between">
+          <span>© 2026 Bino. ყველა უფლება დაცულია.</span>
+
+          <span>🇬🇪 დამზადებულია საქართველოში</span>
         </div>
       </div>
     </footer>
   )
 }
 
-// ============ MAIN PAGE ============
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-slate-900 font-sans antialiased scroll-smooth">
+    <main className="min-h-screen scroll-smooth bg-white font-sans text-slate-900 antialiased selection:bg-emerald-200 selection:text-emerald-950">
+      <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+        }
+
+        body {
+          overflow-x: hidden;
+        }
+
+        .text-balance {
+          text-wrap: balance;
+        }
+
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+
+          50% {
+            transform: translateY(-9px);
+          }
+        }
+
+        @keyframes float2 {
+          0%,
+          100% {
+            transform: translateY(-4px);
+          }
+
+          50% {
+            transform: translateY(7px);
+          }
+        }
+
+        .animate-float {
+          animation: float 4.5s ease-in-out infinite;
+        }
+
+        .animate-float2 {
+          animation: float2 5s ease-in-out infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          *,
+          *::before,
+          *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
+
       <Navbar />
       <Hero />
       <ProblemSolution />
