@@ -218,6 +218,10 @@ export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [referralCode, setReferralCode] = useState('')
   const [copied, setCopied] = useState(false)
+  
+  // ⭐ ახალი სტეიტები მომხმარებლის პაკეტისთვის
+  const [userPlan, setUserPlan] = useState<string>('')
+  const [isTrial, setIsTrial] = useState<boolean>(false)
 
   useEffect(() => {
     const init = async () => {
@@ -230,12 +234,16 @@ export default function PricingPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('referral_code')
+        .select('subscription_plan, subscription_status, is_trial, referral_code')
         .eq('id', user.id)
         .maybeSingle()
 
-      if (profile?.referral_code) {
-        setReferralCode(profile.referral_code)
+      if (profile) {
+        setUserPlan(profile.subscription_plan || '')
+        setIsTrial(profile.is_trial || false)
+        if (profile.referral_code) {
+          setReferralCode(profile.referral_code)
+        }
       }
 
       setLoading(false)
@@ -265,6 +273,18 @@ export default function PricingPage() {
   }
 
   const userName = user?.email?.split('@')[0] || 'მომხმარებელი'
+  
+  // ⭐ ლოგიკა: აქვს თუ არა მომხმარებელს აქტიური პაკეტი
+  const hasActivePlan = isTrial || (userPlan && userPlan.toLowerCase() !== 'none' && userPlan.toLowerCase() !== '')
+
+  const getPlanDisplayName = () => {
+    if (isTrial) return '14-დღიანი საცდელი'
+    const p = userPlan?.toLowerCase()
+    if (p === 'basic') return 'საბაზისო'
+    if (p === 'pro') return 'პროფესიონალი'
+    if (p === 'enterprise') return 'საწარმო'
+    return 'პაკეტი არჩეული არ არის'
+  }
 
   const problems = [
     { title: "ვინმემ არ გადაიხადა? ვერ გაიგებ ვინ.", desc: "ხელით ცხრილები ან საერთოდ არაფერი — ყოველ თვე თავიდან უნდა გამოარკვიო ვინ არის ვალში." },
@@ -309,9 +329,16 @@ export default function PricingPage() {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-[10px] font-medium text-amber-300">პაკეტი არჩეული არ არის</span>
+            {/* ⭐ დინამიური ბანერი პაკეტის სტატუსით */}
+            <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
+              hasActivePlan 
+                ? 'bg-emerald-500/10 border-emerald-500/30' 
+                : 'bg-amber-500/10 border-amber-500/30'
+            }`}>
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${hasActivePlan ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+              <span className={`text-[10px] font-medium ${hasActivePlan ? 'text-emerald-300' : 'text-amber-300'}`}>
+                {hasActivePlan ? `აქტიური: ${getPlanDisplayName()}` : 'პაკეტი არჩეული არ არის'}
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -350,7 +377,8 @@ export default function PricingPage() {
                   <span className="text-[10px] font-medium text-emerald-300">კორპუსის მართვა ახალ დონეზე</span>
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+                {/* ⃝ შემცირებული შრიფტი */}
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4 leading-tight">
                   თქვენს კორპუსში 47 ბინაა. 12-მა არ გადაიხადა.
                   <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
@@ -364,16 +392,26 @@ export default function PricingPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <Link 
-                    href="/dashboard/add-building" 
-                    className="w-full sm:w-auto px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 group text-sm"
-                  >
-                    დაიწყე უფასოდ 14 დღით
-                    <IconArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                  <p className="text-[10px] sm:text-xs text-slate-500">
-                    ბარათი არ საჭიროა · გაუქმე ნებისმიერ დროს
-                  </p>
+                  {/* ⃝ ლოგიკა: თუ უკვე აქვს პაკეტი, ღილაკი არააქტიურია */}
+                  {hasActivePlan ? (
+                    <div className="w-full sm:w-auto px-5 py-2.5 bg-slate-800 text-slate-400 font-semibold rounded-lg flex items-center justify-center gap-2 text-sm border border-white/10">
+                      <IconCheck className="w-4 h-4 text-emerald-400" />
+                      პაკეტი უკვე აქტიურია
+                    </div>
+                  ) : (
+                    <>
+                      <Link 
+                        href="/dashboard/add-building" 
+                        className="w-full sm:w-auto px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 group text-sm"
+                      >
+                        დაიწყე უფასოდ 14 დღით
+                        <IconArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                      <p className="text-[10px] sm:text-xs text-slate-500">
+                        ბარათი არ საჭიროა · გაუქმე ნებისმიერ დროს
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -522,6 +560,10 @@ export default function PricingPage() {
               {PLANS.map((plan) => {
                 const isPro = plan.popular
                 const price = billingCycle === 'yearly' ? Math.round(plan.price * 0.83) : plan.price
+                
+                // ⃝ ლოგიკა: არის თუ არა ეს პაკეტი მომხმარებლის მიმდინარე პაკეტი
+                const effectivePlan = isTrial ? 'basic' : (userPlan?.toLowerCase() || '')
+                const isCurrentPlan = effectivePlan === plan.id
 
                 return (
                   <div
@@ -570,14 +612,24 @@ export default function PricingPage() {
                       ))}
                     </ul>
 
-                    <Link
-                      href="/dashboard"
-                      className={`block w-full py-2.5 text-center text-xs font-semibold rounded-lg transition-all hover:-translate-y-0.5 ${
-                        isPro ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25' : 'bg-slate-700 hover:bg-slate-600 text-white'
-                      }`}
-                    >
-                      {plan.cta}
-                    </Link>
+                    {/* ⃝ ლოგიკა: თუ პაკეტი უკვე აქტიურია, ღილაკი არააქტიურია. წინააღმდეგ შემთხვევაში, ყველას "არჩევა" აწერია */}
+                    {isCurrentPlan ? (
+                      <button 
+                        disabled
+                        className="block w-full py-2.5 text-center text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 cursor-not-allowed border border-white/10 mt-auto"
+                      >
+                        აქტიური პაკეტი
+                      </button>
+                    ) : (
+                      <Link
+                        href="/dashboard"
+                        className={`block w-full py-2.5 text-center text-xs font-semibold rounded-lg transition-all hover:-translate-y-0.5 mt-auto ${
+                          isPro ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25' : 'bg-slate-700 hover:bg-slate-600 text-white'
+                        }`}
+                      >
+                        არჩევა
+                      </Link>
+                    )}
                   </div>
                 )
               })}
