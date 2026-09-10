@@ -132,6 +132,20 @@ const IconShield = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconTrash = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+)
+
+const IconLock = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+)
+
 // ============ შიდა კომპონენტი ============
 function DashboardContent() {
   const router = useRouter()
@@ -146,7 +160,7 @@ function DashboardContent() {
   const [currentTime, setCurrentTime] = useState(new Date())
   
   // ⭐ დინამიური ლიმიტი ბაზიდან
-  const [maxBuildingsLimit, setMaxBuildingsLimit] = useState<number>(20)
+  const [maxBuildingsLimit, setMaxBuildingsLimit] = useState<number>(1)
   
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -225,7 +239,8 @@ function DashboardContent() {
           .eq('name', dbPlanName)
           .maybeSingle()
 
-        setMaxBuildingsLimit(planData?.max_buildings || 20)
+        // ⭐ ლიმიტი ბაზიდან (Basic/Trial = 1, Pro = 3, Enterprise = 999999)
+        setMaxBuildingsLimit(planData?.max_buildings || 1)
       }
 
       setLoading(false)
@@ -290,7 +305,6 @@ function DashboardContent() {
       setCollectedAmount(collected)
 
       // 3. დავალიანების გამოთვლა
-      // ფორმულა: (ბინების რაოდენობა × monthly_fee) - შეგროვებული
       const debts: Record<string, number> = {}
       for (const building of buildings) {
         const { data: settings } = await supabase
@@ -326,14 +340,62 @@ function DashboardContent() {
     router.push('/')
   }
 
-  const handleDeleteBuilding = async (id: string) => {
-    if (confirm('დარწმუნებული ხარ, რომ გსურს ამ კორპუსის წაშლა?')) {
-      const { error } = await supabase.from('buildings').delete().eq('id', id)
-      if (error) {
-        alert('შეცდომა: ' + error.message)
-      } else {
-        setBuildings(prev => prev.filter(b => b.id !== id))
+  // ⭐ კორპუსის წაშლის ფუნქცია
+  const handleDeleteBuilding = async (buildingId: string, buildingName: string) => {
+    if (!confirm(`დარწმუნებული ხარ, რომ გსურს "${buildingName}" კორპუსის წაშლა?\n\nყველა მონაცემი (ბინები, გადახდები, აქტივობები) წაიშლება სამუდამოდ!`)) {
+      return
+    }
+
+    try {
+      // წაშალე ყველა დაკავშირებული მონაცემი
+      const { error: apartmentsError } = await supabase
+        .from('apartments')
+        .delete()
+        .eq('building_id', buildingId)
+      
+      if (apartmentsError) throw apartmentsError
+
+      const { error: settingsError } = await supabase
+        .from('building_settings')
+        .delete()
+        .eq('building_id', buildingId)
+      
+      if (settingsError) throw settingsError
+
+      const { error: utilitiesError } = await supabase
+        .from('building_utilities')
+        .delete()
+        .eq('building_id', buildingId)
+      
+      if (utilitiesError) throw utilitiesError
+
+      const { error: contactsError } = await supabase
+        .from('building_contacts')
+        .delete()
+        .eq('building_id', buildingId)
+      
+      if (contactsError) throw contactsError
+
+      // ბოლოს წაშალე კორპუსი
+      const { error: buildingError } = await supabase
+        .from('buildings')
+        .delete()
+        .eq('id', buildingId)
+      
+      if (buildingError) throw buildingError
+
+      // განაახლე სია
+      setBuildings(prev => prev.filter(b => b.id !== buildingId))
+      
+      // თუ წაშლილი კორპუსი იყო არჩეული, გადადი "ყველა კორპუსზე"
+      if (selectedBuildingId === buildingId) {
+        setSelectedBuildingId('all')
       }
+
+      alert('კორპუსი წარმატებით წაიშალა!')
+    } catch (error: any) {
+      console.error('Delete error:', error)
+      alert('შეცდომა კორპუსის წაშლისას: ' + (error.message || 'უცნობი შეცდომა'))
     }
   }
 
@@ -373,7 +435,7 @@ function DashboardContent() {
 
   const isPaidOrTrial = userProfile?.subscription_status === 'active' || userProfile?.is_trial;
 
-  // ⭐ ლიმიტის ლოგიკა ახლა იყენებს ბაზიდან წამოსულ მნიშვნელობას
+  //  ლიმიტის ლოგიკა
   const currentPlan = (userProfile?.subscription_plan || 'basic').toLowerCase()
   const isBuildingLimitReached = buildings.length >= maxBuildingsLimit
 
@@ -439,7 +501,7 @@ function DashboardContent() {
     },
   ]
 
-  // ⭐ რეალური სტატისტიკა
+  //  რეალური სტატისტიკა
   const isAllSelected = selectedBuildingId === 'all'
   
   const totalStats = {
@@ -456,11 +518,11 @@ function DashboardContent() {
   }
 
   const dropdownOptions = [
-    { id: 'all', label: 'ყველა კორპუსი', icon: '📊' },
+    { id: 'all', label: 'ყველა კორპუსი', icon: '' },
     ...buildings.map(b => ({
       id: b.id,
       label: b.name || b.street || 'კორპუსი',
-      icon: '',
+      icon: '🏢',
     })),
   ]
 
@@ -468,10 +530,7 @@ function DashboardContent() {
 
   // ⭐ აქტივობის ფორმატირება
   const formatActivity = (log: any) => {
-    const actionType = log.action_type || 'action'
-    const entityName = log.entity_name || log.entity_type || 'element'
-    const description = log.description || `${actionType} on ${entityName}`
-    
+    const description = log.description || `${log.action_type || 'action'} on ${log.entity_name || log.entity_type || 'element'}`
     return description
   }
 
@@ -773,53 +832,70 @@ function DashboardContent() {
                     <div className="absolute top-full left-0 right-0 sm:min-w-[280px] mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
                       <div className="p-2">
                         {dropdownOptions.map((option) => (
-                          <button
-                            key={option.id}
-                            onClick={() => {
-                              setSelectedBuildingId(option.id)
-                              setIsDropdownOpen(false)
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                              selectedBuildingId === option.id
-                                ? 'bg-emerald-500/10 border border-emerald-500/30'
-                                : 'hover:bg-white/5 border border-transparent'
-                            }`}
-                          >
-                            <span className="text-xl">{option.icon}</span>
-                            <div className="flex-1 min-w-0">
-                              <div className={`text-sm font-semibold truncate ${
-                                selectedBuildingId === option.id ? 'text-emerald-300' : 'text-white'
-                              }`}>
-                                {option.label}
-                              </div>
-                              {option.id !== 'all' && (
-                                <div className="text-xs text-slate-400">
-                                  {apartmentsCount[option.id] || 0} ბინა
+                          <div key={option.id} className="relative group">
+                            <button
+                              onClick={() => {
+                                setSelectedBuildingId(option.id)
+                                setIsDropdownOpen(false)
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+                                selectedBuildingId === option.id
+                                  ? 'bg-emerald-500/10 border border-emerald-500/30'
+                                  : 'hover:bg-white/5 border border-transparent'
+                              }`}
+                            >
+                              <span className="text-xl">{option.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className={`text-sm font-semibold truncate ${
+                                  selectedBuildingId === option.id ? 'text-emerald-300' : 'text-white'
+                                }`}>
+                                  {option.label}
                                 </div>
+                                {option.id !== 'all' && (
+                                  <div className="text-xs text-slate-400">
+                                    {apartmentsCount[option.id] || 0} ბინა
+                                  </div>
+                                )}
+                              </div>
+                              {selectedBuildingId === option.id && (
+                                <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                               )}
-                            </div>
-                            {selectedBuildingId === option.id && (
-                              <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                            </button>
+                            
+                            {/* ⭐ კორპუსის წაშლის ღილაკი (მხოლოდ კონკრეტული კორპუსებისთვის) */}
+                            {option.id !== 'all' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const building = buildings.find(b => b.id === option.id)
+                                  if (building) {
+                                    handleDeleteBuilding(building.id, building.name || building.street || 'კორპუსი')
+                                    setIsDropdownOpen(false)
+                                  }
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                title="კორპუსის წაშლა"
+                              >
+                                <IconTrash className="w-4 h-4 text-rose-400" />
+                              </button>
                             )}
-                          </button>
+                          </div>
                         ))}
                       </div>
                       
                       <div className="border-t border-white/10 p-2">
+                        {/* ⭐ ლიმიტის ლოგიკა: ბოქლოკირებული ან ჩვეულებრივი ღილაკი */}
                         {isBuildingLimitReached ? (
                           <button
                             onClick={() => {
                               setIsDropdownOpen(false)
                               setIsUpsellModalOpen(true)
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-800/50 border border-white/10 hover:bg-slate-800 transition-all text-left group relative overflow-hidden"
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-800/50 border border-white/10 hover:bg-slate-800 transition-all text-left group relative overflow-hidden cursor-pointer"
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="relative w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center">
-                              <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                              </svg>
+                              <IconLock className="w-4 h-4 text-slate-400" />
                             </div>
                             <div className="relative flex-1">
                               <div className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
@@ -994,30 +1070,46 @@ function DashboardContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {buildings.map((building) => (
-                    <button
+                    <div
                       key={building.id}
-                      onClick={() => setSelectedBuildingId(building.id)}
-                      className="text-left bg-slate-800/50 border border-white/5 hover:border-emerald-500/30 rounded-xl p-4 transition-all group"
+                      className="relative group bg-slate-800/50 border border-white/5 hover:border-emerald-500/30 rounded-xl p-4 transition-all"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                          <IconBuilding className="w-5 h-5 text-emerald-400" />
+                      <button
+                        onClick={() => setSelectedBuildingId(building.id)}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <IconBuilding className="w-5 h-5 text-emerald-400" />
+                          </div>
+                          <IconArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
                         </div>
-                        <IconArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-                      </div>
-                      <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name || building.street}</h4>
-                      <p className="text-xs text-slate-400 mb-3">{building.city} • {apartmentsCount[building.id] || 0} ბინა</p>
-                      <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                        <div>
-                          <div className="text-xs text-slate-400">შეგროვება</div>
-                          <div className="text-sm font-bold text-emerald-400">₾{(collectedAmount[building.id] || 0).toLocaleString()}</div>
+                        <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name || building.street}</h4>
+                        <p className="text-xs text-slate-400 mb-3">{building.city} • {apartmentsCount[building.id] || 0} ბინა</p>
+                        <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                          <div>
+                            <div className="text-xs text-slate-400">შეგროვება</div>
+                            <div className="text-sm font-bold text-emerald-400">₾{(collectedAmount[building.id] || 0).toLocaleString()}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-slate-400">ვალი</div>
+                            <div className="text-sm font-bold text-rose-400">₾{(debtAmount[building.id] || 0).toLocaleString()}</div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs text-slate-400">ვალი</div>
-                          <div className="text-sm font-bold text-rose-400">₾{(debtAmount[building.id] || 0).toLocaleString()}</div>
-                        </div>
-                      </div>
-                    </button>
+                      </button>
+                      
+                      {/* ⭐ კორპუსის წაშლის ღილაკი ბარათზე */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteBuilding(building.id, building.name || building.street || 'კორპუსი')
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        title="კორპუსის წაშლა"
+                      >
+                        <IconTrash className="w-4 h-4 text-rose-400" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1119,6 +1211,7 @@ function DashboardContent() {
           </div>
         )}
 
+        {/* ⭐ UpsellModal - ლიმიტის ამოწურვისას */}
         <UpsellModal
           isOpen={isUpsellModalOpen}
           onClose={() => setIsUpsellModalOpen(false)}
