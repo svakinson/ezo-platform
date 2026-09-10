@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { PLANS } from '@/lib/plans'
@@ -113,6 +113,22 @@ const Icon = ({
         d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"
       />
     ),
+    alert: (
+      <>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </>
+    ),
+    lift: (
+      <>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M9 3v18" />
+        <path d="M15 3v18" />
+        <path d="M3 9h18" />
+        <path d="M3 15h18" />
+      </>
+    ),
   }
 
   return <svg {...common}>{paths[name]}</svg>
@@ -153,12 +169,12 @@ function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
-  useState(() => {
+  useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 18)
     window.addEventListener('scroll', fn, { passive: true })
     fn()
     return () => window.removeEventListener('scroll', fn)
-  })
+  }, [])
 
   const links = [
     ['#features', 'შესაძლებლობები'],
@@ -211,6 +227,24 @@ function Navbar() {
 }
 
 function DashboardMockup() {
+  const [activeNotification, setActiveNotification] = useState(0)
+  
+  const notifications = [
+    { icon: 'check', title: 'გადახდა მიღებულია', subtitle: '+ ₾240 · ბინა 14', color: 'bg-emerald-500/20 text-emerald-300' },
+    { icon: 'alert', title: 'დავალიანება', subtitle: '₾220 · ბინა 17', color: 'bg-rose-500/20 text-rose-300' },
+    { icon: 'lift', title: 'ლიფტის მომსახურება', subtitle: '₾750 · ხარჯი', color: 'bg-blue-500/20 text-blue-300' },
+    { icon: 'users', title: 'კონსიერჟის მომსახურება', subtitle: '₾1,000 · ამ თვეში', color: 'bg-purple-500/20 text-purple-300' },
+    { icon: 'bell', title: 'ახალი შეტყობინება', subtitle: 'წყალი გაითიშება 14:00', color: 'bg-amber-500/20 text-amber-300' },
+    { icon: 'wallet', title: 'ბიუჯეტი განახლდა', subtitle: '+ ₾5,420 · იანვარი', color: 'bg-cyan-500/20 text-cyan-300' },
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveNotification((prev) => (prev + 1) % notifications.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="relative mx-auto w-full max-w-[650px] [perspective:1600px]">
       <div className="absolute -inset-10 rounded-[50%] bg-emerald-400/15 blur-[90px]" />
@@ -254,20 +288,34 @@ function DashboardMockup() {
           </div>
         </div>
       </div>
-      <div className="absolute -left-5 top-16 hidden items-center gap-3 rounded-2xl border border-white/15 bg-[#101b18]/85 px-4 py-3 shadow-2xl backdrop-blur-xl animate-float sm:flex">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400/15 text-emerald-300"><Icon name="check" /></span>
-        <span>
-          <b className="block text-xs text-white">გადახდა მიღებულია</b>
-          <small className="text-[10px] font-bold text-emerald-300">+ ₾240 · ბინა 14</small>
-        </span>
-      </div>
+      
+      {notifications.map((notif, index) => {
+        const isActive = index === activeNotification
+        const IconComponent = Icon
+        return (
+          <div
+            key={index}
+            className={`absolute right-[-20px] top-24 hidden items-center gap-3 rounded-2xl border border-white/15 bg-[#101b18]/90 px-4 py-3 shadow-2xl backdrop-blur-xl sm:flex transition-all duration-500 ${
+              isActive ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+            }`}
+          >
+            <span className={`grid h-9 w-9 place-items-center rounded-xl ${notif.color}`}>
+              <IconComponent name={notif.icon as string} className="w-4 h-4" />
+            </span>
+            <span>
+              <b className="block text-xs text-white">{notif.title}</b>
+              <small className="text-[10px] font-bold text-slate-300">{notif.subtitle}</small>
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
 function Hero() {
   return (
-    <section className="relative min-h-[900px] overflow-hidden bg-[#06100d] pt-28 text-white lg:min-h-screen">
+    <section className="relative min-h-screen overflow-hidden bg-[#06100d] pt-28 text-white">
       <GlowOrb className="-left-40 top-40 h-96 w-96 bg-emerald-400" />
       <GlowOrb className="right-0 top-20 h-[520px] w-[520px] bg-cyan-400" />
       <GlowOrb className="bottom-0 left-1/3 h-80 w-80 bg-violet-500" />
@@ -275,17 +323,18 @@ function Hero() {
       <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-emerald-300/10 to-transparent" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-14 pb-24 pt-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-8 lg:pt-20">
+        <div className="grid items-center gap-14 pb-16 pt-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-8 lg:pt-20">
           <div className="max-w-2xl">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/8 px-3 py-1.5 text-[11px] font-bold text-emerald-200 shadow-[0_0_30px_rgba(52,211,153,.08)]">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-              საცხოვრებელი კორპუსის მართვა 2.0
-            </div>
-
-            {/* ⃝ განახლებული ჰორიზონტალური და კომპაქტური სათაური */}
-            <h1 className="text-balance text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-[-.055em] flex flex-wrap items-center gap-x-3 gap-y-2 mb-7">
-              <span className="text-white">შენი კორპუსი.</span>
-              <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">სრული კონტროლი.</span>
+            {/* ⃝ ორი წარწერა ცალ-ცალკე ხაზზე, იდეალური დაშორებით */}
+            <h1 className="mb-8">
+              <div className="flex flex-col gap-5">
+                <span className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-[-.055em] text-white">
+                  შენი კორპუსი.
+                </span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.1] tracking-[-.055em] bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
+                  სრული კონტროლი.
+                </span>
+              </div>
             </h1>
 
             <p className="mt-7 max-w-xl text-base leading-7 text-white/58 sm:text-lg">
@@ -311,19 +360,14 @@ function Hero() {
           <DashboardMockup />
         </div>
 
-        <div className="grid border-t border-white/10 py-7 sm:grid-cols-3">
-          <div className="border-white/10 px-4 py-2 sm:border-r">
-            <p className="text-2xl font-black">420+</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/35">კორპუსი</p>
-          </div>
-          <div className="border-white/10 px-4 py-2 sm:border-r">
-            <p className="text-2xl font-black">70%</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/35">ნაკლები ადმინისტრაციული დრო</p>
-          </div>
-          <div className="px-4 py-2">
-            <p className="text-2xl font-black">24/7</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/35">წვდომა პლატფორმაზე</p>
-          </div>
+        {/* Scroll Indicator */}
+        <div className="flex justify-center pb-8">
+          <a href="#features" className="flex flex-col items-center gap-2 group">
+            <span className="text-[10px] text-white/40 uppercase tracking-widest group-hover:text-emerald-400 transition-colors">Scroll</span>
+            <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center p-1.5 group-hover:border-emerald-400/50 transition-colors">
+              <div className="w-1 h-2 bg-emerald-400 rounded-full animate-bounce" />
+            </div>
+          </a>
         </div>
       </div>
     </section>
@@ -386,11 +430,11 @@ function ProblemSolution() {
   )
 }
 
-// ⃝ ახალი "ბანქოს კარტების" დიზაინი შესაძლებლობებისთვის
+// ⃝ Features - ბარათები ერთმანეთზე დაწყობილი (stacked)
 const features = [
   ['wallet', 'ფინანსური მართვა', 'სრული კონტროლი ბიუჯეტზე.', 'ავტომატური ინვოისები|ხარჯების კატეგორიზაცია|ბიუჯეტის დაგეგმვა|გადახდის ისტორია', 'emerald'],
   ['wrench', 'მოვლა და შეკეთებები', 'აკონტროლე პრობლემები თავიდან ბოლომდე.', 'ფოტო ატვირთვა|სტატუსის თრექინგი|კონტრაქტორები|ისტორიის ლოგი', 'blue'],
-  ['chat', 'კომუნიკაციის ჰაბი', 'ერთი არხი მეზობლებთან და განცხადებებთან.', 'განცხადებების დაფა|პირდაპირი მესიჯები|გამოკითხვები|SMS და Email', 'violet'],
+  ['chat', 'კომუნიკაციის აბი', 'ერთი არხი მეზობლებთან და განცხადებებთან.', 'განცხადებების დაფა|პირდაპირი მესიჯები|გამოკითხვები|SMS და Email', 'violet'],
   ['shield', 'უსაფრთხოება', 'როლებზე დაფუძნებული წვდომა და აუდიტი.', 'SSL დაშიფვრა|როლური წვდომა|აუდიტის ლოგი|GDPR', 'amber'],
   ['chart', 'ანალიტიკა', 'გაანალიზე ფინანსები ვიზუალური დაფებით.', 'ფინანსური დაფები|ტრენდების ანალიზი|PDF/Excel|შედარებითი ანალიზი', 'rose'],
   ['phone', 'მობილური აპი', 'ყველაფერი ჯიბეში ნებისმიერ დროს.', 'iOS და Android|Push შეტყობინებები|მობილური გადახდა|QR ვიზიტორებისთვის', 'cyan'],
@@ -406,10 +450,12 @@ const cardColors: Record<string, { bg: string; text: string; border: string; gra
 }
 
 function Features() {
+  const [activeCard, setActiveCard] = useState<number | null>(null)
+
   return (
-    <section id="features" className="relative bg-white py-16 lg:py-24">
+    <section id="features" className="relative bg-white py-16 lg:py-24 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center mb-8">
+        <div className="mx-auto max-w-3xl text-center mb-12">
           <p className="mb-2 text-xs font-black uppercase tracking-[.2em] text-emerald-600">შესაძლებლობები</p>
           <h2 className="text-3xl sm:text-4xl font-black tracking-[-.05em] text-slate-950">
             ერთი პლატფორმა. <span className="text-slate-400">ყველაფერი, რაც კორპუსს სჭირდება.</span>
@@ -419,44 +465,91 @@ function Features() {
           </p>
         </div>
 
-        {/* ⃝ ბანქოს კარტების ჰორიზონტალური განლაგება 3D ანიმაციით */}
-        <div className="flex justify-center items-center py-12 px-4 min-h-[400px] overflow-x-auto">
+        {/* ⃝ ბარათები ერთმანეთზე დაწყობილი - ყოველი მომდევნო ზემოდან ედება წინას */}
+        <div className="hidden md:block relative h-[480px] max-w-4xl mx-auto">
           {features.map((feature, i) => {
             const [icon, title, desc, details, colorKey] = feature
             const colors = cardColors[colorKey as keyof typeof cardColors]
+            const isActive = activeCard === i
+            
+            // ყოველი ბარათი ცენტრშია, დნავ გადაწეული მარცხნივ
+            // ბოლო ბარათი ყველაზე წინ (z-index)
+            const offset = (features.length - 1 - i) * 50
             
             return (
               <div
                 key={i}
-                className={`group relative w-64 h-80 [perspective:1000px] cursor-pointer transition-all duration-500 hover:z-50 hover:-translate-y-6 flex-shrink-0 ${
-                  i > 0 ? '-ml-16 hover:-ml-10' : ''
-                }`}
+                className="absolute left-1/2 transition-all duration-500 ease-out"
+                style={{
+                  width: '320px',
+                  height: '420px',
+                  transform: `translateX(calc(-50% - ${offset}px))`,
+                  zIndex: i,
+                }}
+                onMouseEnter={() => setActiveCard(i)}
+                onMouseLeave={() => setActiveCard(null)}
               >
-                <div className="relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
-                  {/* Front of Card */}
-                  <div className="absolute inset-0 [backface-visibility:hidden] bg-slate-900 border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-xl">
-                    <div className={`w-16 h-16 rounded-2xl ${colors.bg} flex items-center justify-center mb-4 ${colors.text}`}>
-                      <Icon name={icon as string} className="w-8 h-8" />
+                <div 
+                  className="relative w-full h-full [perspective:1000px] cursor-pointer"
+                  style={{
+                    transform: isActive ? 'translateY(-40px) scale(1.05)' : 'translateY(0) scale(1)',
+                    transition: 'transform 0.5s ease-out',
+                    zIndex: isActive ? 100 : i,
+                  }}
+                >
+                  <div className={`relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] ${isActive ? '[transform:rotateY(180deg)]' : ''}`}>
+                    {/* Front of Card */}
+                    <div className="absolute inset-0 [backface-visibility:hidden] bg-slate-900 border border-white/10 rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-2xl">
+                      <div className={`w-20 h-20 rounded-2xl ${colors.bg} flex items-center justify-center mb-6 ${colors.text}`}>
+                        <Icon name={icon as string} className="w-10 h-10" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+                      <p className="text-sm text-slate-400 mb-6">{desc}</p>
+                      <div className="text-[11px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                        გადაატრიალე <Icon name="arrow" className="w-4 h-4" />
+                      </div>
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-                    <p className="text-xs text-slate-400">{desc}</p>
-                    <div className="mt-6 text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                      გადაატრიალე <Icon name="arrow" className="w-3 h-3" />
-                    </div>
-                  </div>
 
-                  {/* Back of Card */}
-                  <div className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-gradient-to-br ${colors.grad} border ${colors.border} rounded-2xl p-6 flex flex-col justify-center shadow-2xl`}>
-                    <h3 className={`text-lg font-bold ${colors.text} mb-4 text-center`}>{title}</h3>
-                    <ul className="space-y-2.5">
-                      {details.split('|').map((d, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-xs text-slate-200">
-                          <Icon name="check" className={`w-3.5 h-3.5 flex-shrink-0 ${colors.text}`} />
-                          {d}
-                        </li>
-                      ))}
-                    </ul>
+                    {/* Back of Card */}
+                    <div className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-gradient-to-br ${colors.grad} border ${colors.border} rounded-3xl p-8 flex flex-col justify-center shadow-2xl`}>
+                      <h3 className={`text-xl font-bold ${colors.text} mb-6 text-center`}>{title}</h3>
+                      <ul className="space-y-3">
+                        {details.split('|').map((d, idx) => (
+                          <li key={idx} className="flex items-center gap-3 text-sm text-slate-200">
+                            <div className={`w-5 h-5 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                              <Icon name="check" className={`w-3 h-3 ${colors.text}`} />
+                            </div>
+                            {d}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* მობილურზე - ვერტიკალური სია */}
+        <div className="md:hidden grid gap-4">
+          {features.map((feature, i) => {
+            const [icon, title, desc, details, colorKey] = feature
+            const colors = cardColors[colorKey as keyof typeof cardColors]
+            return (
+              <div key={i} className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-xl">
+                <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center mb-3 ${colors.text}`}>
+                  <Icon name={icon as string} className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+                <p className="text-xs text-slate-400 mb-3">{desc}</p>
+                <div className="space-y-2">
+                  {details.split('|').map((d, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
+                      <Icon name="check" className={`w-3 h-3 ${colors.text}`} />
+                      {d}
+                    </div>
+                  ))}
                 </div>
               </div>
             )
@@ -525,7 +618,7 @@ function Testimonials() {
           {testimonials.map(([name, role, text, initial], i) => (
             <div key={i} className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
               <div className="mb-4 flex gap-1 text-amber-400">★★★★★</div>
-              <p className="text-sm font-semibold leading-7 text-slate-700">“{text}”</p>
+              <p className="text-sm font-semibold leading-7 text-slate-700">"{text}"</p>
               <div className="mt-6 flex items-center gap-3 border-t border-slate-100 pt-4">
                 <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-black text-white">{initial}</div>
                 <div>
@@ -593,7 +686,6 @@ function Pricing() {
                 <Link href="/register" className={`rounded-2xl py-3 text-center text-sm font-black transition-all hover:-translate-y-0.5 ${isPro ? 'bg-emerald-400 text-[#06110e] hover:bg-emerald-300' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}>
                   არჩევა
                 </Link>
-                {/* ⃝ ამოღებულია: "14-დღიანი უფასო ტესტი ხელმისაწვდომია" */}
               </div>
             )
           })}
@@ -683,7 +775,6 @@ function FinalCTA() {
                 დაიწყე უფასოდ
                 <Icon name="arrow" className="h-4 w-4" />
               </Link>
-              {/* ⃝ ამოღებულია: დემოს დაჯავშნა ღილაკი */}
             </div>
             <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-bold text-[#063a2c]/65">
               <span>✓ 14-დღიანი ტესტი</span>
