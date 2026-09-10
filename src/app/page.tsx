@@ -676,7 +676,7 @@ function Pricing() {
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
-        // ვფილტრავთ უფასო ტესტს მთავარი ფასების ცხრილიდან, რადგან ის ცალკე აქტივირდება
+        // ვფილტრავთ უფასო ტესტს - ის არ ჩანს Pricing გვერდზე
         .not('name', 'ilike', '%უფასო ტესტი%')
         .order('price_monthly', { ascending: true })
 
@@ -711,14 +711,13 @@ function Pricing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-4">
-            მარტივი და გამჭვირვალე ფასები
+            ტარიფები
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
             აირჩიე შენს კორპუსზე მორგებული გეგმა
           </h2>
           <p className="text-base sm:text-lg text-slate-600">
-            ყველა პაკეტი იწყება 14-დღიანი უფასო ტესტით. ბარათის მითითება არ არის საჭირო. <br className="hidden sm:block"/>
-            <span className="text-emerald-600 font-semibold">წლიური გადახდისას მიიღე 2 თვე უფასოდ!</span>
+            მარტივი და გამჭვირვალე ფასები, დამატებითი ხარჯების გარეშე.
           </p>
         </div>
 
@@ -777,21 +776,19 @@ function Pricing() {
                   ))}
                 </ul>
 
-                <button 
-                  className={`w-full py-3.5 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base ${
+                {/* ✅ აქ არის გამოსწორება: ღილაკს ახლა მხოლოდ "არჩევა" აწერია */}
+                <Link
+                  href="/register"
+                  className={`block w-full py-3.5 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base text-center ${
                     isPopular 
                       ? 'bg-emerald-500 text-white hover:bg-emerald-400 shadow-lg shadow-emerald-500/25' 
                       : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
                   }`}
                 >
-                  {plan.price_monthly === 0 ? 'უფასოდ დაწყება' : '14-დღიანი უფასო ტესტი'}
-                </button>
+                  არჩევა
+                </Link>
                 
-                {isPopular && (
-                  <p className="text-center text-xs text-slate-400 mt-3">
-                    ბარათის მითითება არ არის საჭირო
-                  </p>
-                )}
+                {/* ✅ წაშლილია "ბარათის მითითება არ არის საჭირო" ტექსტი */}
               </div>
             )
           })}
