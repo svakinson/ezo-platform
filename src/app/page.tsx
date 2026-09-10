@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { PLANS } from '@/lib/plans'
 
 // ============================================================
 // BINO — Premium SaaS Landing Page
@@ -962,63 +962,9 @@ function Testimonials() {
   )
 }
 
+// ============ განახლებული Pricing კომპონენტი ============
 function Pricing() {
-  const [plans, setPlans] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    ;(async () => {
-      const { data } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .not('name', 'ilike', '%უფასო ტესტი%')
-        .order('price_monthly', { ascending: true })
-
-      if (data) setPlans(data)
-
-      setLoading(false)
-    })()
-  }, [])
-
-  const fallback = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      description: 'პატარა კორპუსებისთვის',
-      price_monthly: 29,
-      features: [
-        'ფინანსური მართვა',
-        'განცხადებები',
-        'შეკეთებების თრექინგი',
-      ],
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      description: 'ზრდადი კორპუსებისთვის',
-      price_monthly: 59,
-      features: [
-        'ყველა Starter ფუნქცია',
-        'ანალიტიკა და ანგარიშები',
-        'ონლაინ გადახდები',
-        'მობილური წვდომა',
-      ],
-    },
-    {
-      id: 'business',
-      name: 'Business',
-      description: 'პროფესიონალი მმართველებისთვის',
-      price_monthly: 99,
-      features: [
-        'ყველა Pro ფუნქცია',
-        'მრავალი კორპუსი',
-        'გაფართოებული მხარდაჭერა',
-      ],
-    },
-  ]
-
-  const items = plans.length ? plans : fallback
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 
   return (
     <section
@@ -1043,106 +989,125 @@ function Pricing() {
             აირჩიე შენს კორპუსზე მორგებული გეგმა ყოველგვარი დამალული
             ხარჯების გარეშე.
           </p>
+
+          <div className="mt-8 inline-flex items-center gap-2 p-1 bg-slate-100 rounded-xl">
+            <button
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+                billingCycle === 'monthly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              ყოველთვიური
+            </button>
+            <button
+              onClick={() => setBillingCycle('yearly')}
+              className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                billingCycle === 'yearly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              ყოველწლიური
+              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">-17%</span>
+            </button>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="mx-auto mt-14 h-96 max-w-5xl animate-pulse rounded-[30px] bg-slate-100" />
-        ) : (
-          <div className="mx-auto mt-14 grid max-w-6xl gap-4 lg:grid-cols-3 lg:items-stretch">
-            {items.map((p: any) => {
-              const isPro =
-                String(p.name)
-                  .toLowerCase()
-                  .includes('pro') ||
-                String(p.name)
-                  .toLowerCase()
-                  .includes('სტანდარტ')
+        <div className="mx-auto mt-14 grid max-w-6xl gap-4 lg:grid-cols-3 lg:items-stretch">
+          {PLANS.map((plan) => {
+            const isPro = plan.popular
+            const price = billingCycle === 'yearly' ? Math.round(plan.price * 0.83) : plan.price
 
-              return (
-                <div
-                  key={p.id}
-                  className={`relative flex flex-col rounded-[28px] p-7 ${
-                    isPro
-                      ? 'bg-[#07140f] text-white shadow-[0_30px_90px_rgba(6,20,15,.18)] ring-1 ring-emerald-400/30 lg:-translate-y-3'
-                      : 'border border-slate-200 bg-white text-slate-950 shadow-sm'
-                  }`}
-                >
-                  <div className="mb-7">
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-xl font-black">{p.name}</h3>
+            return (
+              <div
+                key={plan.id}
+                className={`relative flex flex-col rounded-[28px] p-7 transition-all ${
+                  isPro
+                    ? 'bg-[#07140f] text-white shadow-[0_30px_90px_rgba(6,20,15,.18)] ring-1 ring-emerald-400/30 lg:-translate-y-3'
+                    : 'border border-slate-200 bg-white text-slate-950 shadow-sm hover:shadow-md'
+                }`}
+              >
+                {isPro && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-[10px] font-bold rounded-full flex items-center gap-1 shadow-lg whitespace-nowrap">
+                    <Icon name="star" className="w-3 h-3" />
+                    რეკომენდებული
+                  </div>
+                )}
 
-                      {isPro && (
-                        <span className="rounded-full bg-emerald-400 px-2.5 py-1 text-[9px] font-black text-[#06110e]">
-                          რეკომენდებული
-                        </span>
-                      )}
-                    </div>
-
-                    <p
-                      className={`mt-2 text-sm ${
-                        isPro
-                          ? 'text-white/45'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      {p.description}
-                    </p>
+                <div className="mb-7">
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="text-xl font-black">{plan.nameGe}</h3>
                   </div>
 
-                  <div className="mb-7 flex items-end gap-1 border-b border-dashed border-current/10 pb-7">
-                    <span className="text-5xl font-black tracking-[-.06em]">
-                      ₾{p.price_monthly}
-                    </span>
-
-                    <span
-                      className={`pb-1 text-sm ${
-                        isPro
-                          ? 'text-white/35'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      /თვე
-                    </span>
-                  </div>
-
-                  <ul className="mb-8 flex-1 space-y-3">
-                    {Array.isArray(p.features) &&
-                      p.features.map((f: string) => (
-                        <li
-                          key={f}
-                          className={`flex gap-2.5 text-sm ${
-                            isPro
-                              ? 'text-white/65'
-                              : 'text-slate-600'
-                          }`}
-                        >
-                          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-400/12 text-emerald-500">
-                            <Icon
-                              name="check"
-                              className="h-3 w-3"
-                            />
-                          </span>
-
-                          {f}
-                        </li>
-                      ))}
-                  </ul>
-
-                  <Link
-                    href="/register"
-                    className={`rounded-2xl py-3.5 text-center text-sm font-black transition-all hover:-translate-y-0.5 ${
+                  <p
+                    className={`mt-2 text-sm ${
                       isPro
-                        ? 'bg-emerald-400 text-[#06110e] hover:bg-emerald-300'
-                        : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                        ? 'text-white/45'
+                        : 'text-slate-400'
                     }`}
                   >
-                    არჩევა
-                  </Link>
+                    {plan.description}
+                  </p>
                 </div>
-              )
-            })}
-          </div>
-        )}
+
+                <div className="mb-7 flex items-end gap-1 border-b border-dashed border-current/10 pb-7">
+                  <span className="text-5xl font-black tracking-[-.06em]">
+                    ₾{price}
+                  </span>
+
+                  <span
+                    className={`pb-1 text-sm ${
+                      isPro
+                        ? 'text-white/35'
+                        : 'text-slate-400'
+                    }`}
+                  >
+                    /თვე
+                  </span>
+                </div>
+
+                <ul className="mb-8 flex-1 space-y-3">
+                  {plan.features.slice(0, 8).map((feature, i) => (
+                    <li
+                      key={i}
+                      className={`flex gap-2.5 text-sm ${
+                        isPro
+                          ? 'text-white/65'
+                          : 'text-slate-600'
+                      }`}
+                    >
+                      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-400/12 text-emerald-500">
+                        {feature.included ? (
+                          <Icon name="check" className="h-3 w-3" />
+                        ) : (
+                          <Icon name="x" className="h-3 w-3 text-slate-500" />
+                        )}
+                      </span>
+                      <span className={!feature.included ? 'line-through opacity-60' : ''}>
+                        {feature.text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/register"
+                  className={`rounded-2xl py-3.5 text-center text-sm font-black transition-all hover:-translate-y-0.5 ${
+                    isPro
+                      ? 'bg-emerald-400 text-[#06110e] hover:bg-emerald-300'
+                      : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                  }`}
+                >
+                  არჩევა
+                </Link>
+                
+                {isPro && (
+                  <p className="text-center text-xs text-slate-400 mt-3">
+                    14-დღიანი უფასო ტესტი ხელმისაწვდომია
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
 
         <p className="mt-8 text-center text-sm text-slate-400">
           გაქვს სპეციფიკური მოთხოვნა?{' '}
