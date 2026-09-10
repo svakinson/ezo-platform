@@ -83,6 +83,14 @@ const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconAlert = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+)
+
 // ============ STEPS CONFIG ============
 const steps = [
   { id: 1, title: 'ძირითადი', icon: IconBuilding },
@@ -93,12 +101,12 @@ const steps = [
 ]
 
 // ============ MAIN PAGE ============
-
 export default function AddBuildingPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
   
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
@@ -133,7 +141,7 @@ export default function AddBuildingPage() {
     elevatorCount: '',
     
     // Step 4: Safety & Insurance
-    hasFireSafety: false, // ⭐ ახალი: სახანძრო უსაფრთხოების ტოგლი
+    hasFireSafety: false,
     smokeDetectors: '',
     lastFireInspection: '',
     nextFireInspection: '',
@@ -152,17 +160,52 @@ export default function AddBuildingPage() {
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[field]
+        return newErrors
+      })
+    }
+  }
+
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    if (step === 1) {
+      if (!formData.street.trim()) newErrors.street = 'მისამართი აუცილებელია'
+      if (!formData.city) newErrors.city = 'ქალაქი აუცილებელია'
+      if (!formData.apartments || parseInt(formData.apartments) <= 0) newErrors.apartments = 'ბინების რაოდენობა უნდა იყოს 1-ზე მეტი'
+      if (!formData.entrances || parseInt(formData.entrances) <= 0) newErrors.entrances = 'სადარბაზოების რაოდენობა უნდა იყოს 1-ზე მეტი'
+      if (!formData.floors || parseInt(formData.floors) <= 0) newErrors.floors = 'სართულების რაოდენობა უნდა იყოს 1-ზე მეტი'
+    }
+
+    if (step === 2) {
+      if (!formData.managerName.trim()) newErrors.managerName = 'მმართველის სახელი აუცილებელია'
+      if (!formData.managerPhone.trim()) newErrors.managerPhone = 'ტელეფონი აუცილებელია'
+      if (!formData.managerEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.managerEmail)) {
+        newErrors.managerEmail = 'სწორი ელ-ფოსტა აუცილებელია'
+      }
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const nextStep = () => {
-    if (currentStep < 5) setCurrentStep(currentStep + 1)
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, 5))
+    }
   }
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1)
+    setCurrentStep(prev => Math.max(prev - 1, 1))
   }
 
   const handleSubmit = async () => {
+    if (!validateStep(currentStep)) return
+    
     setIsSubmitting(true)
     
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -178,7 +221,7 @@ export default function AddBuildingPage() {
         .from('buildings')
         .insert({
           user_id: user.id,
-          name: formData.buildingName || null,
+          name: formData.buildingName || formData.street,
           street: formData.street,
           district: formData.district || null,
           city: formData.city,
@@ -287,7 +330,7 @@ export default function AddBuildingPage() {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="text-center max-w-md w-full bg-slate-900/80 border border-white/10 rounded-3xl p-8 sm:p-12">
+        <div className="text-center max-w-md w-full bg-slate-900/80 border border-emerald-500/20 rounded-3xl p-8 sm:p-12 shadow-2xl shadow-emerald-500/10">
           <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-6 animate-[bounce_1s_ease-in-out_infinite]">
             <IconCheck className="w-10 h-10 text-emerald-400" />
           </div>
@@ -295,9 +338,9 @@ export default function AddBuildingPage() {
           <p className="text-slate-400 mb-8">
             თქვენი კორპუსი <span className="text-emerald-400 font-semibold">{formData.buildingName || formData.street}</span> წარმატებით შეინახა სისტემაში.
           </p>
-          <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-emerald-400">
             <IconLoader className="w-4 h-4" />
-            <span>გადამისამართება Dashboard-ზე...</span>
+            <span>გადამისამართება დეშბორდზე...</span>
           </div>
         </div>
       </div>
@@ -307,7 +350,7 @@ export default function AddBuildingPage() {
   // ============ FORM SCREEN ============
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-x-hidden">
-      <header className="relative z-40 bg-slate-950/90 border-b border-white/10 sticky top-0">
+      <header className="relative z-40 bg-slate-950/90 border-b border-white/10 sticky top-0 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="flex items-center gap-2.5 group">
@@ -331,8 +374,8 @@ export default function AddBuildingPage() {
 
       <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         
-        {/* ⭐ განახლებული Stepper */}
-        <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-10 mb-6">
+        {/* Stepper */}
+        <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-10 mb-6 shadow-xl">
           <div className="relative flex items-center justify-between w-full mb-2">
             <div className="absolute top-5 sm:top-6 left-0 right-0 h-0.5 bg-slate-700/50 mx-4 sm:mx-8" />
             <div 
@@ -368,7 +411,7 @@ export default function AddBuildingPage() {
         </div>
 
         {/* Form Content Card */}
-        <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-12">
+        <div className="bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 lg:p-12 shadow-xl">
           
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
@@ -380,12 +423,24 @@ export default function AddBuildingPage() {
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის სახელი ან მისამართი *</label>
-                  <input type="text" value={formData.street} onChange={(e) => updateField('street', e.target.value)} placeholder="მაგ: ვაჟა-ფშაველას გამზირი 42" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
+                  <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის სახელი ან მისამართი <span className="text-rose-400">*</span></label>
+                  <input 
+                    type="text" 
+                    value={formData.street} 
+                    onChange={(e) => updateField('street', e.target.value)} 
+                    placeholder="მაგ: ვაჟა-ფშაველას გამზირი 42" 
+                    className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.street ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} 
+                  />
+                  {errors.street && <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.street}</p>}
                 </div>
+                
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">ქალაქი *</label>
-                  <select value={formData.city} onChange={(e) => updateField('city', e.target.value)} className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">ქალაქი <span className="text-rose-400">*</span></label>
+                  <select 
+                    value={formData.city} 
+                    onChange={(e) => updateField('city', e.target.value)} 
+                    className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white focus:outline-none focus:ring-2 transition-all ${errors.city ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`}
+                  >
                     <option value="თბილისი" className="bg-slate-800">თბილისი</option>
                     <option value="ბათუმი" className="bg-slate-800">ბათუმი</option>
                     <option value="ქუთაისი" className="bg-slate-800">ქუთაისი</option>
@@ -393,25 +448,61 @@ export default function AddBuildingPage() {
                     <option value="სხვა" className="bg-slate-800">სხვა</option>
                   </select>
                 </div>
+                
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">უბანი/რაიონი</label>
-                  <input type="text" value={formData.district} onChange={(e) => updateField('district', e.target.value)} placeholder="მაგ: საბურთალო" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                  <input 
+                    type="text" 
+                    value={formData.district} 
+                    onChange={(e) => updateField('district', e.target.value)} 
+                    placeholder="მაგ: საბურთალო" 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" 
+                  />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">ბინების რაოდენობა * <span className="text-xs text-slate-500 ml-1">(აუცილებელი)</span></label>
-                  <input type="number" value={formData.apartments} onChange={(e) => updateField('apartments', e.target.value)} placeholder="მაგ: 72" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
+                  <label className="block text-sm font-medium text-slate-300 mb-2">ბინების რაოდენობა <span className="text-rose-400">*</span></label>
+                  <input 
+                    type="number" 
+                    value={formData.apartments} 
+                    onChange={(e) => updateField('apartments', e.target.value)} 
+                    placeholder="მაგ: 72" 
+                    className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.apartments ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} 
+                  />
+                  {errors.apartments && <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.apartments}</p>}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">სადარბაზოების რაოდენობა *</label>
-                  <input type="number" value={formData.entrances} onChange={(e) => updateField('entrances', e.target.value)} placeholder="მაგ: 3" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
+                  <label className="block text-sm font-medium text-slate-300 mb-2">სადარბაზოების რაოდენობა <span className="text-rose-400">*</span></label>
+                  <input 
+                    type="number" 
+                    value={formData.entrances} 
+                    onChange={(e) => updateField('entrances', e.target.value)} 
+                    placeholder="მაგ: 3" 
+                    className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.entrances ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} 
+                  />
+                  {errors.entrances && <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.entrances}</p>}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">სართულების რაოდენობა *</label>
-                  <input type="number" value={formData.floors} onChange={(e) => updateField('floors', e.target.value)} placeholder="მაგ: 9" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
+                  <label className="block text-sm font-medium text-slate-300 mb-2">სართულების რაოდენობა <span className="text-rose-400">*</span></label>
+                  <input 
+                    type="number" 
+                    value={formData.floors} 
+                    onChange={(e) => updateField('floors', e.target.value)} 
+                    placeholder="მაგ: 9" 
+                    className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.floors ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} 
+                  />
+                  {errors.floors && <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.floors}</p>}
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის ტიპი</label>
-                  <select value={formData.buildingType} onChange={(e) => updateField('buildingType', e.target.value)} className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                  <select 
+                    value={formData.buildingType} 
+                    onChange={(e) => updateField('buildingType', e.target.value)} 
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all"
+                  >
                     <option value="multi-family" className="bg-slate-800">მრავალსართულიანი საცხოვრებელი</option>
                     <option value="private-houses" className="bg-slate-800">კერძო სახლების კომპლექსი</option>
                     <option value="business-center" className="bg-slate-800">ბიზნეს ცენტრი</option>
@@ -427,20 +518,20 @@ export default function AddBuildingPage() {
                   </summary>
                   <div className="mt-4 grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის სახელი (არასავალდებულო)</label>
-                      <input type="text" value={formData.buildingName} onChange={(e) => updateField('buildingName', e.target.value)} placeholder="მაგ: ვაჟა-ფშაველას 42" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                      <label className="block text-sm font-medium text-slate-300 mb-2">კორპუსის სახელი</label>
+                      <input type="text" value={formData.buildingName} onChange={(e) => updateField('buildingName', e.target.value)} placeholder="მაგ: ვაჟა-ფშაველას 42" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">საფოსტო ინდექსი</label>
-                      <input type="text" value={formData.postalCode} onChange={(e) => updateField('postalCode', e.target.value)} placeholder="მაგ: 0160" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                      <input type="text" value={formData.postalCode} onChange={(e) => updateField('postalCode', e.target.value)} placeholder="მაგ: 0160" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">აგების წელი</label>
-                      <input type="number" value={formData.constructionYear} onChange={(e) => updateField('constructionYear', e.target.value)} placeholder="მაგ: 2010" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                      <input type="number" value={formData.constructionYear} onChange={(e) => updateField('constructionYear', e.target.value)} placeholder="მაგ: 2010" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">საერთო ფართობი (მ²)</label>
-                      <input type="number" value={formData.area} onChange={(e) => updateField('area', e.target.value)} placeholder="მაგ: 5400" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                      <input type="number" value={formData.area} onChange={(e) => updateField('area', e.target.value)} placeholder="მაგ: 5400" className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                     </div>
                   </div>
                 </details>
@@ -455,24 +546,28 @@ export default function AddBuildingPage() {
                 <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">მმართველი და საკონტაქტო ინფორმაცია</h2>
                 <p className="text-slate-400">შეავსეთ მმართველის და საკონტაქტო პირების მონაცემები</p>
               </div>
+              
               <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2"><IconUser className="w-5 h-5 text-emerald-400" />მთავარი მმართველი</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">სრული სახელი *</label>
-                    <input type="text" value={formData.managerName} onChange={(e) => updateField('managerName', e.target.value)} placeholder="მაგ: გიორგი სვანიძე" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
+                    <label className="block text-sm font-medium text-slate-300 mb-2">სრული სახელი <span className="text-rose-400">*</span></label>
+                    <input type="text" value={formData.managerName} onChange={(e) => updateField('managerName', e.target.value)} placeholder="მაგ: გიორგი სვანიძე" className={`w-full px-4 py-3 bg-slate-900/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.managerName ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} />
+                    {errors.managerName && <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.managerName}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">თანამდებობა</label>
-                    <input type="text" value={formData.managerPosition} onChange={(e) => updateField('managerPosition', e.target.value)} placeholder="მაგ: თავმჯდომარე" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    <input type="text" value={formData.managerPosition} onChange={(e) => updateField('managerPosition', e.target.value)} placeholder="მაგ: თავმჯდომარე" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">ტელეფონი *</label>
-                    <input type="tel" value={formData.managerPhone} onChange={(e) => updateField('managerPhone', e.target.value)} placeholder="მაგ: +995 599 123 456" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
+                    <label className="block text-sm font-medium text-slate-300 mb-2">ტელეფონი <span className="text-rose-400">*</span></label>
+                    <input type="tel" value={formData.managerPhone} onChange={(e) => updateField('managerPhone', e.target.value)} placeholder="მაგ: +995 599 123 456" className={`w-full px-4 py-3 bg-slate-900/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.managerPhone ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} />
+                    {errors.managerPhone && <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.managerPhone}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">ელ-ფოსტა *</label>
-                    <input type="email" value={formData.managerEmail} onChange={(e) => updateField('managerEmail', e.target.value)} placeholder="მაგ: manager@ezo.ge" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" required />
+                    <label className="block text-sm font-medium text-slate-300 mb-2">ელ-ფოსტა <span className="text-rose-400">*</span></label>
+                    <input type="email" value={formData.managerEmail} onChange={(e) => updateField('managerEmail', e.target.value)} placeholder="მაგ: manager@ezo.ge" className={`w-full px-4 py-3 bg-slate-900/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.managerEmail ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} />
+                    {errors.managerEmail && <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.managerEmail}</p>}
                   </div>
                 </div>
               </div>
@@ -482,15 +577,15 @@ export default function AddBuildingPage() {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">სახელი და გვარი</label>
-                    <input type="text" value={formData.emergencyContactName} onChange={(e) => updateField('emergencyContactName', e.target.value)} placeholder="მაგ: ნინო კვარაცხელია" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    <input type="text" value={formData.emergencyContactName} onChange={(e) => updateField('emergencyContactName', e.target.value)} placeholder="მაგ: ნინო კვარაცხელია" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">ტელეფონი</label>
-                    <input type="tel" value={formData.emergencyContactPhone} onChange={(e) => updateField('emergencyContactPhone', e.target.value)} placeholder="მაგ: +995 599 654 321" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    <input type="tel" value={formData.emergencyContactPhone} onChange={(e) => updateField('emergencyContactPhone', e.target.value)} placeholder="მაგ: +995 599 654 321" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">ურთიერთობა</label>
-                    <select value={formData.emergencyContactRelation} onChange={(e) => updateField('emergencyContactRelation', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                    <select value={formData.emergencyContactRelation} onChange={(e) => updateField('emergencyContactRelation', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
                       <option value="" className="bg-slate-800">აირჩიეთ</option>
                       <option value="მფლობელი" className="bg-slate-800">მფლობელი</option>
                       <option value="მმართველი" className="bg-slate-800">მმართველი</option>
@@ -506,18 +601,18 @@ export default function AddBuildingPage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">ბუღალტერი (სახელი)</label>
-                    <input type="text" value={formData.accountantName} onChange={(e) => updateField('accountantName', e.target.value)} placeholder="მაგ: მარიამ ჯანელიძე" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    <input type="text" value={formData.accountantName} onChange={(e) => updateField('accountantName', e.target.value)} placeholder="მაგ: მარიამ ჯანელიძე" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">ბუღალტერი (ტელეფონი)</label>
-                    <input type="tel" value={formData.accountantPhone} onChange={(e) => updateField('accountantPhone', e.target.value)} placeholder="მაგ: +995 599 111 222" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    <input type="tel" value={formData.accountantPhone} onChange={(e) => updateField('accountantPhone', e.target.value)} placeholder="მაგ: +995 599 111 222" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 3: Utilities (ჰორიზონტალური განლაგება) */}
+          {/* Step 3: Utilities */}
           {currentStep === 3 && (
             <div className="space-y-8">
               <div>
@@ -526,21 +621,19 @@ export default function AddBuildingPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-6 mb-6">
-                {/* Electricity */}
                 <div className="bg-slate-800/50 rounded-2xl p-5 border border-white/10">
                   <h3 className="text-base font-semibold text-white mb-3 flex items-center gap-2"><IconZap className="w-4 h-4 text-amber-400" />ელექტროენერგია</h3>
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">მიმწოდებელი</label>
-                    <select value={formData.electricityProvider} onChange={(e) => updateField('electricityProvider', e.target.value)} className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                    <select value={formData.electricityProvider} onChange={(e) => updateField('electricityProvider', e.target.value)} className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
                       <option value="" className="bg-slate-800">აირჩიეთ</option>
                       <option value="თელასი" className="bg-slate-800">თელასი</option>
-                      <option value="ენერგო-პრო" className="bg-slate-800">ენერგო-პრო ორჯია</option>
+                      <option value="ენერგო-პრო" className="bg-slate-800">ენერგო-პრო ჯორჯია</option>
                       <option value="სხვა" className="bg-slate-800">სხვა</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Water */}
                 <div className="bg-slate-800/50 rounded-2xl p-5 border border-white/10">
                   <h3 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></svg>
@@ -548,7 +641,7 @@ export default function AddBuildingPage() {
                   </h3>
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">მიმწოდებელი</label>
-                    <select value={formData.waterProvider} onChange={(e) => updateField('waterProvider', e.target.value)} className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                    <select value={formData.waterProvider} onChange={(e) => updateField('waterProvider', e.target.value)} className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
                       <option value="" className="bg-slate-800">აირჩიეთ</option>
                       <option value="საქართველოს წყალი" className="bg-slate-800">საქართველოს წყალი</option>
                       <option value="ადგილობრივი" className="bg-slate-800">ადგილობრივი</option>
@@ -556,7 +649,6 @@ export default function AddBuildingPage() {
                   </div>
                 </div>
 
-                {/* Gas */}
                 <div className="bg-slate-800/50 rounded-2xl p-5 border border-white/10">
                   <h3 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
@@ -564,7 +656,7 @@ export default function AddBuildingPage() {
                   </h3>
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">მიმწოდებელი</label>
-                    <select value={formData.gasProvider} onChange={(e) => updateField('gasProvider', e.target.value)} className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                    <select value={formData.gasProvider} onChange={(e) => updateField('gasProvider', e.target.value)} className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
                       <option value="" className="bg-slate-800">აირჩიეთ</option>
                       <option value="ყაზტრანსგაზი" className="bg-slate-800">ყაზტრანსგაზი</option>
                       <option value="სხვა" className="bg-slate-800">სხვა</option>
@@ -576,7 +668,7 @@ export default function AddBuildingPage() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4">გათბობის ტიპი</h3>
-                  <select value={formData.heatingType} onChange={(e) => updateField('heatingType', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all">
+                  <select value={formData.heatingType} onChange={(e) => updateField('heatingType', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
                     <option value="central" className="bg-slate-800">ცენტრალური გათბობა</option>
                     <option value="individual" className="bg-slate-800">ინდივიდუალური გათბობა</option>
                     <option value="electric" className="bg-slate-800">ელექტრო გამათბობლები</option>
@@ -587,7 +679,7 @@ export default function AddBuildingPage() {
                   <h3 className="text-lg font-semibold text-white mb-4">ლიფტი</h3>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">ლიფტების რაოდენობა</label>
-                    <input type="number" value={formData.elevatorCount} onChange={(e) => updateField('elevatorCount', e.target.value)} placeholder="მაგ: 2" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                    <input type="number" value={formData.elevatorCount} onChange={(e) => updateField('elevatorCount', e.target.value)} placeholder="მაგ: 2" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                   </div>
                 </div>
               </div>
@@ -603,7 +695,6 @@ export default function AddBuildingPage() {
               </div>
 
               <div className="space-y-6">
-                {/* ⭐ Fire Safety (არასავალდებულო - ტოგლით) */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -625,21 +716,20 @@ export default function AddBuildingPage() {
                     <div className="grid md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">კვამლის დეტექტორები (რაოდ.)</label>
-                        <input type="number" value={formData.smokeDetectors} onChange={(e) => updateField('smokeDetectors', e.target.value)} placeholder="მაგ: 12" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                        <input type="number" value={formData.smokeDetectors} onChange={(e) => updateField('smokeDetectors', e.target.value)} placeholder="მაგ: 12" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">უკანასკნელი შემოწმება</label>
-                        <input type="date" value={formData.lastFireInspection} onChange={(e) => updateField('lastFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                        <input type="date" value={formData.lastFireInspection} onChange={(e) => updateField('lastFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">შემდეგი შემოწმება</label>
-                        <input type="date" value={formData.nextFireInspection} onChange={(e) => updateField('nextFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                        <input type="date" value={formData.nextFireInspection} onChange={(e) => updateField('nextFireInspection', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Security Systems */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4">უსაფრთხოების სისტემები</h3>
                   <div className="space-y-4">
@@ -647,7 +737,7 @@ export default function AddBuildingPage() {
                       <input type="checkbox" checked={formData.hasCameras} onChange={(e) => updateField('hasCameras', e.target.checked)} className="w-5 h-5 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50" />
                       <span className="text-slate-300">სათვალთვალო კამერები</span>
                       {formData.hasCameras && (
-                        <input type="number" value={formData.cameraCount} onChange={(e) => updateField('cameraCount', e.target.value)} placeholder="რაოდენობა" className="ml-4 w-32 px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                        <input type="number" value={formData.cameraCount} onChange={(e) => updateField('cameraCount', e.target.value)} placeholder="რაოდენობა" className="ml-4 w-32 px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                       )}
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
@@ -661,7 +751,6 @@ export default function AddBuildingPage() {
                   </div>
                 </div>
 
-                {/* Insurance */}
                 <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white flex items-center gap-2"><IconShield className="w-5 h-5 text-purple-400" />დაზღვევა</h3>
@@ -680,15 +769,15 @@ export default function AddBuildingPage() {
                     <div className="grid md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">სადაზღვევო კომპანია</label>
-                        <input type="text" value={formData.insuranceCompany} onChange={(e) => updateField('insuranceCompany', e.target.value)} placeholder="მაგ: ალდაგი" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                        <input type="text" value={formData.insuranceCompany} onChange={(e) => updateField('insuranceCompany', e.target.value)} placeholder="მაგ: ალდაგი" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">პოლისის ნომერი</label>
-                        <input type="text" value={formData.insurancePolicy} onChange={(e) => updateField('insurancePolicy', e.target.value)} placeholder="მაგ: POL-12345" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                        <input type="text" value={formData.insurancePolicy} onChange={(e) => updateField('insurancePolicy', e.target.value)} placeholder="მაგ: POL-12345" className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">ვადის გასვლა</label>
-                        <input type="date" value={formData.insuranceExpiry} onChange={(e) => updateField('insuranceExpiry', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all" />
+                        <input type="date" value={formData.insuranceExpiry} onChange={(e) => updateField('insuranceExpiry', e.target.value)} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
                       </div>
                     </div>
                   )}
@@ -754,7 +843,7 @@ export default function AddBuildingPage() {
                     onChange={(e) => updateField('comments', e.target.value)}
                     placeholder="ნებისმიერი დამატებითი ინფორმაცია, შენიშვნა ან განსაკუთრებული მახასიათებელი..."
                     rows={4}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all resize-none"
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all resize-none"
                   />
                 </div>
               </div>
