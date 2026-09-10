@@ -134,6 +134,31 @@ const Icon = ({
   return <svg {...common}>{paths[name]}</svg>
 }
 
+// ⃝ ნეონის ფერების helper ფუნქციები
+function getNeonBorder(colorKey: string): string {
+  const borders: Record<string, string> = {
+    emerald: 'rgba(16, 185, 129, 0.5)',
+    blue: 'rgba(59, 130, 246, 0.5)',
+    violet: 'rgba(139, 92, 246, 0.5)',
+    amber: 'rgba(245, 158, 11, 0.5)',
+    rose: 'rgba(244, 63, 94, 0.5)',
+    cyan: 'rgba(6, 182, 212, 0.5)',
+  }
+  return borders[colorKey] || 'rgba(255, 255, 255, 0.3)'
+}
+
+function getNeonGlow(colorKey: string): string {
+  const glows: Record<string, string> = {
+    emerald: 'rgba(16, 185, 129, 0.25)',
+    blue: 'rgba(59, 130, 246, 0.25)',
+    violet: 'rgba(139, 92, 246, 0.25)',
+    amber: 'rgba(245, 158, 11, 0.25)',
+    rose: 'rgba(244, 63, 94, 0.25)',
+    cyan: 'rgba(6, 182, 212, 0.25)',
+  }
+  return glows[colorKey] || 'rgba(255, 255, 255, 0.2)'
+}
+
 function GlowOrb({ className = '' }: { className?: string }) {
   return (
     <div
@@ -325,13 +350,12 @@ function Hero() {
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-14 pb-16 pt-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-8 lg:pt-20">
           <div className="max-w-2xl">
-            {/* ⃝ ორი წარწერა ცალ-ცალკე ხაზზე, იდეალური დაშორებით */}
             <h1 className="mb-8">
-              <div className="flex flex-col gap-5">
-                <span className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-[-.055em] text-white">
+              <div className="flex flex-col gap-4">
+                <span className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.2] tracking-[-.055em] text-white">
                   შენი კორპუსი.
                 </span>
-                <span className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.1] tracking-[-.055em] bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.3] tracking-[-.055em] bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent pb-2 -mb-2">
                   სრული კონტროლი.
                 </span>
               </div>
@@ -360,7 +384,6 @@ function Hero() {
           <DashboardMockup />
         </div>
 
-        {/* Scroll Indicator */}
         <div className="flex justify-center pb-8">
           <a href="#features" className="flex flex-col items-center gap-2 group">
             <span className="text-[10px] text-white/40 uppercase tracking-widest group-hover:text-emerald-400 transition-colors">Scroll</span>
@@ -430,27 +453,32 @@ function ProblemSolution() {
   )
 }
 
-// ⃝ Features - ბარათები ერთმანეთზე დაწყობილი (stacked)
 const features = [
   ['wallet', 'ფინანსური მართვა', 'სრული კონტროლი ბიუჯეტზე.', 'ავტომატური ინვოისები|ხარჯების კატეგორიზაცია|ბიუჯეტის დაგეგმვა|გადახდის ისტორია', 'emerald'],
   ['wrench', 'მოვლა და შეკეთებები', 'აკონტროლე პრობლემები თავიდან ბოლომდე.', 'ფოტო ატვირთვა|სტატუსის თრექინგი|კონტრაქტორები|ისტორიის ლოგი', 'blue'],
-  ['chat', 'კომუნიკაციის აბი', 'ერთი არხი მეზობლებთან და განცხადებებთან.', 'განცხადებების დაფა|პირდაპირი მესიჯები|გამოკითხვები|SMS და Email', 'violet'],
+  ['chat', 'კომუნიკაციის ჰაბი', 'ერთი არხი მეზობლებთან და განცხადებებთან.', 'განცხადებების დაფა|პირდაპირი მესიჯები|გამოკითხვები|SMS და Email', 'violet'],
   ['shield', 'უსაფრთხოება', 'როლებზე დაფუძნებული წვდომა და აუდიტი.', 'SSL დაშიფვრა|როლური წვდომა|აუდიტის ლოგი|GDPR', 'amber'],
   ['chart', 'ანალიტიკა', 'გაანალიზე ფინანსები ვიზუალური დაფებით.', 'ფინანსური დაფები|ტრენდების ანალიზი|PDF/Excel|შედარებითი ანალიზი', 'rose'],
   ['phone', 'მობილური აპი', 'ყველაფერი ჯიბეში ნებისმიერ დროს.', 'iOS და Android|Push შეტყობინებები|მობილური გადახდა|QR ვიზიტორებისთვის', 'cyan'],
 ]
 
-const cardColors: Record<string, { bg: string; text: string; border: string; grad: string }> = {
-  emerald: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30', grad: 'from-slate-900 to-emerald-950' },
-  blue: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', grad: 'from-slate-900 to-blue-950' },
-  violet: { bg: 'bg-violet-500/20', text: 'text-violet-400', border: 'border-violet-500/30', grad: 'from-slate-900 to-violet-950' },
-  amber: { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30', grad: 'from-slate-900 to-amber-950' },
-  rose: { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30', grad: 'from-slate-900 to-rose-950' },
-  cyan: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30', grad: 'from-slate-900 to-cyan-950' },
+// ⃝ განახლებული ფერები: სათაურისთვის კაშკაშა ნეონის ფერი, აღწერისთვის - იგივე ფერის უფრო ღია/პასტელური ვარიანტი
+const cardColors: Record<string, { bg: string; border: string; grad: string; titleColor: string; descColor: string }> = {
+  emerald: { bg: 'bg-emerald-500/20', border: 'border-emerald-500/50', grad: 'from-slate-900 to-emerald-950', titleColor: 'text-emerald-400', descColor: 'text-emerald-200/80' },
+  blue: { bg: 'bg-blue-500/20', border: 'border-blue-500/50', grad: 'from-slate-900 to-blue-950', titleColor: 'text-blue-400', descColor: 'text-blue-200/80' },
+  violet: { bg: 'bg-violet-500/20', border: 'border-violet-500/50', grad: 'from-slate-900 to-violet-950', titleColor: 'text-violet-400', descColor: 'text-violet-200/80' },
+  amber: { bg: 'bg-amber-500/20', border: 'border-amber-500/50', grad: 'from-slate-900 to-amber-950', titleColor: 'text-amber-400', descColor: 'text-amber-200/80' },
+  rose: { bg: 'bg-rose-500/20', border: 'border-rose-500/50', grad: 'from-slate-900 to-rose-950', titleColor: 'text-rose-400', descColor: 'text-rose-200/80' },
+  cyan: { bg: 'bg-cyan-500/20', border: 'border-cyan-500/50', grad: 'from-slate-900 to-cyan-950', titleColor: 'text-cyan-400', descColor: 'text-cyan-200/80' },
 }
 
 function Features() {
   const [activeCard, setActiveCard] = useState<number | null>(null)
+
+  const CARD_WIDTH = 280
+  const OVERLAP = 100
+  const TOTAL_CARDS = features.length
+  const TOTAL_WIDTH = CARD_WIDTH + (TOTAL_CARDS - 1) * OVERLAP
 
   return (
     <section id="features" className="relative bg-white py-16 lg:py-24 overflow-hidden">
@@ -465,59 +493,94 @@ function Features() {
           </p>
         </div>
 
-        {/* ⃝ ბარათები ერთმანეთზე დაწყობილი - ყოველი მომდევნო ზემოდან ედება წინას */}
-        <div className="hidden md:block relative h-[480px] max-w-4xl mx-auto">
+        {/* ⃝ ბარათები: იკონი ზემოთ, სათაური და აღწერა ამოტრიალებული გვერდიგვერდ, უკანა მხარეს ფუნქციები */}
+        <div 
+          className="hidden md:block relative mx-auto"
+          style={{ 
+            width: `${TOTAL_WIDTH}px`, 
+            height: '500px',
+            maxWidth: '100%',
+          }}
+        >
           {features.map((feature, i) => {
             const [icon, title, desc, details, colorKey] = feature
             const colors = cardColors[colorKey as keyof typeof cardColors]
             const isActive = activeCard === i
             
-            // ყოველი ბარათი ცენტრშია, დნავ გადაწეული მარცხნივ
-            // ბოლო ბარათი ყველაზე წინ (z-index)
-            const offset = (features.length - 1 - i) * 50
+            const leftPosition = i * OVERLAP
             
             return (
               <div
                 key={i}
-                className="absolute left-1/2 transition-all duration-500 ease-out"
+                className="absolute top-0 transition-all duration-500 ease-out"
                 style={{
-                  width: '320px',
-                  height: '420px',
-                  transform: `translateX(calc(-50% - ${offset}px))`,
-                  zIndex: i,
+                  left: `${leftPosition}px`,
+                  width: `${CARD_WIDTH}px`,
+                  height: '480px',
+                  zIndex: isActive ? 1000 : i + 1,
                 }}
                 onMouseEnter={() => setActiveCard(i)}
                 onMouseLeave={() => setActiveCard(null)}
               >
                 <div 
-                  className="relative w-full h-full [perspective:1000px] cursor-pointer"
+                  className="relative w-full h-full cursor-pointer"
                   style={{
-                    transform: isActive ? 'translateY(-40px) scale(1.05)' : 'translateY(0) scale(1)',
+                    transform: isActive ? 'translateY(-20px) scale(1.05)' : 'translateY(0) scale(1)',
                     transition: 'transform 0.5s ease-out',
-                    zIndex: isActive ? 100 : i,
                   }}
                 >
                   <div className={`relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] ${isActive ? '[transform:rotateY(180deg)]' : ''}`}>
-                    {/* Front of Card */}
-                    <div className="absolute inset-0 [backface-visibility:hidden] bg-slate-900 border border-white/10 rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-2xl">
-                      <div className={`w-20 h-20 rounded-2xl ${colors.bg} flex items-center justify-center mb-6 ${colors.text}`}>
-                        <Icon name={icon as string} className="w-10 h-10" />
+                    
+                    {/* ⃝ წინა მხარე: იკონი, სათაური და აღწერა (ამოტრიალებული) */}
+                    <div 
+                      className="absolute inset-0 [backface-visibility:hidden] bg-slate-900 border-2 rounded-3xl p-6 flex flex-col"
+                      style={{
+                        borderColor: getNeonBorder(colorKey),
+                        boxShadow: `0 0 20px ${getNeonGlow(colorKey)}, 0 0 40px ${getNeonGlow(colorKey)}60`,
+                      }}
+                    >
+                      {/* იკონი - ზედა მარცხენა კუთხე */}
+                      <div className={`w-16 h-16 rounded-2xl ${colors.bg} flex items-center justify-center mb-6 ${colors.titleColor}`}>
+                        <Icon name={icon as string} className="w-8 h-8" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
-                      <p className="text-sm text-slate-400 mb-6">{desc}</p>
-                      <div className="text-[11px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        გადაატრიალე <Icon name="arrow" className="w-4 h-4" />
+
+                      {/* სათაური და აღწერა - გვერდიგვერდ, ამოტრიალებული */}
+                      <div className="flex-1 flex gap-4 items-start">
+                        <div 
+                          className={`text-2xl font-black whitespace-nowrap drop-shadow-md ${colors.titleColor}`}
+                          style={{
+                            writingMode: 'vertical-rl',
+                            transform: 'rotate(180deg)',
+                          }}
+                        >
+                          {title}
+                        </div>
+                        <div 
+                          className={`text-sm font-medium whitespace-nowrap leading-relaxed ${colors.descColor}`}
+                          style={{
+                            writingMode: 'vertical-rl',
+                            transform: 'rotate(180deg)',
+                          }}
+                        >
+                          {desc}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Back of Card */}
-                    <div className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-gradient-to-br ${colors.grad} border ${colors.border} rounded-3xl p-8 flex flex-col justify-center shadow-2xl`}>
-                      <h3 className={`text-xl font-bold ${colors.text} mb-6 text-center`}>{title}</h3>
+                    {/* ⃝ უკანა მხარე: ფუნქციების სია */}
+                    <div 
+                      className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-gradient-to-br ${colors.grad} border-2 rounded-3xl p-6 flex flex-col justify-center shadow-2xl`}
+                      style={{
+                        borderColor: getNeonBorder(colorKey),
+                        boxShadow: `0 0 25px ${getNeonGlow(colorKey)}, 0 0 50px ${getNeonGlow(colorKey)}80`,
+                      }}
+                    >
+                      <h3 className={`text-xl font-bold ${colors.titleColor} mb-6 text-center`}>{title}</h3>
                       <ul className="space-y-3">
                         {details.split('|').map((d, idx) => (
                           <li key={idx} className="flex items-center gap-3 text-sm text-slate-200">
                             <div className={`w-5 h-5 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0`}>
-                              <Icon name="check" className={`w-3 h-3 ${colors.text}`} />
+                              <Icon name="check" className={`w-3 h-3 ${colors.titleColor}`} />
                             </div>
                             {d}
                           </li>
@@ -537,16 +600,24 @@ function Features() {
             const [icon, title, desc, details, colorKey] = feature
             const colors = cardColors[colorKey as keyof typeof cardColors]
             return (
-              <div key={i} className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-xl">
-                <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center mb-3 ${colors.text}`}>
+              <div 
+                key={i} 
+                className="border-2 rounded-2xl p-6 shadow-xl"
+                style={{
+                  backgroundColor: '#0f172a',
+                  borderColor: getNeonBorder(colorKey),
+                  boxShadow: `0 0 20px ${getNeonGlow(colorKey)}, 0 0 40px ${getNeonGlow(colorKey)}60`,
+                }}
+              >
+                <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center mb-3 ${colors.titleColor}`}>
                   <Icon name={icon as string} className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-                <p className="text-xs text-slate-400 mb-3">{desc}</p>
+                <h3 className={`text-lg font-black mb-2 ${colors.titleColor}`}>{title}</h3>
+                <p className={`text-xs mb-3 ${colors.descColor}`}>{desc}</p>
                 <div className="space-y-2">
                   {details.split('|').map((d, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
-                      <Icon name="check" className={`w-3 h-3 ${colors.text}`} />
+                      <Icon name="check" className={`w-3 h-3 ${colors.titleColor}`} />
                       {d}
                     </div>
                   ))}
