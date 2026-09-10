@@ -68,33 +68,6 @@ const IconEye = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
-const IconTrash = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-  </svg>
-)
-
-const IconEdit = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </svg>
-)
-
-const IconLoader = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-  </svg>
-)
-
-const IconShield = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-  </svg>
-)
-
 const IconClock = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
@@ -153,6 +126,12 @@ const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 )
 
+const IconShield = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+)
+
 // ============ შიდა კომპონენტი ============
 function DashboardContent() {
   const router = useRouter()
@@ -172,6 +151,12 @@ function DashboardContent() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isUpsellModalOpen, setIsUpsellModalOpen] = useState(false)
+
+  // ⭐ რეალური მონაცემები
+  const [apartmentsCount, setApartmentsCount] = useState<Record<string, number>>({})
+  const [collectedAmount, setCollectedAmount] = useState<Record<string, number>>({})
+  const [debtAmount, setDebtAmount] = useState<Record<string, number>>({})
+  const [activityLogs, setActivityLogs] = useState<any[]>([])
 
   useEffect(() => {
     const checkSession = async () => {
@@ -273,6 +258,68 @@ function DashboardContent() {
     }
     if (user) fetchBuildings()
   }, [user, viewAsUser])
+
+  // ⭐ რეალური მონაცემების წამოღება
+  useEffect(() => {
+    const fetchRealData = async () => {
+      if (buildings.length === 0) return
+
+      // 1. ბინების რაოდენობა თითოეული კორპუსისთვის
+      const aptCounts: Record<string, number> = {}
+      for (const building of buildings) {
+        const { count } = await supabase
+          .from('apartments')
+          .select('*', { count: 'exact', head: true })
+          .eq('building_id', building.id)
+        
+        aptCounts[building.id] = count || 0
+      }
+      setApartmentsCount(aptCounts)
+
+      // 2. შეგროვებული თანხა (payments ცხრილიდან)
+      const collected: Record<string, number> = {}
+      for (const building of buildings) {
+        const { data: payments } = await supabase
+          .from('payments')
+          .select('amount')
+          .eq('building_id', building.id)
+        
+        const total = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
+        collected[building.id] = total
+      }
+      setCollectedAmount(collected)
+
+      // 3. დავალიანების გამოთვლა
+      // ფორმულა: (ბინების რაოდენობა × monthly_fee) - შეგროვებული
+      const debts: Record<string, number> = {}
+      for (const building of buildings) {
+        const { data: settings } = await supabase
+          .from('building_settings')
+          .select('monthly_fee')
+          .eq('building_id', building.id)
+          .maybeSingle()
+        
+        const monthlyFee = settings?.monthly_fee || 0
+        const expectedTotal = (aptCounts[building.id] || 0) * monthlyFee
+        debts[building.id] = Math.max(0, expectedTotal - (collected[building.id] || 0))
+      }
+      setDebtAmount(debts)
+
+      // 4. აქტივობის ლოგი
+      const { data: logs } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .in('building_id', buildings.map(b => b.id))
+        .order('created_at', { ascending: false })
+        .limit(10)
+      
+      if (logs) {
+        setActivityLogs(logs)
+      }
+    }
+
+    fetchRealData()
+  }, [buildings])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -392,64 +439,57 @@ function DashboardContent() {
     },
   ]
 
-  // ⭐ Mock Data - Active State-ისთვის (რამდენიმე კორპუსი)
-  const mockBuildingsData = [
-    {
-      id: '1',
-      name: 'ვაჟა-ფშაველას 42',
-      city: 'თბილისი',
-      apartments: 72,
-      collected: 4500,
-      debt: 1200,
-      collectionRate: 78,
-      openRequests: 3,
-    },
-    {
-      id: '2',
-      name: 'ჩავჩავაძის 15',
-      city: 'თბილისი',
-      apartments: 48,
-      collected: 3200,
-      debt: 800,
-      collectionRate: 80,
-      openRequests: 1,
-    },
-    {
-      id: '3',
-      name: 'რუსთაველის 28',
-      city: 'თბილისი',
-      apartments: 96,
-      collected: 6800,
-      debt: 2100,
-      collectionRate: 76,
-      openRequests: 5,
-    },
-  ]
-
-  const selectedBuilding = buildings.find(b => b.id === selectedBuildingId)
+  // ⭐ რეალური სტატისტიკა
   const isAllSelected = selectedBuildingId === 'all'
-
+  
   const totalStats = {
-    collected: mockBuildingsData.reduce((sum, b) => sum + b.collected, 0),
-    debt: mockBuildingsData.reduce((sum, b) => sum + b.debt, 0),
-    collectionRate: Math.round(mockBuildingsData.reduce((sum, b) => sum + b.collectionRate, 0) / mockBuildingsData.length),
-    openRequests: mockBuildingsData.reduce((sum, b) => sum + b.openRequests, 0),
-    totalApartments: mockBuildingsData.reduce((sum, b) => sum + b.apartments, 0),
-    paidApartments: Math.round(mockBuildingsData.reduce((sum, b) => sum + (b.apartments * b.collectionRate / 100), 0)),
+    collected: Object.values(collectedAmount).reduce((sum, val) => sum + val, 0),
+    debt: Object.values(debtAmount).reduce((sum, val) => sum + val, 0),
+    totalApartments: Object.values(apartmentsCount).reduce((sum, val) => sum + val, 0),
   }
 
-  const buildingStats = mockBuildingsData.find(b => b.id === selectedBuildingId) || mockBuildingsData[0]
+  const selectedBuilding = buildings.find(b => b.id === selectedBuildingId)
+  const buildingStats = {
+    collected: collectedAmount[selectedBuildingId] || 0,
+    debt: debtAmount[selectedBuildingId] || 0,
+    apartments: apartmentsCount[selectedBuildingId] || 0,
+  }
 
   const dropdownOptions = [
     { id: 'all', label: 'ყველა კორპუსი', icon: '📊' },
-    ...mockBuildingsData.map(b => ({
+    ...buildings.map(b => ({
       id: b.id,
-      label: b.name,
-      icon: '🏢',
+      label: b.name || b.street || 'კორპუსი',
+      icon: '',
     })),
   ]
 
   const currentDropdownLabel = dropdownOptions.find(o => o.id === selectedBuildingId)?.label || 'კორპუსი'
+
+  // ⭐ აქტივობის ფორმატირება
+  const formatActivity = (log: any) => {
+    const actionType = log.action_type || 'action'
+    const entityName = log.entity_name || log.entity_type || 'element'
+    const description = log.description || `${actionType} on ${entityName}`
+    
+    return description
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+    
+    if (minutes < 1) return 'ახლახან'
+    if (minutes < 60) return `${minutes} წუთის წინ`
+    if (hours < 24) return `${hours} საათის წინ`
+    if (days < 7) return `${days} დღის წინ`
+    return date.toLocaleDateString('ka-GE')
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 relative overflow-hidden">
@@ -713,7 +753,6 @@ function DashboardContent() {
                     </div>
                     <div className="text-left min-w-0">
                       <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                        {/* ⭐ აქ გამოიყენება დინამიური ლიმიტი */}
                         კორპუსი {buildings.length}/{maxBuildingsLimit >= 999999 ? '∞' : maxBuildingsLimit}
                       </div>
                       <div className="text-xs sm:text-sm font-bold text-white truncate">
@@ -755,7 +794,7 @@ function DashboardContent() {
                               </div>
                               {option.id !== 'all' && (
                                 <div className="text-xs text-slate-400">
-                                  {mockBuildingsData.find(b => b.id === option.id)?.apartments} ბინა
+                                  {apartmentsCount[option.id] || 0} ბინა
                                 </div>
                               )}
                             </div>
@@ -882,7 +921,7 @@ function DashboardContent() {
                 </div>
                 <span className="text-[10px] sm:text-xs text-emerald-400 font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  {isAllSelected ? totalStats.paidApartments : Math.round(buildingStats.apartments * buildingStats.collectionRate / 100)}/{isAllSelected ? totalStats.totalApartments : buildingStats.apartments} ბინამ
+                  {isAllSelected ? totalStats.totalApartments : buildingStats.apartments} ბინა
                 </span>
               </div>
 
@@ -898,9 +937,9 @@ function DashboardContent() {
                 </div>
                 <span className="text-[10px] sm:text-xs text-rose-400 font-semibold">
                   {isAllSelected 
-                    ? `${mockBuildingsData.length} კორპუსს`
-                    : `${buildingStats.apartments - Math.round(buildingStats.apartments * buildingStats.collectionRate / 100)} ბინას`
-                  } უჭირს
+                    ? `${buildings.length} კორპუსს`
+                    : `${buildingStats.apartments} ბინას`
+                  } აქვს ვალი
                 </span>
               </div>
 
@@ -912,19 +951,21 @@ function DashboardContent() {
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
-                  {isAllSelected ? totalStats.collectionRate : buildingStats.collectionRate}%
+                  {totalStats.debt > 0 
+                    ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100)
+                    : 0}%
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-700"
-                    style={{ width: `${isAllSelected ? totalStats.collectionRate : buildingStats.collectionRate}%` }}
+                    style={{ width: `${totalStats.debt > 0 ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100) : 0}%` }}
                   />
                 </div>
               </div>
 
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-purple-500/30 transition-all">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-400">ღია საჩივრები</span>
+                  <span className="text-xs font-semibold text-slate-400">აქტივობები</span>
                   <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -933,26 +974,26 @@ function DashboardContent() {
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
-                  {isAllSelected ? totalStats.openRequests : buildingStats.openRequests}
+                  {activityLogs.length}
                 </div>
                 <span className="text-[10px] sm:text-xs text-purple-400 font-semibold">
-                  მოითხოვს ყურადღებას
+                  ბოლო 7 დღე
                 </span>
               </div>
             </div>
 
-            {isAllSelected && (
+            {isAllSelected && buildings.length > 1 && (
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                     <IconBuilding className="w-5 h-5 text-emerald-400" />
                     ყველა კორპუსი
                   </h3>
-                  <span className="text-xs text-slate-400">{mockBuildingsData.length} კორპუსი</span>
+                  <span className="text-xs text-slate-400">{buildings.length} კორპუსი</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {mockBuildingsData.map((building) => (
+                  {buildings.map((building) => (
                     <button
                       key={building.id}
                       onClick={() => setSelectedBuildingId(building.id)}
@@ -964,16 +1005,16 @@ function DashboardContent() {
                         </div>
                         <IconArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
                       </div>
-                      <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name}</h4>
-                      <p className="text-xs text-slate-400 mb-3">{building.city} • {building.apartments} ბინა</p>
+                      <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name || building.street}</h4>
+                      <p className="text-xs text-slate-400 mb-3">{building.city} • {apartmentsCount[building.id] || 0} ბინა</p>
                       <div className="flex items-center justify-between pt-3 border-t border-white/5">
                         <div>
                           <div className="text-xs text-slate-400">შეგროვება</div>
-                          <div className="text-sm font-bold text-emerald-400">₾{building.collected.toLocaleString()}</div>
+                          <div className="text-sm font-bold text-emerald-400">₾{(collectedAmount[building.id] || 0).toLocaleString()}</div>
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-slate-400">ვალი</div>
-                          <div className="text-sm font-bold text-rose-400">₾{building.debt.toLocaleString()}</div>
+                          <div className="text-sm font-bold text-rose-400">₾{(debtAmount[building.id] || 0).toLocaleString()}</div>
                         </div>
                       </div>
                     </button>
@@ -991,37 +1032,28 @@ function DashboardContent() {
                     {isAllSelected ? 'ყველაზე დიდი მოვალეები' : 'მოვალეები'}
                   </h3>
                   <span className="text-xs text-slate-400">
-                    {isAllSelected ? 'ყველა კორპუსი' : mockBuildingsData.find(b => b.id === selectedBuildingId)?.name}
+                    {isAllSelected ? 'ყველა კორპუსი' : selectedBuilding?.name || selectedBuilding?.street}
                   </span>
                 </div>
 
-                <div className="space-y-3">
-                  {[
-                    { id: 1, apartment: 'ბინა 15', owner: 'გიორგი მ.', amount: 450, days: 45 },
-                    { id: 2, apartment: 'ბინა 23', owner: 'ნინო კ.', amount: 320, days: 30 },
-                    { id: 3, apartment: 'ბინა 8', owner: 'ლევან ს.', amount: 280, days: 25 },
-                    { id: 4, apartment: 'ბინა 41', owner: 'მარიამ ჯ.', amount: 150, days: 15 },
-                  ].map((debtor) => (
-                    <div 
-                      key={debtor.id} 
-                      className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-white/5 hover:border-rose-500/30 transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-rose-400">{debtor.apartment.split(' ')[1]}</span>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-white truncate">{debtor.apartment}</div>
-                          <div className="text-xs text-slate-400 truncate">{debtor.owner}</div>
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-sm font-bold text-rose-400">₾{debtor.amount}</div>
-                        <div className="text-[10px] text-slate-500">{debtor.days} დღე</div>
-                      </div>
+                {totalStats.debt === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                      <IconCheck className="w-8 h-8 text-emerald-400" />
                     </div>
-                  ))}
-                </div>
+                    <h4 className="text-lg font-bold text-white mb-2">არავინ არის ვალში!</h4>
+                    <p className="text-sm text-slate-400">
+                      ჯერ არ არის გადახდები ან ყველა ბინამ გადაიხადა
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="text-center py-8 text-slate-400">
+                      <p className="text-sm">მოვალეების სია მალე გამოჩნდება</p>
+                      <p className="text-xs mt-2">საჭიროა გადახდების სისტემის ამოქმედება</p>
+                    </div>
+                  </div>
+                )}
 
                 <button className="w-full mt-4 py-2.5 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/20 rounded-xl transition-all">
                   ყველა მოვალის ნახვა →
@@ -1036,28 +1068,33 @@ function DashboardContent() {
                   </h3>
                 </div>
 
-                <div className="space-y-3">
-                  {[
-                    { id: 1, message: 'ბინა 12-მა გადაიხადა ₾50', time: '2 წუთის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
-                    { id: 2, message: 'დაემატა ახალი ქვითარი', time: '1 საათის წინ', icon: IconFileText, color: 'text-blue-400 bg-blue-500/10' },
-                    { id: 3, message: 'ბინა 34-მა გადაიხადა ₾45', time: '3 საათის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
-                    { id: 4, message: 'ბინა 45-ს შეეცვალა მფლობელი', time: 'გუშინ', icon: IconUsers, color: 'text-purple-400 bg-purple-500/10' },
-                    { id: 5, message: 'ბინა 7-მა გადაიხადა ₾60', time: '2 დღის წინ', icon: IconCheck, color: 'text-emerald-400 bg-emerald-500/10' },
-                  ].map((activity) => {
-                    const ActivityIcon = activity.icon
-                    return (
-                      <div key={activity.id} className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-lg ${activity.color} flex items-center justify-center flex-shrink-0`}>
-                          <ActivityIcon className="w-4 h-4" />
+                {activityLogs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
+                      <IconClock className="w-8 h-8 text-slate-500" />
+                    </div>
+                    <p className="text-sm text-slate-400">ჯერ არ არის აქტივობა</p>
+                    <p className="text-xs text-slate-500 mt-2">დაიწყეთ კორპუსის მართვა</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {activityLogs.slice(0, 5).map((log) => (
+                      <div key={log.id} className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                          <IconFileText className="w-4 h-4 text-blue-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs text-slate-300 mb-0.5 break-words">{activity.message}</div>
-                          <div className="text-[10px] text-slate-500">{activity.time}</div>
+                          <div className="text-xs text-slate-300 mb-0.5 break-words">
+                            {formatActivity(log)}
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            {formatTimeAgo(log.created_at)}
+                          </div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
