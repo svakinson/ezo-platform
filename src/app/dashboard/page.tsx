@@ -156,11 +156,11 @@ function DashboardContent() {
   const [viewAsUser, setViewAsUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [buildings, setBuildings] = useState<any[]>([])
-  const [buildingsLoading, setBuildingsLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
   
-  // ⭐ დინამიური ლიმიტი ბაზიდან
-  const [maxBuildingsLimit, setMaxBuildingsLimit] = useState<number>(1)
+  // ⭐ კორპუსების ლიმიტი (max_buildings_count) და ბინების ლიმიტი (max_buildings)
+  const [maxBuildingsCount, setMaxBuildingsCount] = useState<number>(1)
+  const [maxApartmentsCount, setMaxApartmentsCount] = useState<number>(20)
   
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -223,7 +223,7 @@ function DashboardContent() {
         }
       }
 
-      // ⭐ დინამიურად ვიღებთ ლიმიტს subscription_plans ცხრილიდან
+      // ⭐ ვიღებთ ორივე იმიტს: კორპუსების და ბინების
       if (profile) {
         const planNameMap: Record<string, string> = {
           'basic': 'Basic',
@@ -235,12 +235,14 @@ function DashboardContent() {
 
         const { data: planData } = await supabase
           .from('subscription_plans')
-          .select('max_buildings')
+          .select('max_buildings_count, max_buildings')
           .eq('name', dbPlanName)
           .maybeSingle()
 
-        // ⭐ ლიმიტი ბაზიდან (Basic/Trial = 1, Pro = 3, Enterprise = 999999)
-        setMaxBuildingsLimit(planData?.max_buildings || 1)
+        // ⭐ კორპუსების ლიმიტი (max_buildings_count)
+        setMaxBuildingsCount(planData?.max_buildings_count || 1)
+        // ⭐ ბინების იმიტი (max_buildings - რეალურად apartments)
+        setMaxApartmentsCount(planData?.max_buildings || 20)
       }
 
       setLoading(false)
@@ -268,7 +270,6 @@ function DashboardContent() {
         if (data) {
           setBuildings(data)
         }
-        setBuildingsLoading(false)
       }
     }
     if (user) fetchBuildings()
@@ -435,9 +436,9 @@ function DashboardContent() {
 
   const isPaidOrTrial = userProfile?.subscription_status === 'active' || userProfile?.is_trial;
 
-  //  ლიმიტის ლოგიკა
+  // ⭐ ლიმიტის ლოგიკა - კორპუსებისთვის
   const currentPlan = (userProfile?.subscription_plan || 'basic').toLowerCase()
-  const isBuildingLimitReached = buildings.length >= maxBuildingsLimit
+  const isBuildingLimitReached = buildings.length >= maxBuildingsCount
 
   // ⭐ ნაბიჯების სია - დინამიური
   const steps = [
@@ -501,7 +502,7 @@ function DashboardContent() {
     },
   ]
 
-  //  რეალური სტატისტიკა
+  // ⭐ რეალური სტატისტიკა
   const isAllSelected = selectedBuildingId === 'all'
   
   const totalStats = {
@@ -812,7 +813,7 @@ function DashboardContent() {
                     </div>
                     <div className="text-left min-w-0">
                       <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                        კორპუსი {buildings.length}/{maxBuildingsLimit >= 999999 ? '∞' : maxBuildingsLimit}
+                        კორპუსი {buildings.length}/{maxBuildingsCount >= 999 ? '∞' : maxBuildingsCount}
                       </div>
                       <div className="text-xs sm:text-sm font-bold text-white truncate">
                         {currentDropdownLabel}
@@ -862,7 +863,7 @@ function DashboardContent() {
                               )}
                             </button>
                             
-                            {/* ⭐ კორპუსის წაშლის ღილაკი (მხოლოდ კონკრეტული კორპუსებისთვის) */}
+                            {/*  კორპუსის წაშლის ღილაკი */}
                             {option.id !== 'all' && (
                               <button
                                 onClick={(e) => {
@@ -902,7 +903,7 @@ function DashboardContent() {
                                 ახალი კორპუსის დამატება
                               </div>
                               <div className="text-[10px] text-slate-500">
-                                საჭიროა პაკეტის განახლება
+                                საჭიროა პაკეტის განახლება ({buildings.length}/{maxBuildingsCount})
                               </div>
                             </div>
                             <span className="relative px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/30">
@@ -1098,7 +1099,7 @@ function DashboardContent() {
                         </div>
                       </button>
                       
-                      {/* ⭐ კორპუსის წაშლის ღილაკი ბარათზე */}
+                      {/* ⭐ კორპუსის წაშლის ღილაკი */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -1217,7 +1218,7 @@ function DashboardContent() {
           onClose={() => setIsUpsellModalOpen(false)}
           currentPlan={currentPlan}
           currentBuildings={buildings.length}
-          maxBuildings={maxBuildingsLimit}
+          maxBuildings={maxBuildingsCount}
         />
 
       </main>
