@@ -478,11 +478,8 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* ⃝ ჰედერი - ერთი ხაზი: ლოგო | ბანერები | პროფილი */}
       <header className={`sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-white/10 ${viewAsUser ? 'top-[41px]' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          
-          {/* მარცხნივ: ლოგო */}
           <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform">
               <IconBuilding className="w-5 h-5" />
@@ -493,10 +490,7 @@ function DashboardContent() {
             </div>
           </Link>
 
-          {/* ცენტრში: ორი ბანერი */}
           <div className="hidden lg:flex items-center gap-3 flex-1 justify-center">
-            
-            {/* ბანერი 1: პაკეტის სტატუსი */}
             <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-1.5">
               <IconGift className="w-4 h-4 text-emerald-400" />
               <div className="flex items-center gap-1.5 text-xs">
@@ -508,7 +502,6 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* ბანერი 2: პაკეტების შეძენა */}
             <Link 
               href="/pricing"
               className="group flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25"
@@ -519,7 +512,6 @@ function DashboardContent() {
             </Link>
           </div>
 
-          {/* მარჯვნივ: პროფილი */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="relative">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex items-center justify-center shadow-lg shadow-emerald-500/30 text-sm">
@@ -537,7 +529,6 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* მობილურისთვის: ბანერები ქვემოთ */}
         <div className="lg:hidden border-t border-white/5 bg-slate-900/30 px-4 py-2.5">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2">
@@ -740,277 +731,193 @@ function DashboardContent() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-6">
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            {/* 🌟 MODERN DASHBOARD TOP SECTION 🌟 */}
+            
+            {/* Row 1: Portfolio Overview & Key Metrics */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               
-              {/* 1. Building Selector */}
-              <div className="relative col-span-2 lg:col-span-1">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full flex items-center justify-between gap-2 sm:gap-3 bg-slate-900/50 backdrop-blur-xl border border-white/10 hover:border-emerald-500/30 rounded-2xl px-3 sm:px-4 py-3 sm:py-3.5 transition-all"
-                >
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
-                      <IconBuilding className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="text-left min-w-0">
-                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                        კორპუსი {buildings.length}/{maxBuildingsCount >= 999 ? '∞' : maxBuildingsCount}
-                      </div>
-                      <div className="text-xs sm:text-sm font-bold text-white truncate">
-                        {currentDropdownLabel}
-                      </div>
-                    </div>
-                  </div>
-                  <IconChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform flex-shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isDropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                    <div className="absolute top-full left-0 right-0 sm:min-w-[280px] mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                      <div className="p-2">
-                        {dropdownOptions.map((option) => (
-                          <div key={option.id} className="relative group">
-                            <button
-                              onClick={() => {
-                                setSelectedBuildingId(option.id)
-                                setIsDropdownOpen(false)
-                              }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                                selectedBuildingId === option.id
-                                  ? 'bg-emerald-500/10 border border-emerald-500/30'
-                                  : 'hover:bg-white/5 border border-transparent'
-                              }`}
-                            >
-                              <span className="text-xl">{option.icon}</span>
-                              <div className="flex-1 min-w-0">
-                                <div className={`text-sm font-semibold truncate ${
-                                  selectedBuildingId === option.id ? 'text-emerald-300' : 'text-white'
-                                }`}>
-                                  {option.label}
-                                </div>
-                                {option.id !== 'all' && (
-                                  <div className="text-xs text-slate-400">
-                                    {apartmentsCount[option.id] || 0} ბინა
-                                  </div>
-                                )}
-                              </div>
-                              {selectedBuildingId === option.id && (
-                                <IconCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                              )}
-                            </button>
-                            
-                            {option.id !== 'all' && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  const building = buildings.find(b => b.id === option.id)
-                                  if (building) {
-                                    handleDeleteBuilding(building.id, building.name || building.street || 'კორპუსი')
-                                    setIsDropdownOpen(false)
-                                  }
-                                }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                                title="კორპუსის წაშლა"
-                              >
-                                <IconTrash className="w-4 h-4 text-rose-400" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+              {/* Card 1: Portfolio Summary & Actions (Spans 2 columns) */}
+              <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
+                
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">პორტფოლიოს მიმოხილვა</h2>
+                    <p className="text-sm text-slate-400 mb-4">მართავთ {buildings.length} კორპუსს, სულ {totalStats.totalApartments} ბინა</p>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={() => router.push('/dashboard/add-building')}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20"
+                      >
+                        <IconPlus className="w-4 h-4" />
+                        კორპუსის დამატება
+                      </button>
                       
-                      <div className="border-t border-white/10 p-2">
-                        {isBuildingLimitReached ? (
-                          <button
-                            onClick={() => {
-                              setIsDropdownOpen(false)
-                              setIsUpsellModalOpen(true)
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-800/50 border border-white/10 hover:bg-slate-800 transition-all text-left group relative overflow-hidden cursor-pointer"
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="relative w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center">
-                              <IconLock className="w-4 h-4 text-slate-400" />
-                            </div>
-                            <div className="relative flex-1">
-                              <div className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
-                                ახალი კორპუსის დამატება
+                      {/* Compact Building Selector */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-slate-700/50 hover:bg-slate-700 border border-white/10 rounded-xl text-sm font-medium text-white transition-all"
+                        >
+                          <IconBuilding className="w-4 h-4 text-emerald-400" />
+                          <span className="truncate max-w-[150px]">{currentDropdownLabel}</span>
+                          <IconChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        {isDropdownOpen && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                            <div className="absolute top-full left-0 mt-2 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                              <div className="p-2">
+                                {dropdownOptions.map((option) => (
+                                  <button
+                                    key={option.id}
+                                    onClick={() => {
+                                      setSelectedBuildingId(option.id)
+                                      setIsDropdownOpen(false)
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left text-sm ${
+                                      selectedBuildingId === option.id
+                                        ? 'bg-emerald-500/10 text-emerald-400'
+                                        : 'text-slate-300 hover:bg-white/5'
+                                    }`}
+                                  >
+                                    <span>{option.icon || '🏢'}</span>
+                                    <span className="truncate">{option.label}</span>
+                                  </button>
+                                ))}
                               </div>
-                              <div className="text-[10px] text-slate-500">
-                                საჭიროა პაკეტის განახლება ({buildings.length}/{maxBuildingsCount})
-                              </div>
                             </div>
-                            <span className="relative px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/30">
-                              Pro
-                            </span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setIsDropdownOpen(false)
-                              router.push('/dashboard/add-building')
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                              <IconPlus className="w-4 h-4 text-emerald-400" />
-                            </div>
-                            <div className="text-sm font-semibold text-emerald-400">
-                              ახალი კორპუსის დამატება
-                            </div>
-                          </button>
+                          </>
                         )}
                       </div>
                     </div>
-                  </>
-                )}
-              </div>
-
-              {/* 2. სატესტო ბანერი */}
-              <div className="bg-slate-900/50 border border-dashed border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[80px] gap-2 group hover:border-slate-700 transition-colors">
-                <IconLock className="w-5 h-5 text-slate-600 group-hover:text-slate-500 transition-colors" />
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">სატესტო</span>
-              </div>
-
-              {/* 3. სატესტო ბანერი */}
-              <div className="bg-slate-900/50 border border-dashed border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[80px] gap-2 group hover:border-slate-700 transition-colors">
-                <IconLock className="w-5 h-5 text-slate-600 group-hover:text-slate-500 transition-colors" />
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">სატესტო</span>
-              </div>
-
-              {/* 4. სატესტო ბანერი */}
-              <div className="bg-slate-900/50 border border-dashed border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[80px] gap-2 group hover:border-slate-700 transition-colors">
-                <IconLock className="w-5 h-5 text-slate-600 group-hover:text-slate-500 transition-colors" />
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">სატესტო</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-emerald-500/30 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-400">ამ თვის შეგროვება</span>
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                    <IconTrendingUp className="w-4 h-4" />
                   </div>
-                </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
-                  ₾{isAllSelected ? totalStats.collected.toLocaleString() : buildingStats.collected.toLocaleString()}
-                </div>
-                <span className="text-[10px] sm:text-xs text-emerald-400 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  {isAllSelected ? totalStats.totalApartments : buildingStats.apartments} ბინა
-                </span>
-              </div>
 
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-rose-500/30 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-400">საერთო დავალიანება</span>
-                  <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
-                    <IconAlertCircle className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
-                  ₾{isAllSelected ? totalStats.debt.toLocaleString() : buildingStats.debt.toLocaleString()}
-                </div>
-                <span className="text-[10px] sm:text-xs text-rose-400 font-semibold">
-                  {isAllSelected ? `${buildings.length} კორპუსს` : `${buildingStats.apartments} ბინას`} აქვს ვალი
-                </span>
-              </div>
-
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-blue-500/30 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-400">შეგროვების %</span>
-                  <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
-                    <IconCheck className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
-                  {totalStats.debt > 0 ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100) : 0}%
-                </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-700"
-                    style={{ width: `${totalStats.debt > 0 ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100) : 0}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-purple-500/30 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-400">აქტივობები</span>
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
-                  {activityLogs.length}
-                </div>
-                <span className="text-[10px] sm:text-xs text-purple-400 font-semibold">ბოლო 7 დღე</span>
-              </div>
-            </div>
-
-            {isAllSelected && buildings.length > 1 && (
-              <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                    <IconBuilding className="w-5 h-5 text-emerald-400" />
-                    ყველა კორპუსი
-                  </h3>
-                  <span className="text-xs text-slate-400">{buildings.length} კორპუსი</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {buildings.map((building) => (
-                    <div
-                      key={building.id}
-                      className="relative group bg-slate-800/50 border border-white/5 hover:border-emerald-500/30 rounded-xl p-4 transition-all"
-                    >
-                      <button
-                        onClick={() => setSelectedBuildingId(building.id)}
-                        className="w-full text-left"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                            <IconBuilding className="w-5 h-5 text-emerald-400" />
-                          </div>
-                          <IconArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-                        </div>
-                        <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name || building.street}</h4>
-                        <p className="text-xs text-slate-400 mb-3">{building.city} • {apartmentsCount[building.id] || 0} ბინა</p>
-                        <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                          <div>
-                            <div className="text-xs text-slate-400">შეგროვება</div>
-                            <div className="text-sm font-bold text-emerald-400">₾{(collectedAmount[building.id] || 0).toLocaleString()}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xs text-slate-400">ვალი</div>
-                            <div className="text-sm font-bold text-rose-400">₾{(debtAmount[building.id] || 0).toLocaleString()}</div>
-                          </div>
-                        </div>
-                      </button>
-                      
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteBuilding(building.id, building.name || building.street || 'კორპუსი')
-                        }}
-                        className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                        title="კორპუსის წაშლა"
-                      >
-                        <IconTrash className="w-4 h-4 text-rose-400" />
-                      </button>
+                  {/* Mini Stats in the same card */}
+                  <div className="flex gap-6 sm:gap-8 pt-4 sm:pt-0 border-t sm:border-t-0 sm:border-l border-white/10">
+                    <div>
+                      <div className="text-xs text-slate-400 mb-1">შეგროვებული</div>
+                      <div className="text-xl font-black text-emerald-400">₾{totalStats.collected.toLocaleString()}</div>
                     </div>
-                  ))}
+                    <div>
+                      <div className="text-xs text-slate-400 mb-1">დავალიანება</div>
+                      <div className="text-xl font-black text-rose-400">₾{totalStats.debt.toLocaleString()}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
 
+              {/* Card 2: Collection Rate & Activity (Spans 1 column) */}
+              <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
+                    <IconTrendingUp className="w-4 h-4 text-blue-400" />
+                    შეგროვების ეფექტურობა
+                  </h3>
+                  <div className="text-3xl font-black text-white mb-2">
+                    {totalStats.debt > 0 ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100) : 100}%
+                  </div>
+                  <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mb-4">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-700"
+                      style={{ width: `${totalStats.debt > 0 ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100) : 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-400">ბოლო აქტივობები</div>
+                      <div className="text-sm font-bold text-white">{activityLogs.length} ოპერაცია</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Row 2: Added Buildings Displayed Beautifully */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <IconBuilding className="w-5 h-5 text-emerald-400" />
+                  თქვენი კორპუსები
+                </h3>
+                <span className="text-xs text-slate-400">{buildings.length} კორპუსი</span>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {buildings.map((building) => (
+                  <div
+                    key={building.id}
+                    className={`group relative bg-slate-900/50 border rounded-2xl p-4 transition-all hover:-translate-y-1 hover:shadow-xl ${
+                      selectedBuildingId === building.id 
+                        ? 'border-emerald-500/50 shadow-lg shadow-emerald-500/10' 
+                        : 'border-white/10 hover:border-emerald-500/30'
+                    }`}
+                  >
+                    <button
+                      onClick={() => setSelectedBuildingId(building.id)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                          selectedBuildingId === building.id ? 'bg-emerald-500 text-white' : 'bg-emerald-500/10 text-emerald-400'
+                        }`}>
+                          <IconBuilding className="w-5 h-5" />
+                        </div>
+                        {selectedBuildingId === building.id && (
+                          <IconCheck className="w-5 h-5 text-emerald-400" />
+                        )}
+                      </div>
+                      <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name || building.street}</h4>
+                      <p className="text-xs text-slate-400 mb-3">{building.city} • {apartmentsCount[building.id] || 0} ბინა</p>
+                      
+                      <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                        <div>
+                          <div className="text-[10px] text-slate-500">შეგროვება</div>
+                          <div className="text-sm font-bold text-emerald-400">₾{(collectedAmount[building.id] || 0).toLocaleString()}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[10px] text-slate-500">ვალი</div>
+                          <div className="text-sm font-bold text-rose-400">₾{(debtAmount[building.id] || 0).toLocaleString()}</div>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteBuilding(building.id, building.name || building.street || 'კორპუსი')
+                      }}
+                      className="absolute top-3 right-3 w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                      title="კორპუსის წაშლა"
+                    >
+                      <IconTrash className="w-3.5 h-3.5 text-rose-400" />
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Add Building Card (Inline) */}
+                <button
+                  onClick={() => router.push('/dashboard/add-building')}
+                  className="group flex flex-col items-center justify-center h-full min-h-[160px] bg-slate-900/30 border-2 border-dashed border-white/10 hover:border-emerald-500/50 rounded-2xl p-4 transition-all hover:bg-emerald-500/5"
+                >
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <IconPlus className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <span className="text-sm font-bold text-slate-300 group-hover:text-emerald-400 transition-colors">ახალი კორპუსის დამატება</span>
+                </button>
+              </div>
+            </div>
+
+            {/* The rest of the dashboard remains exactly as it was */}
             <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
