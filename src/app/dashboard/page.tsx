@@ -168,7 +168,6 @@ function DashboardContent() {
   const [maxBuildingsCount, setMaxBuildingsCount] = useState<number>(1)
   const [maxApartmentsCount, setMaxApartmentsCount] = useState<number>(20)
   
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isUpsellModalOpen, setIsUpsellModalOpen] = useState(false)
 
@@ -343,7 +342,6 @@ function DashboardContent() {
       await supabase.from('buildings').delete().eq('id', buildingId)
 
       setBuildings(prev => prev.filter(b => b.id !== buildingId))
-      if (selectedBuildingId === buildingId) setSelectedBuildingId('all')
       alert('კორპუსი წარმატებით წაიშალა!')
     } catch (error: any) {
       console.error('Delete error:', error)
@@ -422,25 +420,11 @@ function DashboardContent() {
     { icon: IconHome, title: 'ყველაფერი ერთ ადგილას', desc: 'ბინები, გადახდები, ანგარიშები', gradient: 'from-emerald-500/10 to-teal-500/10', border: 'border-emerald-500/20', iconColor: 'text-emerald-400' },
   ]
 
-  const isAllSelected = selectedBuildingId === 'all'
   const totalStats = {
     collected: Object.values(collectedAmount).reduce((sum, val) => sum + val, 0),
     debt: Object.values(debtAmount).reduce((sum, val) => sum + val, 0),
     totalApartments: Object.values(apartmentsCount).reduce((sum, val) => sum + val, 0),
   }
-
-  const selectedBuilding = buildings.find(b => b.id === selectedBuildingId)
-  const buildingStats = {
-    collected: collectedAmount[selectedBuildingId] || 0,
-    debt: debtAmount[selectedBuildingId] || 0,
-    apartments: apartmentsCount[selectedBuildingId] || 0,
-  }
-
-  const dropdownOptions = [
-    { id: 'all', label: 'ყველა კორპუსი', icon: '' },
-    ...buildings.map(b => ({ id: b.id, label: b.name || b.street || 'კორპუსი', icon: '🏢' })),
-  ]
-  const currentDropdownLabel = dropdownOptions.find(o => o.id === selectedBuildingId)?.label || 'კორპუსი'
 
   const formatActivity = (log: any) => log.description || `${log.action_type || 'action'} on ${log.entity_name || log.entity_type || 'element'}`
   const formatTimeAgo = (dateString: string) => {
@@ -495,10 +479,14 @@ function DashboardContent() {
               <IconGift className="w-4 h-4 text-emerald-400" />
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-slate-300">თქვენი მიმდინარე პაკეტია:</span>
-                <span className="text-emerald-400 font-bold">🎁 საცდელი</span>
-                <span className="text-slate-500">•</span>
-                <span className="text-slate-400">დარჩენილია:</span>
-                <span className="text-amber-400 font-bold">6 დღე</span>
+                <span className="text-emerald-400 font-bold">🎁 {planInfo.name}</span>
+                {planInfo.daysLeft !== null && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-slate-400">დარჩენილია:</span>
+                    <span className="text-amber-400 font-bold">{planInfo.daysLeft} დღე</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -535,9 +523,13 @@ function DashboardContent() {
               <IconGift className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               <div className="flex items-center gap-1.5 text-xs min-w-0">
                 <span className="text-slate-300 whitespace-nowrap">პაკეტი:</span>
-                <span className="text-emerald-400 font-bold whitespace-nowrap">🎁 საცდელი</span>
-                <span className="text-slate-500">•</span>
-                <span className="text-amber-400 font-bold whitespace-nowrap">6 დღე</span>
+                <span className="text-emerald-400 font-bold whitespace-nowrap">🎁 {planInfo.name}</span>
+                {planInfo.daysLeft !== null && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-amber-400 font-bold whitespace-nowrap">{planInfo.daysLeft} დღე</span>
+                  </>
+                )}
               </div>
             </div>
             <Link 
@@ -755,45 +747,6 @@ function DashboardContent() {
                         <IconPlus className="w-4 h-4" />
                         კორპუსის დამატება
                       </button>
-                      
-                      {/* Compact Building Selector */}
-                      <div className="relative">
-                        <button
-                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-slate-700/50 hover:bg-slate-700 border border-white/10 rounded-xl text-sm font-medium text-white transition-all"
-                        >
-                          <IconBuilding className="w-4 h-4 text-emerald-400" />
-                          <span className="truncate max-w-[150px]">{currentDropdownLabel}</span>
-                          <IconChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        
-                        {isDropdownOpen && (
-                          <>
-                            <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                            <div className="absolute top-full left-0 mt-2 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                              <div className="p-2">
-                                {dropdownOptions.map((option) => (
-                                  <button
-                                    key={option.id}
-                                    onClick={() => {
-                                      setSelectedBuildingId(option.id)
-                                      setIsDropdownOpen(false)
-                                    }}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left text-sm ${
-                                      selectedBuildingId === option.id
-                                        ? 'bg-emerald-500/10 text-emerald-400'
-                                        : 'text-slate-300 hover:bg-white/5'
-                                    }`}
-                                  >
-                                    <span>{option.icon || '🏢'}</span>
-                                    <span className="truncate">{option.label}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
                     </div>
                   </div>
 
@@ -856,47 +809,35 @@ function DashboardContent() {
                 {buildings.map((building) => (
                   <div
                     key={building.id}
-                    className={`group relative bg-slate-900/50 border rounded-2xl p-4 transition-all hover:-translate-y-1 hover:shadow-xl ${
-                      selectedBuildingId === building.id 
-                        ? 'border-emerald-500/50 shadow-lg shadow-emerald-500/10' 
-                        : 'border-white/10 hover:border-emerald-500/30'
-                    }`}
+                    onClick={() => router.push(`/dashboard/building/${building.id}`)}
+                    className="group relative bg-slate-900/50 border border-white/10 hover:border-emerald-500/50 rounded-2xl p-4 transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer"
                   >
-                    <button
-                      onClick={() => setSelectedBuildingId(building.id)}
-                      className="w-full text-left"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          selectedBuildingId === building.id ? 'bg-emerald-500 text-white' : 'bg-emerald-500/10 text-emerald-400'
-                        }`}>
-                          <IconBuilding className="w-5 h-5" />
-                        </div>
-                        {selectedBuildingId === building.id && (
-                          <IconCheck className="w-5 h-5 text-emerald-400" />
-                        )}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        <IconBuilding className="w-5 h-5" />
                       </div>
-                      <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name || building.street}</h4>
-                      <p className="text-xs text-slate-400 mb-3">{building.city} • {apartmentsCount[building.id] || 0} ბინა</p>
-                      
-                      <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                        <div>
-                          <div className="text-[10px] text-slate-500">შეგროვება</div>
-                          <div className="text-sm font-bold text-emerald-400">₾{(collectedAmount[building.id] || 0).toLocaleString()}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-[10px] text-slate-500">ვალი</div>
-                          <div className="text-sm font-bold text-rose-400">₾{(debtAmount[building.id] || 0).toLocaleString()}</div>
-                        </div>
+                      <IconArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+                    </div>
+                    <h4 className="text-sm font-bold text-white mb-1 truncate">{building.name || building.street}</h4>
+                    <p className="text-xs text-slate-400 mb-3">{building.city} • {apartmentsCount[building.id] || 0} ბინა</p>
+                    
+                    <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                      <div>
+                        <div className="text-[10px] text-slate-500">შეგროვება</div>
+                        <div className="text-sm font-bold text-emerald-400">₾{(collectedAmount[building.id] || 0).toLocaleString()}</div>
                       </div>
-                    </button>
+                      <div className="text-right">
+                        <div className="text-[10px] text-slate-500">ვალი</div>
+                        <div className="text-sm font-bold text-rose-400">₾{(debtAmount[building.id] || 0).toLocaleString()}</div>
+                      </div>
+                    </div>
                     
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDeleteBuilding(building.id, building.name || building.street || 'კორპუსი')
                       }}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute top-3 right-3 w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-10"
                       title="კორპუსის წაშლა"
                     >
                       <IconTrash className="w-3.5 h-3.5 text-rose-400" />
@@ -917,17 +858,14 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* The rest of the dashboard remains exactly as it was */}
+            {/* The rest of the dashboard */}
             <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                     <IconAlertCircle className="w-5 h-5 text-rose-400" />
-                    {isAllSelected ? 'ყველაზე დიდი მოვალეები' : 'მოვალეები'}
+                    მოვალეები
                   </h3>
-                  <span className="text-xs text-slate-400">
-                    {isAllSelected ? 'ყველა კორპუსი' : selectedBuilding?.name || selectedBuilding?.street}
-                  </span>
                 </div>
 
                 {totalStats.debt === 0 ? (
