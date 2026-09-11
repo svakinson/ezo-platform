@@ -1,9 +1,80 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+
+// ============ FILE UPLOAD ITEM COMPONENT ============
+function FileUploadItem({ label, isPhoto = false }: { label: string; isPhoto?: boolean }) {
+  const [fileName, setFileName] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setFileName(file.name)
+    setIsUploading(true)
+
+    // ⃝ აქ დაემატება Supabase Storage-ში ატვირთვის რეალური ლოგიკა
+    // მაგალითად:
+    // const fileExt = file.name.split('.').pop()
+    // const filePath = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+    // const { error } = await supabase.storage.from('building-docs').upload(filePath, file)
+    
+    // სიმულაცია ტესტირებისთვის (1 წამი)
+    setTimeout(() => {
+      setIsUploading(false)
+    }, 1000)
+  }
+
+  return (
+    <div className={`flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-white/10 hover:border-emerald-500/30 transition-colors ${isPhoto ? 'flex-col text-center gap-2 aspect-square justify-center' : ''}`}>
+      <div className={`flex items-center gap-2 ${isPhoto ? 'flex-col' : ''}`}>
+        {isPhoto ? (
+          <IconCamera className="w-6 h-6 text-slate-500" />
+        ) : (
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+          </div>
+        )}
+        <span className={`text-xs font-medium ${isPhoto ? 'text-slate-400' : 'text-slate-300'}`}>{label}</span>
+      </div>
+      
+      <div className="flex flex-col items-end gap-1">
+        {fileName && (
+          <span className="text-[10px] text-emerald-400 truncate max-w-[120px] text-right">
+            {isUploading ? 'იტვირთება...' : fileName}
+          </span>
+        )}
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 ${
+            fileName 
+              ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' 
+              : 'bg-white/10 hover:bg-white/20 text-white'
+          } disabled:opacity-50`}
+        >
+          {isUploading ? <IconLoader className="w-3.5 h-3.5" /> : <IconUpload className="w-3.5 h-3.5" />}
+          {fileName ? (isUploading ? 'იტვირთება...' : 'შეცვლა') : 'ატვირთვა'}
+        </button>
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          accept={isPhoto ? "image/*" : ".pdf,.jpg,.jpeg,.png,.doc,.docx"}
+          onChange={handleFileChange}
+        />
+      </div>
+    </div>
+  )
+}
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -784,7 +855,7 @@ export default function AddBuildingPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-1.5">დოკუმენტები და ფოტოები</h2>
-                <p className="text-slate-400 text-sm">ეს ეტაპი არ არის სავალდებულო. შეგიძლიათ დოკუმენტები და ფოტოები მოგვიანებით ატვირთოთ.</p>
+                <p className="text-slate-400 text-sm">ეს ეტაპი არ არის სავალდებულო. შეგიძლიათ დოკუმენტები და ფოტოები მოგვიანებით, კორპუსის გვერდიდან ატვირთოთ.</p>
               </div>
 
               <div className="space-y-4">
@@ -798,21 +869,7 @@ export default function AddBuildingPage() {
                   </h3>
                   <div className="space-y-2">
                     {['კორპუსის რეგისტრაციის მოწმობა', 'ტექნიკური პასპორტი', 'სხვა დოკუმენტაცია'].map((doc, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-white/10 hover:border-emerald-500/30 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                              <polyline points="14 2 14 8 20 8" />
-                            </svg>
-                          </div>
-                          <span className="text-xs text-slate-300 font-medium">{doc}</span>
-                        </div>
-                        <button className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium text-white transition-colors flex items-center gap-1">
-                          <IconUpload className="w-3.5 h-3.5" />
-                          ატვირთვა
-                        </button>
-                      </div>
+                      <FileUploadItem key={i} label={doc} />
                     ))}
                   </div>
                 </div>
@@ -821,10 +878,7 @@ export default function AddBuildingPage() {
                   <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-1.5"><IconCamera className="w-4 h-4 text-blue-400" />ფოტო დოკუმენტაცია</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {['ფასადი', 'სადარბაზო', 'ლიფტი', 'ეზო'].map((photo, i) => (
-                      <div key={i} className="aspect-square bg-slate-900/50 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center hover:border-emerald-500/50 transition-colors cursor-pointer group">
-                        <IconCamera className="w-6 h-6 text-slate-500 group-hover:text-emerald-400 transition-colors mb-1" />
-                        <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors">{photo}</span>
-                      </div>
+                      <FileUploadItem key={i} label={photo} isPhoto />
                     ))}
                   </div>
                 </div>
