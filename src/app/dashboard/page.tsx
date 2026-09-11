@@ -158,7 +158,6 @@ function DashboardContent() {
   const [buildings, setBuildings] = useState<any[]>([])
   const [currentTime, setCurrentTime] = useState(new Date())
   
-  // ⭐ კორპუსების ლიმიტი (max_buildings_count) და ბინების ლიმიტი (max_buildings)
   const [maxBuildingsCount, setMaxBuildingsCount] = useState<number>(1)
   const [maxApartmentsCount, setMaxApartmentsCount] = useState<number>(20)
   
@@ -166,7 +165,6 @@ function DashboardContent() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isUpsellModalOpen, setIsUpsellModalOpen] = useState(false)
 
-  // ⭐ რეალური მონაცემები
   const [apartmentsCount, setApartmentsCount] = useState<Record<string, number>>({})
   const [collectedAmount, setCollectedAmount] = useState<Record<string, number>>({})
   const [debtAmount, setDebtAmount] = useState<Record<string, number>>({})
@@ -223,7 +221,6 @@ function DashboardContent() {
         }
       }
 
-      // ⭐ ვიღებთ ორივე იმიტს: კორპუსების და ბინების
       if (profile) {
         const planNameMap: Record<string, string> = {
           'basic': 'Basic',
@@ -239,9 +236,7 @@ function DashboardContent() {
           .eq('name', dbPlanName)
           .maybeSingle()
 
-        // ⭐ კორპუსების ლიმიტი (max_buildings_count)
         setMaxBuildingsCount(planData?.max_buildings_count || 1)
-        // ⭐ ბინების იმიტი (max_buildings - რეალურად apartments)
         setMaxApartmentsCount(planData?.max_buildings || 20)
       }
 
@@ -260,52 +255,43 @@ function DashboardContent() {
     const fetchBuildings = async () => {
       if (user) {
         const targetId = viewAsUser ? viewAsUser.id : user.id
-        
         const { data } = await supabase
           .from('buildings')
           .select('*')
           .eq('user_id', targetId)
           .order('created_at', { ascending: false })
         
-        if (data) {
-          setBuildings(data)
-        }
+        if (data) setBuildings(data)
       }
     }
     if (user) fetchBuildings()
   }, [user, viewAsUser])
 
-  // ⭐ რეალური მონაცემების წამოღება
   useEffect(() => {
     const fetchRealData = async () => {
       if (buildings.length === 0) return
 
-      // 1. ბინების რაოდენობა თითოეული კორპუსისთვის
       const aptCounts: Record<string, number> = {}
       for (const building of buildings) {
         const { count } = await supabase
           .from('apartments')
           .select('*', { count: 'exact', head: true })
           .eq('building_id', building.id)
-        
         aptCounts[building.id] = count || 0
       }
       setApartmentsCount(aptCounts)
 
-      // 2. შეგროვებული თანხა (payments ცხრილიდან)
       const collected: Record<string, number> = {}
       for (const building of buildings) {
         const { data: payments } = await supabase
           .from('payments')
           .select('amount')
           .eq('building_id', building.id)
-        
         const total = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
         collected[building.id] = total
       }
       setCollectedAmount(collected)
 
-      // 3. დავალიანების გამოთვლა
       const debts: Record<string, number> = {}
       for (const building of buildings) {
         const { data: settings } = await supabase
@@ -313,14 +299,12 @@ function DashboardContent() {
           .select('monthly_fee')
           .eq('building_id', building.id)
           .maybeSingle()
-        
         const monthlyFee = settings?.monthly_fee || 0
         const expectedTotal = (aptCounts[building.id] || 0) * monthlyFee
         debts[building.id] = Math.max(0, expectedTotal - (collected[building.id] || 0))
       }
       setDebtAmount(debts)
 
-      // 4. აქტივობის ლოგი
       const { data: logs } = await supabase
         .from('activity_logs')
         .select('*')
@@ -328,9 +312,7 @@ function DashboardContent() {
         .order('created_at', { ascending: false })
         .limit(10)
       
-      if (logs) {
-        setActivityLogs(logs)
-      }
+      if (logs) setActivityLogs(logs)
     }
 
     fetchRealData()
@@ -341,58 +323,20 @@ function DashboardContent() {
     router.push('/')
   }
 
-  // ⭐ კორპუსის წაშლის ფუნქცია
   const handleDeleteBuilding = async (buildingId: string, buildingName: string) => {
     if (!confirm(`დარწმუნებული ხარ, რომ გსურს "${buildingName}" კორპუსის წაშლა?\n\nყველა მონაცემი (ბინები, გადახდები, აქტივობები) წაიშლება სამუდამოდ!`)) {
       return
     }
 
     try {
-      // წაშალე ყველა დაკავშირებული მონაცემი
-      const { error: apartmentsError } = await supabase
-        .from('apartments')
-        .delete()
-        .eq('building_id', buildingId)
-      
-      if (apartmentsError) throw apartmentsError
+      await supabase.from('apartments').delete().eq('building_id', buildingId)
+      await supabase.from('building_settings').delete().eq('building_id', buildingId)
+      await supabase.from('building_utilities').delete().eq('building_id', buildingId)
+      await supabase.from('building_contacts').delete().eq('building_id', buildingId)
+      await supabase.from('buildings').delete().eq('id', buildingId)
 
-      const { error: settingsError } = await supabase
-        .from('building_settings')
-        .delete()
-        .eq('building_id', buildingId)
-      
-      if (settingsError) throw settingsError
-
-      const { error: utilitiesError } = await supabase
-        .from('building_utilities')
-        .delete()
-        .eq('building_id', buildingId)
-      
-      if (utilitiesError) throw utilitiesError
-
-      const { error: contactsError } = await supabase
-        .from('building_contacts')
-        .delete()
-        .eq('building_id', buildingId)
-      
-      if (contactsError) throw contactsError
-
-      // ბოლოს წაშალე კორპუსი
-      const { error: buildingError } = await supabase
-        .from('buildings')
-        .delete()
-        .eq('id', buildingId)
-      
-      if (buildingError) throw buildingError
-
-      // განაახლე სია
       setBuildings(prev => prev.filter(b => b.id !== buildingId))
-      
-      // თუ წაშლილი კორპუსი იყო არჩეული, გადადი "ყველა კორპუსზე"
-      if (selectedBuildingId === buildingId) {
-        setSelectedBuildingId('all')
-      }
-
+      if (selectedBuildingId === buildingId) setSelectedBuildingId('all')
       alert('კორპუსი წარმატებით წაიშალა!')
     } catch (error: any) {
       console.error('Delete error:', error)
@@ -416,7 +360,7 @@ function DashboardContent() {
             <div className="relative w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
             <IconBuilding className="w-6 h-6 text-emerald-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
-          <div className="text-white font-bold text-lg mb-1">EZO იტვირთება</div>
+          <div className="text-white font-bold text-lg mb-1">BINO იტვირთება</div>
           <div className="text-slate-400 text-sm">მონაცემები ახლდება...</div>
         </div>
       </div>
@@ -435,76 +379,44 @@ function DashboardContent() {
     : 0
 
   const isPaidOrTrial = userProfile?.subscription_status === 'active' || userProfile?.is_trial;
-
-  // ⭐ ლიმიტის ლოგიკა - კორპუსებისთვის
   const currentPlan = (userProfile?.subscription_plan || 'basic').toLowerCase()
   const isBuildingLimitReached = buildings.length >= maxBuildingsCount
 
-  // ⭐ ნაბიჯების სია - დინამიური
+  // ⃝ ჰედერისთვის პაკეტის ინფორმაციის მიღება
+  const getPlanInfo = () => {
+    if (userProfile?.is_trial) {
+      return { name: 'საცდელი', daysLeft: trialDaysLeft, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' }
+    }
+    const plan = currentPlan
+    if (plan === 'pro') return { name: 'Pro', daysLeft: null, color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' }
+    if (plan === 'enterprise') return { name: 'Enterprise', daysLeft: null, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' }
+    return { name: 'Basic', daysLeft: null, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' }
+  }
+  const planInfo = getPlanInfo()
+
   const steps = [
-    {
-      id: 1,
-      title: 'ანგარიშის შექმნა',
-      desc: 'რეგისტრაცია წარმატებით დასრულდა',
-      done: true,
-      icon: IconCheck,
-    },
+    { id: 1, title: 'ანგარიშის შექმნა', desc: 'რეგისტრაცია წარმატებით დასრულდა', done: true, icon: IconCheck },
     {
       id: 2,
       title: 'პაკეტის არჩევა',
-      desc: isPaidOrTrial 
-        ? (userProfile?.is_trial 
-            ? `14-დღიანი ტესტი აქტიურია • დარჩენილია ${trialDaysLeft} დღე`
-            : 'პაკეტი აქტიურია')
-        : 'აირჩიე შენთვის შესაფერისი გეგმა',
+      desc: isPaidOrTrial ? (userProfile?.is_trial ? `14-დღიანი ტესტი აქტიურია • დარჩენილია ${trialDaysLeft} დღე` : 'პაკეტი აქტიურია') : 'აირჩიე შენთვის შესაფერისი გეგმა',
       done: isPaidOrTrial,
       link: !isPaidOrTrial ? '/pricing' : undefined,
       icon: IconGift,
     },
-    {
-      id: 3,
-      title: 'კორპუსის დამატება',
-      desc: hasBuilding ? `${buildings.length} კორპუსი დამატებულია` : 'დაგჭირდება დაახლოებით 3 წუთი',
-      done: hasBuilding,
-      link: hasBuilding ? undefined : '/dashboard/add-building',
-      icon: IconBuilding,
-    },
+    { id: 3, title: 'კორპუსის დამატება', desc: hasBuilding ? `${buildings.length} კორპუსი დამატებულია` : 'დაგჭირდება დაახლოებით 3 წუთი', done: hasBuilding, link: hasBuilding ? undefined : '/dashboard/add-building', icon: IconBuilding },
   ]
 
   const completedSteps = steps.filter(s => s.done).length
   const progressWidth = `${(completedSteps / steps.length) * 100}%`
 
-  // ⭐ სარგებლის ბარათები
   const benefits = [
-    {
-      icon: IconUsers,
-      title: 'ვინ არ იხდის',
-      desc: 'რეალურ დროში ხედავ ვინ არის ვალში',
-      gradient: 'from-rose-500/10 to-orange-500/10',
-      border: 'border-rose-500/20',
-      iconColor: 'text-rose-400',
-    },
-    {
-      icon: IconFileText,
-      title: 'ონლაინ შეგროვება',
-      desc: 'ქვითრების ატვირთვის გარეშე',
-      gradient: 'from-blue-500/10 to-cyan-500/10',
-      border: 'border-blue-500/20',
-      iconColor: 'text-blue-400',
-    },
-    {
-      icon: IconHome,
-      title: 'ყველაფერი ერთ ადგილას',
-      desc: 'ბინები, გადახდები, ანგარიშები',
-      gradient: 'from-emerald-500/10 to-teal-500/10',
-      border: 'border-emerald-500/20',
-      iconColor: 'text-emerald-400',
-    },
+    { icon: IconUsers, title: 'ვინ არ იხდის', desc: 'რეალურ დროში ხედავ ვინ არის ვალში', gradient: 'from-rose-500/10 to-orange-500/10', border: 'border-rose-500/20', iconColor: 'text-rose-400' },
+    { icon: IconFileText, title: 'ონლაინ შეგროვება', desc: 'ქვითრების ატვირთვის გარეშე', gradient: 'from-blue-500/10 to-cyan-500/10', border: 'border-blue-500/20', iconColor: 'text-blue-400' },
+    { icon: IconHome, title: 'ყველაფერი ერთ ადგილას', desc: 'ბინები, გადახდები, ანგარიშები', gradient: 'from-emerald-500/10 to-teal-500/10', border: 'border-emerald-500/20', iconColor: 'text-emerald-400' },
   ]
 
-  // ⭐ რეალური სტატისტიკა
   const isAllSelected = selectedBuildingId === 'all'
-  
   const totalStats = {
     collected: Object.values(collectedAmount).reduce((sum, val) => sum + val, 0),
     debt: Object.values(debtAmount).reduce((sum, val) => sum + val, 0),
@@ -520,35 +432,21 @@ function DashboardContent() {
 
   const dropdownOptions = [
     { id: 'all', label: 'ყველა კორპუსი', icon: '' },
-    ...buildings.map(b => ({
-      id: b.id,
-      label: b.name || b.street || 'კორპუსი',
-      icon: '🏢',
-    })),
+    ...buildings.map(b => ({ id: b.id, label: b.name || b.street || 'კორპუსი', icon: '🏢' })),
   ]
-
   const currentDropdownLabel = dropdownOptions.find(o => o.id === selectedBuildingId)?.label || 'კორპუსი'
 
-  // ⭐ აქტივობის ფორმატირება
-  const formatActivity = (log: any) => {
-    const description = log.description || `${log.action_type || 'action'} on ${log.entity_name || log.entity_type || 'element'}`
-    return description
-  }
-
+  const formatActivity = (log: any) => log.description || `${log.action_type || 'action'} on ${log.entity_name || log.entity_type || 'element'}`
   const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    
+    const diff = new Date().getTime() - new Date(dateString).getTime()
     const minutes = Math.floor(diff / 60000)
     const hours = Math.floor(diff / 3600000)
     const days = Math.floor(diff / 86400000)
-    
     if (minutes < 1) return 'ახლახან'
     if (minutes < 60) return `${minutes} წუთის წინ`
     if (hours < 24) return `${hours} საათის წინ`
     if (days < 7) return `${days} დღის წინ`
-    return date.toLocaleDateString('ka-GE')
+    return new Date(dateString).toLocaleDateString('ka-GE')
   }
 
   return (
@@ -581,34 +479,56 @@ function DashboardContent() {
               <IconBuilding className="w-5 h-5" />
             </div>
             <div className="hidden sm:block">
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">EZO</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">BINO</span>
               <span className="text-[10px] text-slate-400 block -mt-0.5">Management</span>
             </div>
           </Link>
           
           <div className="flex items-center gap-3">
+            {/* ⃝ დესკტოპის პაკეტის ბეიჯი და პროფილი */}
+            <div className="hidden sm:flex items-center gap-4">
+              <div className={`flex flex-col items-end px-3 py-2 rounded-xl border ${planInfo.bg} ${planInfo.border}`}>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-xs font-bold ${planInfo.color}`}>
+                    {planInfo.name === 'საცდელი' ? '🎁 საცდელი' : `⭐ ${planInfo.name}`}
+                  </span>
+                  {planInfo.daysLeft !== null && (
+                    <span className="text-[10px] text-slate-400 bg-slate-950/50 px-1.5 py-0.5 rounded">
+                      {planInfo.daysLeft} დღე
+                    </span>
+                  )}
+                </div>
+                <Link href="/pricing" className="text-[10px] text-slate-400 hover:text-white transition-colors flex items-center gap-1 mt-1 font-medium">
+                  გეგმების ნახვა <IconArrowRight className="w-2.5 h-2.5" />
+                </Link>
+              </div>
+
+              <div className="h-8 w-px bg-white/10"></div>
+
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex items-center justify-center shadow-lg shadow-emerald-500/30 text-sm">
+                    {userInitial}
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full"></span>
+                </div>
+                <div className="hidden lg:block">
+                  <div className="text-sm font-semibold text-white">{userName}</div>
+                  <div className="text-xs text-slate-400">{viewAsUser ? viewAsUser.email : user?.email}</div>
+                </div>
+                <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors" title="გამოსვლა">
+                  <IconLogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* ⃝ მობილურის პროფილი */}
             <div className="sm:hidden flex items-center gap-2">
               <div className="relative">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-sm flex items-center justify-center shadow-lg shadow-emerald-500/30">
                   {userInitial}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full"></span>
-              </div>
-              <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
-                <IconLogOut className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-3">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                  {userInitial}
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full"></span>
-              </div>
-              <div className="hidden lg:block">
-                <div className="text-sm font-semibold text-white">{userName}</div>
-                <div className="text-xs text-slate-400">{viewAsUser ? viewAsUser.email : user?.email}</div>
               </div>
               <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
                 <IconLogOut className="w-5 h-5" />
@@ -636,7 +556,7 @@ function DashboardContent() {
                       </h1>
                     </div>
                     <p className="text-slate-400 text-sm sm:text-base">
-                      EZO-ში კეთილი იყოს თქვენი მობრძანება. მოდით დავიწყოთ თქვენი კორპუსის მართვა.
+                      BINO-ში კეთილი იყოს თქვენი მობრძანება. მოდით დავიწყოთ თქვენი კორპუსის მართვა.
                     </p>
                   </div>
                   
@@ -775,7 +695,7 @@ function DashboardContent() {
 
             <div className="mt-8">
               <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-                რას მიიღებ EZO-ით
+                რას მიიღებ BINO-თი
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {benefits.map((benefit, i) => {
@@ -795,14 +715,13 @@ function DashboardContent() {
                 })}
               </div>
             </div>
-
           </div>
         ) : (
           <div className="space-y-4 sm:space-y-6">
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               
-              <div className="relative">
+              <div className="relative col-span-2 lg:col-span-1">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="w-full flex items-center justify-between gap-2 sm:gap-3 bg-slate-900/50 backdrop-blur-xl border border-white/10 hover:border-emerald-500/30 rounded-2xl px-3 sm:px-4 py-3 sm:py-3.5 transition-all"
@@ -825,11 +744,7 @@ function DashboardContent() {
 
                 {isDropdownOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setIsDropdownOpen(false)}
-                    />
-                    
+                    <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
                     <div className="absolute top-full left-0 right-0 sm:min-w-[280px] mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
                       <div className="p-2">
                         {dropdownOptions.map((option) => (
@@ -863,7 +778,6 @@ function DashboardContent() {
                               )}
                             </button>
                             
-                            {/*  კორპუსის წაშლის ღილაკი */}
                             {option.id !== 'all' && (
                               <button
                                 onClick={(e) => {
@@ -885,7 +799,6 @@ function DashboardContent() {
                       </div>
                       
                       <div className="border-t border-white/10 p-2">
-                        {/* ⭐ ლიმიტის ლოგიკა: ბოქლოკირებული ან ჩვეულებრივი ღილაკი */}
                         {isBuildingLimitReached ? (
                           <button
                             onClick={() => {
@@ -932,40 +845,15 @@ function DashboardContent() {
                 )}
               </div>
 
-              <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <IconShield className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs sm:text-sm font-bold text-emerald-200 mb-0.5 truncate">
-                    {userProfile?.is_trial ? '🎁 საცდელი' : '✅ აქტიური'}
-                  </div>
-                  <div className="text-[10px] sm:text-xs text-emerald-300/70 truncate">
-                    {userProfile?.is_trial ? (
-                      <>{trialDaysLeft} დღე</>
-                    ) : (
-                      userProfile?.subscription_status === 'active' ? 'პროფესიონალური' : 'უფასო'
-                    )}
-                  </div>
-                </div>
+              {/* ⃝ სატესტო ბანერი 1 (ყოფილი საცდელი) */}
+              <div className="bg-slate-900/50 border border-dashed border-white/10 rounded-2xl p-4 flex items-center justify-center min-h-[80px]">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">სატესტო</span>
               </div>
 
-              <Link 
-                href="/pricing"
-                className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:border-amber-500/40 transition-all group cursor-pointer"
-              >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <IconGift className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs sm:text-sm font-bold text-amber-200 mb-0.5 truncate">
-                    პაკეტის შეცვლა
-                  </div>
-                  <div className="text-[10px] sm:text-xs text-amber-300/70 truncate">
-                    ნახე გეგმები →
-                  </div>
-                </div>
-              </Link>
+              {/* ⃝ სატესტო ბანერი 2 (ყოფილი პაკეტის შეცვლა) */}
+              <div className="bg-slate-900/50 border border-dashed border-white/10 rounded-2xl p-4 flex items-center justify-center min-h-[80px]">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">სატესტო</span>
+              </div>
 
               <button className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:border-blue-500/40 transition-all group">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -1013,10 +901,7 @@ function DashboardContent() {
                   ₾{isAllSelected ? totalStats.debt.toLocaleString() : buildingStats.debt.toLocaleString()}
                 </div>
                 <span className="text-[10px] sm:text-xs text-rose-400 font-semibold">
-                  {isAllSelected 
-                    ? `${buildings.length} კორპუსს`
-                    : `${buildingStats.apartments} ბინას`
-                  } აქვს ვალი
+                  {isAllSelected ? `${buildings.length} კორპუსს` : `${buildingStats.apartments} ბინას`} აქვს ვალი
                 </span>
               </div>
 
@@ -1028,9 +913,7 @@ function DashboardContent() {
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
-                  {totalStats.debt > 0 
-                    ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100)
-                    : 0}%
+                  {totalStats.debt > 0 ? Math.round((totalStats.collected / (totalStats.collected + totalStats.debt)) * 100) : 0}%
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div 
@@ -1053,9 +936,7 @@ function DashboardContent() {
                 <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1">
                   {activityLogs.length}
                 </div>
-                <span className="text-[10px] sm:text-xs text-purple-400 font-semibold">
-                  ბოლო 7 დღე
-                </span>
+                <span className="text-[10px] sm:text-xs text-purple-400 font-semibold">ბოლო 7 დღე</span>
               </div>
             </div>
 
@@ -1099,7 +980,6 @@ function DashboardContent() {
                         </div>
                       </button>
                       
-                      {/* ⭐ კორპუსის წაშლის ღილაკი */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -1117,7 +997,6 @@ function DashboardContent() {
             )}
 
             <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-              
               <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -1135,9 +1014,7 @@ function DashboardContent() {
                       <IconCheck className="w-8 h-8 text-emerald-400" />
                     </div>
                     <h4 className="text-lg font-bold text-white mb-2">არავინ არის ვალში!</h4>
-                    <p className="text-sm text-slate-400">
-                      ჯერ არ არის გადახდები ან ყველა ბინამ გადაიხადა
-                    </p>
+                    <p className="text-sm text-slate-400">ჯერ არ არის გადახდები ან ყველა ბინამ გადაიხადა</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1208,11 +1085,9 @@ function DashboardContent() {
                 </button>
               </div>
             </div>
-
           </div>
         )}
 
-        {/* ⭐ UpsellModal - ლიმიტის ამოწურვისას */}
         <UpsellModal
           isOpen={isUpsellModalOpen}
           onClose={() => setIsUpsellModalOpen(false)}
@@ -1236,7 +1111,7 @@ export default function DashboardPage() {
             <div className="relative w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
             <IconBuilding className="w-6 h-6 text-emerald-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
-          <div className="text-white font-bold text-lg mb-1">EZO იტვირთება</div>
+          <div className="text-white font-bold text-lg mb-1">BINO იტვირთება</div>
           <div className="text-slate-400 text-sm">გთხოვთ მოიცადოთ...</div>
         </div>
       </div>
