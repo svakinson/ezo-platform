@@ -160,7 +160,6 @@ export default function AddBuildingPage() {
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user types
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev }
@@ -216,7 +215,6 @@ export default function AddBuildingPage() {
     }
 
     try {
-      // 1. შევინახოთ კორპუსი (Buildings)
       const { data: building, error: buildingError } = await supabase
         .from('buildings')
         .insert({
@@ -239,7 +237,6 @@ export default function AddBuildingPage() {
       if (buildingError) throw buildingError
       const buildingId = building.id
 
-      // 2. შევინახოთ საკონტაქტო პირები (Building Contacts)
       const contactsToInsert = []
       if (formData.managerName) {
         contactsToInsert.push({
@@ -277,7 +274,6 @@ export default function AddBuildingPage() {
         if (contactsError) throw contactsError
       }
 
-      // 3. შევინახოთ კომუნალური და უსაფრთხოების მონაცემები (Building Utilities)
       const { error: utilitiesError } = await supabase.from('building_utilities').insert({
         building_id: buildingId,
         electricity_provider: formData.electricityProvider || null,
@@ -300,7 +296,6 @@ export default function AddBuildingPage() {
 
       if (utilitiesError) throw utilitiesError
 
-      // 4. შევინახოთ ნაგულისხმევი პარამეტრები (Building Settings)
       const { error: settingsError } = await supabase.from('building_settings').insert({
         building_id: buildingId,
         monthly_fee: 0,
@@ -313,7 +308,6 @@ export default function AddBuildingPage() {
 
       if (settingsError) throw settingsError
 
-      // წარმატება!
       setIsSuccess(true)
       setTimeout(() => {
         router.push('/dashboard')
@@ -326,7 +320,6 @@ export default function AddBuildingPage() {
     }
   }
 
-  // ============ SUCCESS SCREEN ============
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
@@ -347,10 +340,9 @@ export default function AddBuildingPage() {
     )
   }
 
-  // ============ FORM SCREEN ============
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-x-hidden">
-      {/* Header - Compact */}
+      {/* Compact Header */}
       <header className="relative z-40 bg-slate-950/90 border-b border-white/10 sticky top-0 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -375,7 +367,7 @@ export default function AddBuildingPage() {
 
       <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
-        {/* Stepper - Compact */}
+        {/* Compact Stepper */}
         <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 mb-5 shadow-xl">
           <div className="relative flex items-center justify-between w-full">
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-700/50 mx-8" />
@@ -411,7 +403,7 @@ export default function AddBuildingPage() {
           </div>
         </div>
 
-        {/* Form Content Card */}
+        {/* Compact Form Content Card */}
         <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-5 sm:p-6 lg:p-8 shadow-xl">
           
           {/* Step 1: Basic Info */}
@@ -553,7 +545,7 @@ export default function AddBuildingPage() {
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1.5">სრული სახელი <span className="text-rose-400">*</span></label>
-                    <input type="text" value={formData.managerName} onChange={(e) => updateField('managerName', e.target.value)} placeholder="მაგ: გიორგი სვანიძე" className={`w-full px-3 py-2.5 bg-slate-900/50 border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.managerName ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} />
+                    <input type="text" value={formData.managerName} onChange={(e) => updateField('managerName', e.target.value)} placeholder="მაგ: გიორგი გიორგაძე" className={`w-full px-3 py-2.5 bg-slate-900/50 border rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${errors.managerName ? 'border-rose-500 focus:ring-rose-500/20' : 'border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20'}`} />
                     {errors.managerName && <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1"><IconAlert className="w-3 h-3" /> {errors.managerName}</p>}
                   </div>
                   <div>
@@ -613,9 +605,244 @@ export default function AddBuildingPage() {
             </div>
           )}
 
-          {/* Steps 3, 4, 5 - შეგიძლიათ იგივე პრინციპით გააკეთოთ კომპაქტური */}
-          {/* დროის დაზოგვისთვის აქ ვტოვებ როგორც იყო, მაგრამ იგივე ოგიკით */}
-          
+          {/* Step 3: Utilities */}
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1.5">კომუნალური სერვისები</h2>
+                <p className="text-slate-400 text-sm">მიუთითეთ რომელი კომუნალური სერვისებით სარგებლობს კორპუსი</p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-3 mb-5">
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-1.5"><IconZap className="w-3.5 h-3.5 text-amber-400" />ელექტროენერგია</h3>
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-400 mb-1">მიმწოდებელი</label>
+                    <select value={formData.electricityProvider} onChange={(e) => updateField('electricityProvider', e.target.value)} className="w-full px-2.5 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
+                      <option value="" className="bg-slate-800">აირჩიეთ</option>
+                      <option value="თელასი" className="bg-slate-800">თელასი</option>
+                      <option value="ენერგო-პრო" className="bg-slate-800">ენერგო-პრო ჯორჯია</option>
+                      <option value="სხვა" className="bg-slate-800">სხვა</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></svg>
+                    წყალი
+                  </h3>
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-400 mb-1">მიმწოდებელი</label>
+                    <select value={formData.waterProvider} onChange={(e) => updateField('waterProvider', e.target.value)} className="w-full px-2.5 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
+                      <option value="" className="bg-slate-800">აირჩიეთ</option>
+                      <option value="საქართველოს წყალი" className="bg-slate-800">საქართველოს წყალი</option>
+                      <option value="ადგილობრივი" className="bg-slate-800">ადგილობრივი</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
+                    გაზი
+                  </h3>
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-400 mb-1">მიმწოდებელი</label>
+                    <select value={formData.gasProvider} onChange={(e) => updateField('gasProvider', e.target.value)} className="w-full px-2.5 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
+                      <option value="" className="bg-slate-800">აირჩიეთ</option>
+                      <option value="ყაზტრანსგაზი" className="bg-slate-800">ყაზტრანსგაზი</option>
+                      <option value="სხვა" className="bg-slate-800">სხვა</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-2">გათბობის ტიპი</h3>
+                  <select value={formData.heatingType} onChange={(e) => updateField('heatingType', e.target.value)} className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all">
+                    <option value="central" className="bg-slate-800">ცენტრალური გათბობა</option>
+                    <option value="individual" className="bg-slate-800">ინდივიდუალური გათბობა</option>
+                    <option value="electric" className="bg-slate-800">ელექტრო გამათბობლები</option>
+                    <option value="gas" className="bg-slate-800">გაზის გამათბობლები</option>
+                  </select>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-2">ლიფტი</h3>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">ლიფტების რაოდენობა</label>
+                    <input type="number" value={formData.elevatorCount} onChange={(e) => updateField('elevatorCount', e.target.value)} placeholder="მაგ: 2" className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Safety & Insurance */}
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1.5">უსაფრთხოება და დაზღვევა</h2>
+                <p className="text-slate-400 text-sm">შეავსეთ უსაფრთხოების სისტემების და დაზღვევის ინფორმაცია</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">
+                      <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
+                      სახანძრო უსაფრთხოება
+                    </h3>
+                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.hasFireSafety} 
+                        onChange={(e) => updateField('hasFireSafety', e.target.checked)} 
+                        className="w-4 h-4 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50" 
+                      />
+                      <span className="text-xs text-slate-300">აქვს სახანძრო სისტემა</span>
+                    </label>
+                  </div>
+                  
+                  {formData.hasFireSafety && (
+                    <div className="grid md:grid-cols-3 gap-3 mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-300 mb-1">კვამლის დეტექტორები (რაოდ.)</label>
+                        <input type="number" value={formData.smokeDetectors} onChange={(e) => updateField('smokeDetectors', e.target.value)} placeholder="მაგ: 12" className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-300 mb-1">უკანასკნელი შემოწმება</label>
+                        <input type="date" value={formData.lastFireInspection} onChange={(e) => updateField('lastFireInspection', e.target.value)} className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-300 mb-1">შემდეგი შემოწმება</label>
+                        <input type="date" value={formData.nextFireInspection} onChange={(e) => updateField('nextFireInspection', e.target.value)} className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-3">უსაფრთხოების სისტემები</h3>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={formData.hasCameras} onChange={(e) => updateField('hasCameras', e.target.checked)} className="w-4 h-4 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50" />
+                      <span className="text-xs text-slate-300">სათვალთვალო კამერები</span>
+                      {formData.hasCameras && (
+                        <input type="number" value={formData.cameraCount} onChange={(e) => updateField('cameraCount', e.target.value)} placeholder="რაოდენობა" className="ml-2 w-24 px-2 py-1.5 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                      )}
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={formData.hasDomophone} onChange={(e) => updateField('hasDomophone', e.target.checked)} className="w-4 h-4 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50" />
+                      <span className="text-xs text-slate-300">დომოფონი/ვიდეო დომოფონი</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={formData.hasGuard} onChange={(e) => updateField('hasGuard', e.target.checked)} className="w-4 h-4 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50" />
+                      <span className="text-xs text-slate-300">საკონტროლო პუნქტი/დარაჯი</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-white flex items-center gap-1.5"><IconShield className="w-4 h-4 text-purple-400" />დაზღვევა</h3>
+                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.hasInsurance} 
+                        onChange={(e) => updateField('hasInsurance', e.target.checked)} 
+                        className="w-4 h-4 rounded border-white/20 bg-slate-900/50 text-emerald-500 focus:ring-emerald-500/50" 
+                      />
+                      <span className="text-xs text-slate-300">აქვს დაზღვევა</span>
+                    </label>
+                  </div>
+                  
+                  {formData.hasInsurance && (
+                    <div className="grid md:grid-cols-3 gap-3 mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-300 mb-1">სადაზღვევო კომპანია</label>
+                        <input type="text" value={formData.insuranceCompany} onChange={(e) => updateField('insuranceCompany', e.target.value)} placeholder="მაგ: ალდაგი" className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-300 mb-1">პოლისის ნომერი</label>
+                        <input type="text" value={formData.insurancePolicy} onChange={(e) => updateField('insurancePolicy', e.target.value)} placeholder="მაგ: POL-12345" className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-300 mb-1">ვადის გასვლა</label>
+                        <input type="date" value={formData.insuranceExpiry} onChange={(e) => updateField('insuranceExpiry', e.target.value)} className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Documents */}
+          {currentStep === 5 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1.5">დოკუმენტები და ფოტოები</h2>
+                <p className="text-slate-400 text-sm">ეს ეტაპი არ არის სავალდებულო. შეგიძლიათ დოკუმენტები და ფოტოები მოგვიანებით ატვირთოთ.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    რეკომენდებული დოკუმენტები
+                  </h3>
+                  <div className="space-y-2">
+                    {['კორპუსის რეგისტრაციის მოწმობა', 'ტექნიკური პასპორტი', 'სხვა დოკუმენტაცია'].map((doc, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-white/10 hover:border-emerald-500/30 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                              <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                          </div>
+                          <span className="text-xs text-slate-300 font-medium">{doc}</span>
+                        </div>
+                        <button className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium text-white transition-colors flex items-center gap-1">
+                          <IconUpload className="w-3.5 h-3.5" />
+                          ატვირთვა
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-1.5"><IconCamera className="w-4 h-4 text-blue-400" />ფოტო დოკუმენტაცია</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {['ფასადი', 'სადარბაზო', 'ლიფტი', 'ეზო'].map((photo, i) => (
+                      <div key={i} className="aspect-square bg-slate-900/50 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center hover:border-emerald-500/50 transition-colors cursor-pointer group">
+                        <IconCamera className="w-6 h-6 text-slate-500 group-hover:text-emerald-400 transition-colors mb-1" />
+                        <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors">{photo}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
+                  <h3 className="text-sm font-semibold text-white mb-3">დამატებითი ინფორმაცია</h3>
+                  <textarea
+                    value={formData.comments}
+                    onChange={(e) => updateField('comments', e.target.value)}
+                    placeholder="ნებისმიერი დამატებითი ინფორმაცია, შენიშვნა ან განსაკუთრებული მახასიათებელი..."
+                    rows={3}
+                    className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Navigation Buttons */}
           <div className="flex items-center justify-between mt-6 pt-5 border-t border-white/10">
             <button
