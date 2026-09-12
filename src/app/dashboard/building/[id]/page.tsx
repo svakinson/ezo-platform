@@ -131,12 +131,29 @@ export default function BuildingPage() {
   const [utilities, setUtilities] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('overview')
 
-  // Edit Modal State
+  // Edit Building Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editForm, setEditForm] = useState<any>({})
 
-  // Delete Modal State
+  // Delete Building Modal State
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+
+  // Apartments State
+  const [apartments, setApartments] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isApartmentModalOpen, setIsApartmentModalOpen] = useState(false)
+  const [editingApartment, setEditingApartment] = useState<any>(null)
+  const [isDeleteApartmentConfirmOpen, setIsDeleteApartmentConfirmOpen] = useState(false)
+  const [apartmentToDelete, setApartmentToDelete] = useState<any>(null)
+  
+  const [aptForm, setAptForm] = useState({
+    apartment_number: '',
+    floor: '',
+    area: '',
+    owner_name: '',
+    phone: '',
+    email: ''
+  })
 
   useEffect(() => {
     const loadData = async () => {
@@ -151,7 +168,7 @@ export default function BuildingPage() {
 
         if (buildingError) throw buildingError
         setBuilding(buildingData)
-        setEditForm(buildingData) // Initialize edit form
+        setEditForm(buildingData)
 
         const { data: contactsData, error: contactsError } = await supabase
           .from('building_contacts')
@@ -169,6 +186,15 @@ export default function BuildingPage() {
 
         if (utilitiesError && utilitiesError.code !== 'PGRST116') throw utilitiesError
         setUtilities(utilitiesData)
+
+        const { data: aptsData, error: aptsError } = await supabase
+          .from('apartments')
+          .select('*')
+          .eq('building_id', buildingId)
+          .order('apartment_number', { ascending: true })
+
+        if (aptsError) throw aptsError
+        setApartments(aptsData || [])
 
       } catch (error) {
         console.error('Error loading data:', error)
@@ -202,7 +228,6 @@ export default function BuildingPage() {
 
       if (error) throw error
       setIsEditModalOpen(false)
-      // Reload data
       const { data } = await supabase.from('buildings').select('*').eq('id', buildingId).single()
       setBuilding(data)
       alert('კორპუსის ინფორმაცია წარმატებით განახლდა!')
@@ -214,7 +239,6 @@ export default function BuildingPage() {
 
   const handleDeleteBuilding = async () => {
     try {
-      // Cascade delete related data
       await supabase.from('apartments').delete().eq('building_id', buildingId)
       await supabase.from('building_settings').delete().eq('building_id', buildingId)
       await supabase.from('building_utilities').delete().eq('building_id', buildingId)
@@ -226,6 +250,74 @@ export default function BuildingPage() {
       router.push('/dashboard')
     } catch (error: any) {
       console.error('Delete error:', error)
+      alert('შეცდომა წაშლისას: ' + error.message)
+    }
+  }
+
+  // Apartment Handlers
+  const handleOpenAddApartment = () => {
+    setEditingApartment(null)
+    setAptForm({ apartment_number: '', floor: '', area: '', owner_name: '', phone: '', email: '' })
+    setIsApartmentModalOpen(true)
+  }
+
+  const handleOpenEditApartment = (apt: any) => {
+    setEditingApartment(apt)
+    setAptForm({
+      apartment_number: apt.apartment_number || '',
+      floor: apt.floor?.toString() || '',
+      area: apt.area?.toString() || '',
+      owner_name: apt.owner_name || '',
+      phone: apt.phone || '',
+      email: apt.email || ''
+    })
+    setIsApartmentModalOpen(true)
+  }
+
+  const handleSaveApartment = async () => {
+    try {
+      const payload = {
+        building_id: buildingId,
+        apartment_number: aptForm.apartment_number,
+        floor: aptForm.floor ? parseInt(aptForm.floor) : null,
+        area: aptForm.area ? parseFloat(aptForm.area) : null,
+        owner_name: aptForm.owner_name || null,
+        phone: aptForm.phone || null,
+        email: aptForm.email || null,
+      }
+
+      if (editingApartment) {
+        const { error } = await supabase.from('apartments').update(payload).eq('id', editingApartment.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('apartments').insert(payload)
+        if (error) throw error
+      }
+
+      setIsApartmentModalOpen(false)
+      const { data } = await supabase.from('apartments').select('*').eq('building_id', buildingId).order('apartment_number', { ascending: true })
+      if (data) setApartments(data)
+      
+    } catch (error: any) {
+      console.error('Apartment save error:', error)
+      alert('შეცდომა შენახვისას: ' + error.message)
+    }
+  }
+
+  const handleDeleteApartment = async () => {
+    if (!apartmentToDelete) return
+    try {
+      const { error } = await supabase.from('apartments').delete().eq('id', apartmentToDelete.id)
+      if (error) throw error
+      
+      setIsDeleteApartmentConfirmOpen(false)
+      setApartmentToDelete(null)
+      
+      const { data } = await supabase.from('apartments').select('*').eq('building_id', buildingId).order('apartment_number', { ascending: true })
+      if (data) setApartments(data)
+      
+    } catch (error: any) {
+      console.error('Apartment delete error:', error)
       alert('შეცდომა წაშლისას: ' + error.message)
     }
   }
@@ -255,6 +347,11 @@ export default function BuildingPage() {
   const manager = contacts.find(c => c.role === 'manager')
   const emergency = contacts.find(c => c.role === 'emergency')
   const accountant = contacts.find(c => c.role === 'accountant')
+
+  const filteredApartments = apartments.filter(apt => 
+    apt.apartment_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    apt.owner_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
@@ -319,7 +416,6 @@ export default function BuildingPage() {
         {/* TAB: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg">
@@ -351,7 +447,6 @@ export default function BuildingPage() {
               </div>
             </div>
 
-            {/* Building Info */}
             <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">კორპუსის ინფორმაცია</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -382,11 +477,9 @@ export default function BuildingPage() {
               </div>
             </div>
 
-            {/* Contacts */}
             <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">საკონტაქტო პირები</h2>
               <div className="grid md:grid-cols-3 gap-6">
-                {/* Manager */}
                 <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -409,7 +502,6 @@ export default function BuildingPage() {
                   )}
                 </div>
 
-                {/* Emergency */}
                 <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
@@ -430,7 +522,6 @@ export default function BuildingPage() {
                   )}
                 </div>
 
-                {/* Accountant */}
                 <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
@@ -450,12 +541,10 @@ export default function BuildingPage() {
               </div>
             </div>
 
-            {/* Utilities */}
             {utilities && (
               <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8">
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">კომუნალური სერვისები</h2>
                 <div className="grid md:grid-cols-3 gap-6">
-                  {/* Electricity */}
                   <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
@@ -467,7 +556,6 @@ export default function BuildingPage() {
                       </div>
                     </div>
                   </div>
-                  {/* Water */}
                   <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
@@ -479,7 +567,6 @@ export default function BuildingPage() {
                       </div>
                     </div>
                   </div>
-                  {/* Gas */}
                   <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
@@ -499,17 +586,98 @@ export default function BuildingPage() {
 
         {/* TAB: APARTMENTS */}
         {activeTab === 'apartments' && (
-          <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">ბინების მართვა</h2>
-              <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg transition-colors">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-md">
+                <input 
+                  type="text" 
+                  placeholder="ძიება ბინის ნომრით ან მფლობელის სახელით..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                />
+                <svg className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <button 
+                onClick={handleOpenAddApartment}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+              >
                 <IconPlus className="w-4 h-4" /> ბინის დამატება
               </button>
             </div>
-            <div className="text-center py-12 text-slate-400">
-              <IconBuilding className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>ბინების სია და მართვის ინსტრუმენტები მალე დაემატება.</p>
-            </div>
+
+            {filteredApartments.length === 0 ? (
+              <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-12 text-center">
+                <IconBuilding className="w-12 h-12 mx-auto mb-4 text-slate-600" />
+                <p className="text-slate-400 text-lg mb-2">ბინები ვერ მოიძებნა</p>
+                <p className="text-slate-500 text-sm">დაამატეთ პირველი ბინა ან შეამოწმეთ საძიებო სიტყვა</p>
+              </div>
+            ) : (
+              <div className="bg-slate-800/50 border border-white/10 rounded-3xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-900/50 border-b border-white/10">
+                      <tr>
+                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ბინა</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სართული</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ფართი</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">მფლობელი</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">კონტაქტი</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">მოქმედებები</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {filteredApartments.map((apt) => (
+                        <tr key={apt.id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-white bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg">
+                              {apt.apartment_number}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">{apt.floor || '—'}</td>
+                          <td className="px-6 py-4 text-sm text-slate-300">{apt.area ? `${apt.area} მ²` : '—'}</td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-white">{apt.owner_name || '—'}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
+                              {apt.phone && (
+                                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                                  <IconPhone className="w-3 h-3" /> {apt.phone}
+                                </div>
+                              )}
+                              {apt.email && (
+                                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                                  <IconMail className="w-3 h-3" /> {apt.email}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button 
+                                onClick={() => handleOpenEditApartment(apt)}
+                                className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                title="რედაქტირება"
+                              >
+                                <IconEdit className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => { setApartmentToDelete(apt); setIsDeleteApartmentConfirmOpen(true) }}
+                                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                title="წაშლა"
+                              >
+                                <IconTrash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -583,7 +751,7 @@ export default function BuildingPage() {
 
       </main>
 
-      {/* ============ EDIT MODAL ============ */}
+      {/* ============ EDIT BUILDING MODAL ============ */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -655,7 +823,79 @@ export default function BuildingPage() {
         </div>
       )}
 
-      {/* ============ DELETE CONFIRMATION MODAL ============ */}
+      {/* ============ APARTMENT MODAL ============ */}
+      {isApartmentModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+              <h2 className="text-xl font-bold text-white">{editingApartment ? 'ბინის რედაქტირება' : 'ახალი ბინის დამატება'}</h2>
+              <button onClick={() => setIsApartmentModalOpen(false)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+                <IconX className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ბინის ნომერი *</label>
+                  <input type="text" value={aptForm.apartment_number} onChange={(e) => setAptForm({...aptForm, apartment_number: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 12" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">სართული</label>
+                  <input type="number" value={aptForm.floor} onChange={(e) => setAptForm({...aptForm, floor: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 3" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ფართი (მ²)</label>
+                  <input type="number" step="0.1" value={aptForm.area} onChange={(e) => setAptForm({...aptForm, area: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 85.5" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">მფლობელის სახელი</label>
+                  <input type="text" value={aptForm.owner_name} onChange={(e) => setAptForm({...aptForm, owner_name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: გიორგი გიორგაძე" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ტელეფონი</label>
+                  <input type="text" value={aptForm.phone} onChange={(e) => setAptForm({...aptForm, phone: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: +995 555 123 456" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ელ-ფოსტა</label>
+                  <input type="email" value={aptForm.email} onChange={(e) => setAptForm({...aptForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: giorgi@example.com" />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-white/10 flex justify-end gap-3 sticky bottom-0 bg-slate-900">
+              <button onClick={() => setIsApartmentModalOpen(false)} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
+              <button onClick={handleSaveApartment} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors shadow-lg shadow-emerald-500/20">შენახვა</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ DELETE APARTMENT CONFIRMATION MODAL ============ */}
+      {isDeleteApartmentConfirmOpen && apartmentToDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-rose-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                <IconTrash className="w-7 h-7 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">ბინის წაშლა</h3>
+                <p className="text-sm text-slate-400">დარწმუნებული ხარ?</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+              ბინა <span className="font-bold text-white">"{apartmentToDelete.apartment_number}"</span> და მასთან დაკავშირებული ყველა მონაცემი წაიშლება სამუდამოდ. ეს მოქმედება შეუქცევადია.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => { setIsDeleteApartmentConfirmOpen(false); setApartmentToDelete(null) }} className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
+              <button onClick={handleDeleteApartment} className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-rose-500/20">დიახ, წაშლა</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ DELETE BUILDING CONFIRMATION MODAL ============ */}
       {isDeleteConfirmOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-rose-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl">
