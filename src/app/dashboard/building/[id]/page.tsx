@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
-import ApartmentTariffModal from '@/components/apartments/ApartmentTariffModal'
+import ApartmentTariffModal from './apartments/ApartmentTariffModal'
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -385,7 +385,6 @@ export default function BuildingPage() {
   }
 
   const handleTariffSaved = () => {
-    // ტარიფების შენახვის შემდეგ შეიძლება დამატებითი ლოგიკა
     console.log('ტარიფები წარმატებით შეინახა')
   }
 
@@ -946,7 +945,7 @@ export default function BuildingPage() {
                   <select value={aptForm.residency_status} onChange={(e) => setAptForm({...aptForm, residency_status: e.target.value})} className="w-full px-3 py-2 bg-[#111823] border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors">
                     <option value="მეპატრონე ცხოვრობს">🏠 მეპატრონე ცხოვრობს</option>
                     <option value="გაქირავებულია">🔑 გაქირავებულია</option>
-                    <option value="დაკეტილი/ცარიელი"> დაკეტილი / ცარიელი</option>
+                    <option value="დაკეტილი/ცარიელი">🔒 დაკეტილი / ცარიელი</option>
                   </select>
                 </div>
 
