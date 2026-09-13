@@ -113,7 +113,7 @@ const FULL_TARIFF_STRUCTURE = [
   {
     id: 'parking',
     name: 'პარკინგი',
-    icon: '',
+    icon: '🅿️',
     items: [
       { id: 'underground_parking', name: 'მიწისქვეშა პარკინგი', defaultEnabled: false, defaultType: 'fixed', defaultAmount: 50 },
       { id: 'outdoor_parking', name: 'ღია პარკინგი', defaultEnabled: false, defaultType: 'fixed', defaultAmount: 30 },
@@ -126,7 +126,7 @@ const FULL_TARIFF_STRUCTURE = [
   {
     id: 'amenities',
     name: 'დამატებითი სერვისები',
-    icon: '',
+    icon: '✨',
     items: [
       { id: 'pool', name: 'საცურაო აუზი', defaultEnabled: false, defaultType: 'fixed', defaultAmount: 100 },
       { id: 'gym', name: 'სპორტდარბაზი', defaultEnabled: false, defaultType: 'fixed', defaultAmount: 50 },

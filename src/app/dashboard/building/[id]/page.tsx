@@ -1048,7 +1048,6 @@ export default function BuildingPage() {
         <ApartmentTariffModal
           apartment={selectedApartmentForTariff}
           buildingId={buildingId}
-          allApartments={apartments}
           isOpen={isTariffModalOpen}
           onClose={() => {
             setIsTariffModalOpen(false)
