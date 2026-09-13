@@ -324,7 +324,7 @@ export default function BuildingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#070A0F] flex items-center justify-center">
         <div className="text-center">
           <IconLoader className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
           <div className="text-white font-semibold mb-1">მონაცემები იტვირთება...</div>
@@ -335,7 +335,7 @@ export default function BuildingPage() {
 
   if (!building) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#070A0F] flex items-center justify-center">
         <div className="text-center">
           <div className="text-white text-xl mb-4">კორპუსი ვერ მოიძებნა</div>
           <Link href="/dashboard" className="text-emerald-400 hover:text-emerald-300">← Dashboard-ზე დაბრუნება</Link>
@@ -354,10 +354,10 @@ export default function BuildingPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+    <div className="ezo-shell min-h-screen bg-[#070A0F] text-slate-100 overflow-x-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 border-b border-white/10 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[#070A0F]/85 border-b border-white/[0.07] backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.22)]">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5 text-slate-400 hover:text-white transition-colors">
             <IconArrowLeft className="w-5 h-5" />
             <span className="text-sm font-medium hidden sm:inline">უკან დაბრუნება</span>
@@ -369,14 +369,14 @@ export default function BuildingPage() {
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsEditModalOpen(true)}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#111823] hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
             >
               <IconEdit className="w-4 h-4" />
               <span className="hidden sm:inline">რედაქტირება</span>
             </button>
             <button 
               onClick={() => setIsDeleteConfirmOpen(true)}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-rose-500/[0.08] hover:bg-rose-500/[0.14] border border-rose-400/[0.12] text-rose-300 text-sm font-semibold rounded-xl transition-all duration-200"
             >
               <IconTrash className="w-4 h-4" />
               <span className="hidden sm:inline">წაშლა</span>
@@ -385,8 +385,8 @@ export default function BuildingPage() {
         </div>
 
         {/* Tabs Navigation */}
-        <div className="border-t border-white/5 bg-slate-900/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="border-t border-white/[0.055] bg-white/[0.018]">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex gap-1 overflow-x-auto no-scrollbar">
               {tabs.map((tab) => {
                 const Icon = tab.icon
@@ -397,8 +397,8 @@ export default function BuildingPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                       isActive 
-                        ? 'border-emerald-500 text-emerald-400' 
-                        : 'border-transparent text-slate-400 hover:text-white hover:border-slate-600'
+                        ? 'border-emerald-400 text-emerald-300' 
+                        : 'border-transparent text-slate-400 hover:text-white hover:border-white/20'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -411,34 +411,34 @@ export default function BuildingPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9">
         
         {/* TAB: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
+              <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.16)] hover:bg-white/[0.06] hover:border-emerald-400/25 hover:-translate-y-0.5 transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg">
                   <IconBuilding className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.apartments_count || '0'}</div>
                 <div className="text-sm text-slate-400">ბინები</div>
               </div>
-              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6">
+              <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] hover:bg-white/[0.06] hover:border-white/[0.13] transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-4 shadow-lg">
                   <IconBuilding className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.entrances_count || '0'}</div>
                 <div className="text-sm text-slate-400">სადარბაზო</div>
               </div>
-              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6">
+              <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] hover:bg-white/[0.06] hover:border-white/[0.13] transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 shadow-lg">
                   <IconBuilding className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.floors || '0'}</div>
                 <div className="text-sm text-slate-400">სართული</div>
               </div>
-              <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-6">
+              <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] hover:bg-white/[0.06] hover:border-white/[0.13] transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-4 shadow-lg">
                   <IconBuilding className="w-6 h-6 text-white" />
                 </div>
@@ -447,7 +447,7 @@ export default function BuildingPage() {
               </div>
             </div>
 
-            <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8">
+            <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] p-5 sm:p-7 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">კორპუსის ინფორმაცია</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
@@ -477,10 +477,10 @@ export default function BuildingPage() {
               </div>
             </div>
 
-            <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8">
+            <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] p-5 sm:p-7 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">საკონტაქტო პირები</h2>
               <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
+                <div className="bg-[#0B1018]/75 border border-white/[0.07] rounded-2xl p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/[0.12] transition-all">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                       <IconUser className="w-6 h-6 text-white" />
@@ -502,7 +502,7 @@ export default function BuildingPage() {
                   )}
                 </div>
 
-                <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
+                <div className="bg-[#0B1018]/75 border border-white/[0.07] rounded-2xl p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/[0.12] transition-all">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
                       <IconShield className="w-6 h-6 text-white" />
@@ -522,7 +522,7 @@ export default function BuildingPage() {
                   )}
                 </div>
 
-                <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
+                <div className="bg-[#0B1018]/75 border border-white/[0.07] rounded-2xl p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/[0.12] transition-all">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                       <IconUser className="w-6 h-6 text-white" />
@@ -542,10 +542,10 @@ export default function BuildingPage() {
             </div>
 
             {utilities && (
-              <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8">
+              <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] p-5 sm:p-7 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">კომუნალური სერვისები</h2>
                 <div className="grid md:grid-cols-3 gap-6">
-                  <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
+                  <div className="bg-[#0B1018]/75 border border-white/[0.07] rounded-2xl p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/[0.12] transition-all">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
                         <IconZap className="w-6 h-6 text-white" />
@@ -556,7 +556,7 @@ export default function BuildingPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
+                  <div className="bg-[#0B1018]/75 border border-white/[0.07] rounded-2xl p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/[0.12] transition-all">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                         <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></svg>
@@ -567,7 +567,7 @@ export default function BuildingPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-slate-900/50 border border-white/10 rounded-2xl p-6">
+                  <div className="bg-[#0B1018]/75 border border-white/[0.07] rounded-2xl p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/[0.12] transition-all">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
                         <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c0 0-7 4-7 11v3l-2 2h18l-2-2v-3c0-7-7-11-7-11z" /></svg>
@@ -594,29 +594,29 @@ export default function BuildingPage() {
                   placeholder="ძიება ბინის ნომრით ან მფლობელის სახელით..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#111823]/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                 />
                 <svg className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </div>
               <button 
                 onClick={handleOpenAddApartment}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 text-sm font-extrabold rounded-xl transition-all duration-200 shadow-[0_10px_30px_rgba(16,185,129,0.20)] hover:shadow-[0_14px_38px_rgba(16,185,129,0.28)]"
               >
                 <IconPlus className="w-4 h-4" /> ბინის დამატება
               </button>
             </div>
 
             {filteredApartments.length === 0 ? (
-              <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-12 text-center">
+              <div className="bg-[#111823]/50 border border-white/10 rounded-3xl p-12 text-center">
                 <IconBuilding className="w-12 h-12 mx-auto mb-4 text-slate-600" />
                 <p className="text-slate-400 text-lg mb-2">ბინები ვერ მოიძებნა</p>
                 <p className="text-slate-500 text-sm">დაამატეთ პირველი ბინა ან შეამოწმეთ საძიებო სიტყვა</p>
               </div>
             ) : (
-              <div className="bg-slate-800/50 border border-white/10 rounded-3xl overflow-hidden">
+              <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] overflow-hidden backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-slate-900/50 border-b border-white/10">
+                    <thead className="bg-[#0B1018]/70 border-b border-white/10">
                       <tr>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ბინა</th>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სართული</th>
@@ -626,9 +626,9 @@ export default function BuildingPage() {
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">მოქმედებები</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-white/[0.055]">
                       {filteredApartments.map((apt) => (
-                        <tr key={apt.id} className="hover:bg-white/5 transition-colors">
+                        <tr key={apt.id} className="hover:bg-white/[0.035] transition-colors">
                           <td className="px-6 py-4">
                             <span className="text-sm font-bold text-white bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg">
                               {apt.apartment_number}
@@ -683,10 +683,10 @@ export default function BuildingPage() {
 
         {/* TAB: PAYMENTS */}
         {activeTab === 'payments' && (
-          <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] p-5 sm:p-7 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)] animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-white">გადახდების ჟურნალი</h2>
-              <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-lg transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 text-sm font-extrabold rounded-xl transition-all duration-200 shadow-[0_10px_30px_rgba(34,211,238,0.18)]">
                 <IconPlus className="w-4 h-4" /> გადახდის დამატება
               </button>
             </div>
@@ -699,10 +699,10 @@ export default function BuildingPage() {
 
         {/* TAB: ANNOUNCEMENTS */}
         {activeTab === 'announcements' && (
-          <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] p-5 sm:p-7 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)] animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-white">შეტყობინებები და განცხადებები</h2>
-              <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold rounded-lg transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white text-sm font-extrabold rounded-xl transition-all duration-200 shadow-[0_10px_30px_rgba(139,92,246,0.20)]">
                 <IconPlus className="w-4 h-4" /> ახალი განცხადება
               </button>
             </div>
@@ -716,23 +716,23 @@ export default function BuildingPage() {
         {/* TAB: SETTINGS */}
         {activeTab === 'settings' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-slate-800/50 border border-white/10 rounded-3xl p-6 sm:p-8">
+            <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] p-5 sm:p-7 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">ზოგადი პარამეტრები</h2>
               <p className="text-slate-400 mb-6">კორპუსის ძირითადი ინფორმაციის შესაცვლელად გამოიყენეთ ზედა მარჯვენა კუთხეში არსებული "რედაქტირება" ღილაკი.</p>
               
               <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                <div className="bg-slate-900/50 p-4 rounded-xl border border-white/5">
+                <div className="bg-[#0B1018]/70 p-4 rounded-xl border border-white/5">
                   <span className="text-slate-500 block mb-1">კორპუსის ID</span>
                   <span className="text-white font-mono">{buildingId}</span>
                 </div>
-                <div className="bg-slate-900/50 p-4 rounded-xl border border-white/5">
+                <div className="bg-[#0B1018]/70 p-4 rounded-xl border border-white/5">
                   <span className="text-slate-500 block mb-1">შექმნის თარიღი</span>
                   <span className="text-white">{new Date(building.created_at).toLocaleDateString('ka-GE')}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-rose-950/20 border border-rose-500/20 rounded-3xl p-6 sm:p-8">
+            <div className="bg-gradient-to-br from-rose-500/[0.07] to-transparent border border-rose-400/[0.15] rounded-[28px] p-5 sm:p-7">
               <h2 className="text-xl sm:text-2xl font-bold text-rose-400 mb-4 flex items-center gap-2">
                 <IconTrash className="w-6 h-6" /> საშიში ზონა
               </h2>
@@ -741,7 +741,7 @@ export default function BuildingPage() {
               </p>
               <button 
                 onClick={() => setIsDeleteConfirmOpen(true)}
-                className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors"
+                className="px-6 py-3 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white font-extrabold rounded-xl transition-all shadow-[0_10px_30px_rgba(244,63,94,0.20)]"
               >
                 კორპუსის სამუდამოდ წაშლა
               </button>
@@ -753,9 +753,9 @@ export default function BuildingPage() {
 
       {/* ============ EDIT BUILDING MODAL ============ */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+        <div className="fixed inset-0 bg-[#020409]/75 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A1018]/98 border border-white/[0.10] rounded-[24px] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#0A1018]/98 backdrop-blur-xl z-10">
               <h2 className="text-xl font-bold text-white">კორპუსის რედაქტირება</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
                 <IconX className="w-5 h-5 text-slate-400" />
@@ -766,27 +766,27 @@ export default function BuildingPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">კორპუსის სახელი</label>
-                  <input type="text" value={editForm.name || ''} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: ვაჟა-ფშაველას 42" />
+                  <input type="text" value={editForm.name || ''} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: ვაჟა-ფშაველას 42" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">მისამართი (ქუჩა)</label>
-                  <input type="text" value={editForm.street || ''} onChange={(e) => setEditForm({...editForm, street: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="text" value={editForm.street || ''} onChange={(e) => setEditForm({...editForm, street: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">ქალაქი</label>
-                  <input type="text" value={editForm.city || ''} onChange={(e) => setEditForm({...editForm, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="text" value={editForm.city || ''} onChange={(e) => setEditForm({...editForm, city: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">უბანი</label>
-                  <input type="text" value={editForm.district || ''} onChange={(e) => setEditForm({...editForm, district: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="text" value={editForm.district || ''} onChange={(e) => setEditForm({...editForm, district: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">საფოსტო ინდექსი</label>
-                  <input type="text" value={editForm.postal_code || ''} onChange={(e) => setEditForm({...editForm, postal_code: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="text" value={editForm.postal_code || ''} onChange={(e) => setEditForm({...editForm, postal_code: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">კორპუსის ტიპი</label>
-                  <select value={editForm.building_type || ''} onChange={(e) => setEditForm({...editForm, building_type: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors">
+                  <select value={editForm.building_type || ''} onChange={(e) => setEditForm({...editForm, building_type: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors">
                     <option value="multi-family">მრავალსართულიანი საცხოვრებელი</option>
                     <option value="private-houses">კერძო სახლების კომპლექსი</option>
                     <option value="business-center">ბიზნეს ცენტრი</option>
@@ -794,30 +794,30 @@ export default function BuildingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">აგების წელი</label>
-                  <input type="number" value={editForm.construction_year || ''} onChange={(e) => setEditForm({...editForm, construction_year: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="number" value={editForm.construction_year || ''} onChange={(e) => setEditForm({...editForm, construction_year: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">სართულები</label>
-                  <input type="number" value={editForm.floors || ''} onChange={(e) => setEditForm({...editForm, floors: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="number" value={editForm.floors || ''} onChange={(e) => setEditForm({...editForm, floors: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">ბინების რაოდენობა</label>
-                  <input type="number" value={editForm.apartments_count || ''} onChange={(e) => setEditForm({...editForm, apartments_count: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="number" value={editForm.apartments_count || ''} onChange={(e) => setEditForm({...editForm, apartments_count: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">სადარბაზოები</label>
-                  <input type="number" value={editForm.entrances_count || ''} onChange={(e) => setEditForm({...editForm, entrances_count: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="number" value={editForm.entrances_count || ''} onChange={(e) => setEditForm({...editForm, entrances_count: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">საერთო ფართობი (მ²)</label>
-                  <input type="number" step="0.1" value={editForm.total_area || ''} onChange={(e) => setEditForm({...editForm, total_area: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input type="number" step="0.1" value={editForm.total_area || ''} onChange={(e) => setEditForm({...editForm, total_area: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" />
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-white/10 flex justify-end gap-3 sticky bottom-0 bg-slate-900">
-              <button onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
-              <button onClick={handleSaveEdit} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors shadow-lg shadow-emerald-500/20">შენახვა</button>
+            <div className="p-6 border-t border-white/10 flex justify-end gap-3 sticky bottom-0 bg-[#0A1018]">
+              <button onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 bg-[#111823] hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
+              <button onClick={handleSaveEdit} className="px-5 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-extrabold rounded-xl transition-all shadow-[0_10px_30px_rgba(16,185,129,0.22)]">შენახვა</button>
             </div>
           </div>
         </div>
@@ -825,9 +825,9 @@ export default function BuildingPage() {
 
       {/* ============ APARTMENT MODAL ============ */}
       {isApartmentModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+        <div className="fixed inset-0 bg-[#020409]/75 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A1018]/98 border border-white/[0.10] rounded-[24px] max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#0A1018]/98 backdrop-blur-xl z-10">
               <h2 className="text-xl font-bold text-white">{editingApartment ? 'ბინის რედაქტირება' : 'ახალი ბინის დამატება'}</h2>
               <button onClick={() => setIsApartmentModalOpen(false)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
                 <IconX className="w-5 h-5 text-slate-400" />
@@ -838,34 +838,34 @@ export default function BuildingPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">ბინის ნომერი *</label>
-                  <input type="text" value={aptForm.apartment_number} onChange={(e) => setAptForm({...aptForm, apartment_number: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 12" required />
+                  <input type="text" value={aptForm.apartment_number} onChange={(e) => setAptForm({...aptForm, apartment_number: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 12" required />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">სართული</label>
-                  <input type="number" value={aptForm.floor} onChange={(e) => setAptForm({...aptForm, floor: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 3" />
+                  <input type="number" value={aptForm.floor} onChange={(e) => setAptForm({...aptForm, floor: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 3" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">ფართი (მ²)</label>
-                  <input type="number" step="0.1" value={aptForm.area} onChange={(e) => setAptForm({...aptForm, area: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 85.5" />
+                  <input type="number" step="0.1" value={aptForm.area} onChange={(e) => setAptForm({...aptForm, area: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 85.5" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">მფლობელის სახელი</label>
-                  <input type="text" value={aptForm.owner_name} onChange={(e) => setAptForm({...aptForm, owner_name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: გიორგი გიორგაძე" />
+                  <input type="text" value={aptForm.owner_name} onChange={(e) => setAptForm({...aptForm, owner_name: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: გიორგი გიორგაძე" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">ტელეფონი</label>
-                  <input type="text" value={aptForm.phone} onChange={(e) => setAptForm({...aptForm, phone: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: +995 555 123 456" />
+                  <input type="text" value={aptForm.phone} onChange={(e) => setAptForm({...aptForm, phone: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: +995 555 123 456" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">ელ-ფოსტა</label>
-                  <input type="email" value={aptForm.email} onChange={(e) => setAptForm({...aptForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: giorgi@example.com" />
+                  <input type="email" value={aptForm.email} onChange={(e) => setAptForm({...aptForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: giorgi@example.com" />
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-white/10 flex justify-end gap-3 sticky bottom-0 bg-slate-900">
-              <button onClick={() => setIsApartmentModalOpen(false)} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
-              <button onClick={handleSaveApartment} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors shadow-lg shadow-emerald-500/20">შენახვა</button>
+            <div className="p-6 border-t border-white/10 flex justify-end gap-3 sticky bottom-0 bg-[#0A1018]">
+              <button onClick={() => setIsApartmentModalOpen(false)} className="px-5 py-2.5 bg-[#111823] hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
+              <button onClick={handleSaveApartment} className="px-5 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-extrabold rounded-xl transition-all shadow-[0_10px_30px_rgba(16,185,129,0.22)]">შენახვა</button>
             </div>
           </div>
         </div>
@@ -873,8 +873,8 @@ export default function BuildingPage() {
 
       {/* ============ DELETE APARTMENT CONFIRMATION MODAL ============ */}
       {isDeleteApartmentConfirmOpen && apartmentToDelete && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-rose-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <div className="fixed inset-0 bg-[#020409]/82 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A1018]/99 border border-rose-400/20 rounded-[24px] max-w-md w-full p-6 shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
                 <IconTrash className="w-7 h-7 text-rose-400" />
@@ -888,8 +888,8 @@ export default function BuildingPage() {
               ბინა <span className="font-bold text-white">"{apartmentToDelete.apartment_number}"</span> და მასთან დაკავშირებული ყველა მონაცემი წაიშლება სამუდამოდ. ეს მოქმედება შეუქცევადია.
             </p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => { setIsDeleteApartmentConfirmOpen(false); setApartmentToDelete(null) }} className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
-              <button onClick={handleDeleteApartment} className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-rose-500/20">დიახ, წაშლა</button>
+              <button onClick={() => { setIsDeleteApartmentConfirmOpen(false); setApartmentToDelete(null) }} className="px-4 py-2.5 bg-[#111823] hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
+              <button onClick={handleDeleteApartment} className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white font-extrabold rounded-xl transition-all shadow-[0_10px_30px_rgba(244,63,94,0.20)]">დიახ, წაშლა</button>
             </div>
           </div>
         </div>
@@ -897,8 +897,8 @@ export default function BuildingPage() {
 
       {/* ============ DELETE BUILDING CONFIRMATION MODAL ============ */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-rose-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <div className="fixed inset-0 bg-[#020409]/82 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A1018]/99 border border-rose-400/20 rounded-[24px] max-w-md w-full p-6 shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
                 <IconTrash className="w-7 h-7 text-rose-400" />
@@ -912,12 +912,57 @@ export default function BuildingPage() {
               კორპუსი <span className="font-bold text-white">"{building.name || building.street}"</span> და ყველა მისი მონაცემი (ბინები, გადახდები, აქტივობები, კონტაქტები) წაიშლება სამუდამოდ. ეს მოქმედება შეუქცევადია.
             </p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setIsDeleteConfirmOpen(false)} className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
-              <button onClick={handleDeleteBuilding} className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-rose-500/20">დიახ, წაშლა</button>
+              <button onClick={() => setIsDeleteConfirmOpen(false)} className="px-4 py-2.5 bg-[#111823] hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
+              <button onClick={handleDeleteBuilding} className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white font-extrabold rounded-xl transition-all shadow-[0_10px_30px_rgba(244,63,94,0.20)]">დიახ, წაშლა</button>
             </div>
           </div>
         </div>
       )}
+      <style jsx global>{`
+        .ezo-shell {
+          background:
+            radial-gradient(900px 500px at 10% -5%, rgba(16,185,129,.10), transparent 60%),
+            radial-gradient(800px 500px at 95% 0%, rgba(59,130,246,.08), transparent 58%),
+            radial-gradient(700px 500px at 50% 100%, rgba(139,92,246,.055), transparent 62%),
+            #070A0F;
+        }
+        .ezo-shell::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          opacity: .18;
+          background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+          background-size: 44px 44px;
+          mask-image: linear-gradient(to bottom, black, transparent 85%);
+        }
+        .ezo-shell button,
+        .ezo-shell a,
+        .ezo-shell input,
+        .ezo-shell select {
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ezo-shell button:focus-visible,
+        .ezo-shell a:focus-visible,
+        .ezo-shell input:focus-visible,
+        .ezo-shell select:focus-visible {
+          outline: 2px solid rgba(52,211,153,.7);
+          outline-offset: 2px;
+        }
+        .ezo-shell ::selection {
+          background: rgba(16,185,129,.28);
+          color: white;
+        }
+        .ezo-shell .animate-in {
+          animation-timing-function: cubic-bezier(.22,1,.36,1);
+        }
+        @media (max-width: 640px) {
+          .ezo-shell main { min-height: calc(100vh - 130px); }
+          .ezo-shell table { min-width: 760px; }
+        }
+      `}</style>
+
     </div>
   )
 }
