@@ -155,6 +155,48 @@ const IconFilter = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconDoorOpen = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13 4h3a2 2 0 0 1 2 2v14" />
+    <path d="M2 20h3" />
+    <path d="M13 20h9" />
+    <path d="M10 20V4L3 5.2v14.7" />
+    <circle cx="9" cy="12" r="0.8" fill="currentColor" stroke="none" />
+  </svg>
+)
+
+const IconLayers = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+)
+
+const IconMaximize = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 3 21 3 21 9" />
+    <polyline points="9 21 3 21 3 15" />
+    <line x1="21" y1="3" x2="14" y2="10" />
+    <line x1="3" y1="21" x2="10" y2="14" />
+  </svg>
+)
+
+const IconHome = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+)
+
+const IconAlertTriangle = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+)
+
 // ============ TABS CONFIG ============
 const tabs = [
   { id: 'overview', label: 'მიმოხილვა', icon: IconBuilding },
@@ -164,6 +206,12 @@ const tabs = [
   { id: 'announcements', label: 'შეტყობინებები', icon: IconSend },
   { id: 'settings', label: 'პარამეტრები', icon: IconSettings },
 ]
+
+interface NotificationState {
+  title?: string
+  message: string
+  type: 'success' | 'error'
+}
 
 // ============ MAIN PAGE ============
 export default function BuildingPage() {
@@ -176,6 +224,7 @@ export default function BuildingPage() {
   const [contacts, setContacts] = useState<any[]>([])
   const [utilities, setUtilities] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('overview')
+  const [notification, setNotification] = useState<NotificationState | null>(null)
 
   // Edit Building Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -194,7 +243,7 @@ export default function BuildingPage() {
   const [isDeleteApartmentConfirmOpen, setIsDeleteApartmentConfirmOpen] = useState(false)
   const [apartmentToDelete, setApartmentToDelete] = useState<any>(null)
   const [showAdvancedAptInfo, setShowAdvancedAptInfo] = useState(false)
-  
+
   const [aptForm, setAptForm] = useState({
     apartment_number: '',
     floor: '',
@@ -218,6 +267,10 @@ export default function BuildingPage() {
 
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
+
+  const showNotification = (message: string, type: 'success' | 'error' = 'success', title?: string) => {
+    setNotification({ message, type, title })
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -278,8 +331,8 @@ export default function BuildingPage() {
 
       } catch (error) {
         console.error('Error loading data:', error)
-        alert('მონაცემების ჩატვირთვის შეცდომა')
-        router.push('/dashboard')
+        showNotification('მონაცემების ჩატვირთვის შეცდომა', 'error')
+        setTimeout(() => router.push('/dashboard'), 1500)
       } finally {
         setLoading(false)
       }
@@ -310,10 +363,10 @@ export default function BuildingPage() {
       setIsEditModalOpen(false)
       const { data } = await supabase.from('buildings').select('*').eq('id', buildingId).single()
       setBuilding(data)
-      alert('კორპუსის ინფორმაცია წარმატებით განახლდა!')
+      showNotification('კორპუსის ინფორმაცია წარმატებით განახლდა', 'success')
     } catch (error: any) {
       console.error('Edit error:', error)
-      alert('შეცდომა განახლებისას: ' + error.message)
+      showNotification('შეცდომა განახლებისას: ' + error.message, 'error')
     }
   }
 
@@ -324,26 +377,26 @@ export default function BuildingPage() {
       await supabase.from('building_utilities').delete().eq('building_id', buildingId)
       await supabase.from('building_contacts').delete().eq('building_id', buildingId)
       await supabase.from('monthly_invoices').delete().eq('building_id', buildingId)
-      
+
       const { error } = await supabase.from('buildings').delete().eq('id', buildingId)
       if (error) throw error
 
       router.push('/dashboard')
     } catch (error: any) {
       console.error('Delete error:', error)
-      alert('შეცდომა წაშლისას: ' + error.message)
+      showNotification('შეცდომა წაშლისას: ' + error.message, 'error')
     }
   }
 
   const handleOpenAddApartment = () => {
     setEditingApartment(null)
     setShowAdvancedAptInfo(false)
-    setAptForm({ 
+    setAptForm({
       apartment_number: '', floor: '', area_sqm: '', parking_spaces: '',
       residency_status: 'მეპატრონე ცხოვრობს',
       owner_name: '', owner_phone: '', owner_email: '',
       tenant_name: '', tenant_phone: '', tenant_email: '',
-      rooms: '', bathrooms: '', special_notes: '' 
+      rooms: '', bathrooms: '', special_notes: ''
     })
     setIsApartmentModalOpen(true)
   }
@@ -372,7 +425,7 @@ export default function BuildingPage() {
 
   const handleSaveApartment = async () => {
     if (!aptForm.apartment_number.trim()) {
-      alert('ბინის ნომერი სავალდებულოა!')
+      showNotification('ბინის ნომერი სავალდებულოა', 'error')
       return
     }
 
@@ -406,10 +459,11 @@ export default function BuildingPage() {
       setIsApartmentModalOpen(false)
       const { data } = await supabase.from('apartments').select('*').eq('building_id', buildingId).order('apartment_number', { ascending: true })
       if (data) setApartments(data)
-      
+      showNotification(editingApartment ? 'ბინა წარმატებით განახლდა' : 'ბინა წარმატებით დაემატა', 'success')
+
     } catch (error: any) {
       console.error('Apartment save error:', error)
-      alert('შეცდომა შენახვისას: ' + error.message)
+      showNotification('შეცდომა შენახვისას: ' + error.message, 'error')
     }
   }
 
@@ -419,16 +473,16 @@ export default function BuildingPage() {
       await supabase.from('monthly_invoices').delete().eq('apartment_id', apartmentToDelete.id)
       const { error } = await supabase.from('apartments').delete().eq('id', apartmentToDelete.id)
       if (error) throw error
-      
+
       setIsDeleteApartmentConfirmOpen(false)
       setApartmentToDelete(null)
-      
+
       const { data } = await supabase.from('apartments').select('*').eq('building_id', buildingId).order('apartment_number', { ascending: true })
       if (data) setApartments(data)
-      
+
     } catch (error: any) {
       console.error('Apartment delete error:', error)
-      alert('შეცდომა წაშლისას: ' + error.message)
+      showNotification('შეცდომა წაშლისას: ' + error.message, 'error')
     }
   }
 
@@ -468,7 +522,7 @@ export default function BuildingPage() {
   const accountant = contacts.find(c => c.role === 'accountant')
 
   const filteredApartments = apartments.filter(apt => {
-    const matchesSearch = 
+    const matchesSearch =
       apt.apartment_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       apt.owner_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       apt.tenant_name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -533,6 +587,13 @@ export default function BuildingPage() {
     return { label: 'ვალიანი', color: 'text-rose-400', bg: 'bg-rose-500/10' }
   }
 
+  const filterOptions: { key: typeof balanceFilter; label: string; count: number; activeClass: string }[] = [
+    { key: 'all', label: `ყველა (${apartments.length})`, count: apartments.length, activeClass: 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30' },
+    { key: 'debtors', label: `ვალიანები (${debtorsCount})`, count: debtorsCount, activeClass: 'bg-rose-500/20 text-rose-400 border border-rose-400/30' },
+    { key: 'paid', label: `გადახდილი (${paidCount})`, count: paidCount, activeClass: 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30' },
+    { key: 'rented', label: 'გაქირავებული', count: 0, activeClass: 'bg-blue-500/20 text-blue-400 border border-blue-400/30' },
+  ]
+
   return (
     <div className="ezo-shell min-h-screen bg-[#070A0F] text-slate-100 overflow-x-hidden">
       <header className="sticky top-0 z-40 bg-[#070A0F]/85 border-b border-white/[0.07] backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.22)]">
@@ -546,14 +607,14 @@ export default function BuildingPage() {
             <h1 className="text-lg font-bold text-white truncate max-w-[200px] sm:max-w-md">{building.name || building.street}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => setIsEditModalOpen(true)}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#111823] hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
             >
               <IconEdit className="w-4 h-4" />
               <span className="hidden sm:inline">რედაქტირება</span>
             </button>
-            <button 
+            <button
               onClick={() => setIsDeleteConfirmOpen(true)}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-rose-500/[0.08] hover:bg-rose-500/[0.14] border border-rose-400/[0.12] text-rose-300 text-sm font-semibold rounded-xl transition-all duration-200"
             >
@@ -574,8 +635,8 @@ export default function BuildingPage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
-                      isActive 
-                        ? 'border-emerald-400 text-emerald-300' 
+                      isActive
+                        ? 'border-emerald-400 text-emerald-300'
                         : 'border-transparent text-slate-400 hover:text-white hover:border-white/20'
                     }`}
                   >
@@ -590,34 +651,34 @@ export default function BuildingPage() {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9">
-        
+
         {activeTab === 'overview' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.16)] hover:bg-white/[0.06] hover:border-emerald-400/25 hover:-translate-y-0.5 transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg">
-                  <IconBuilding className="w-6 h-6 text-white" />
+                  <IconHome className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.apartments_count || '0'}</div>
                 <div className="text-sm text-slate-400">ბინები</div>
               </div>
               <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] hover:bg-white/[0.06] hover:border-white/[0.13] transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-4 shadow-lg">
-                  <IconBuilding className="w-6 h-6 text-white" />
+                  <IconDoorOpen className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.entrances_count || '0'}</div>
                 <div className="text-sm text-slate-400">სადარბაზო</div>
               </div>
               <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] hover:bg-white/[0.06] hover:border-white/[0.13] transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 shadow-lg">
-                  <IconBuilding className="w-6 h-6 text-white" />
+                  <IconLayers className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.floors || '0'}</div>
                 <div className="text-sm text-slate-400">სართული</div>
               </div>
               <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] hover:bg-white/[0.06] hover:border-white/[0.13] transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-4 shadow-lg">
-                  <IconBuilding className="w-6 h-6 text-white" />
+                  <IconMaximize className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.total_area || '0'} <span className="text-lg text-slate-400">მ²</span></div>
                 <div className="text-sm text-slate-400">ფართობი</div>
@@ -642,8 +703,8 @@ export default function BuildingPage() {
                 <div>
                   <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">კორპუსის ტიპი</div>
                   <div className="text-white font-medium capitalize">
-                    {building.building_type === 'multi-family' ? 'მრავალსართულიანი საცხოვრებელი' : 
-                     building.building_type === 'private-houses' ? 'კერძო სახლების კომპლექსი' : 
+                    {building.building_type === 'multi-family' ? 'მრავალსართულიანი საცხოვრებელი' :
+                     building.building_type === 'private-houses' ? 'კერძო სახლების კომპლექსი' :
                      building.building_type === 'business-center' ? 'ბიზნეს ცენტრი' : building.building_type || '—'}
                   </div>
                 </div>
@@ -768,7 +829,7 @@ export default function BuildingPage() {
               <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] border border-emerald-400/20 rounded-2xl p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <IconTrendUp className="w-4 h-4 text-emerald-400" />
-                  <span className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">მოცდელი თანხა</span>
+                  <span className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">მოსალოდნელი თანხა</span>
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-emerald-300">{totalExpected.toFixed(2)}₾</div>
                 <div className="text-xs text-slate-500 mt-1">ამ თვის ჯამი</div>
@@ -804,67 +865,43 @@ export default function BuildingPage() {
               </div>
             </div>
 
-            {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
-              <div className="relative flex-1 max-w-md">
-                <svg className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input 
-                  type="text" 
-                  placeholder="ძიება ბინის ნომრით ან სახელით..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#111823]/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <IconFilter className="w-4 h-4 text-slate-500" />
-                <button 
-                  onClick={() => setBalanceFilter('all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    balanceFilter === 'all' 
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30' 
-                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
-                  }`}
+            {/* Search, Filters, Add */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <svg className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input
+                    type="text"
+                    placeholder="ძიება ბინის ნომრით ან სახელით..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#111823]/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+                <button
+                  onClick={handleOpenAddApartment}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 text-sm font-extrabold rounded-xl transition-all duration-200 shadow-[0_10px_30px_rgba(16,185,129,0.20)] hover:shadow-[0_14px_38px_rgba(16,185,129,0.28)] shrink-0"
                 >
-                  ყველა ({apartments.length})
-                </button>
-                <button 
-                  onClick={() => setBalanceFilter('debtors')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    balanceFilter === 'debtors' 
-                      ? 'bg-rose-500/20 text-rose-400 border border-rose-400/30' 
-                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
-                  }`}
-                >
-                  ვალიანები ({debtorsCount})
-                </button>
-                <button 
-                  onClick={() => setBalanceFilter('paid')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    balanceFilter === 'paid' 
-                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30' 
-                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
-                  }`}
-                >
-                  გადახდილი ({paidCount})
-                </button>
-                <button 
-                  onClick={() => setBalanceFilter('rented')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    balanceFilter === 'rented' 
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30' 
-                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
-                  }`}
-                >
-                  გაქირავებული
+                  <IconPlus className="w-4 h-4" /> ბინის დამატება
                 </button>
               </div>
-              <button 
-                onClick={handleOpenAddApartment}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 text-sm font-extrabold rounded-xl transition-all duration-200 shadow-[0_10px_30px_rgba(16,185,129,0.20)] hover:shadow-[0_14px_38px_rgba(16,185,129,0.28)]"
-              >
-                <IconPlus className="w-4 h-4" /> ბინის დამატება
-              </button>
+
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
+                <IconFilter className="w-4 h-4 text-slate-500 shrink-0" />
+                {filterOptions.map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setBalanceFilter(opt.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                      balanceFilter === opt.key
+                        ? opt.activeClass
+                        : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {filteredApartments.length === 0 ? (
@@ -874,112 +911,205 @@ export default function BuildingPage() {
                 <p className="text-slate-500 text-sm">დაამატეთ პირველი ბინა ან შეამოწმეთ საძიებო სიტყვა</p>
               </div>
             ) : (
-              <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] overflow-hidden backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead className="bg-[#0B1018]/70 border-b border-white/10">
-                      <tr>
-                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ბინა</th>
-                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სართული</th>
-                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ფართი</th>
-                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სტატუსი / კონტაქტი</th>
-                        <th className="px-6 py-4 text-xs font-semibold text-emerald-400 uppercase tracking-wider">გადასახდელი</th>
-                        <th className="px-6 py-4 text-xs font-semibold text-cyan-400 uppercase tracking-wider">ბალანსი</th>
-                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">მოქმედებები</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/[0.055]">
-                      {filteredApartments.map((apt) => {
-                        const contact = getContactDisplay(apt)
-                        const inv = invoices[apt.id]
-                        const totalAmount = inv?.total_amount || 0
-                        const paidAmount = inv?.paid_amount || 0
-                        const balance = totalAmount - paidAmount
-                        const status = getInvoiceStatus(apt)
+              <>
+                {/* Desktop / tablet table */}
+                <div className="hidden md:block bg-white/[0.035] border border-white/[0.08] rounded-[28px] overflow-hidden backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-[#0B1018]/70 border-b border-white/10">
+                        <tr>
+                          <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ბინა</th>
+                          <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სართული</th>
+                          <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ფართი</th>
+                          <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სტატუსი / კონტაქტი</th>
+                          <th className="px-6 py-4 text-xs font-semibold text-emerald-400 uppercase tracking-wider">გადასახდელი</th>
+                          <th className="px-6 py-4 text-xs font-semibold text-cyan-400 uppercase tracking-wider">ბალანსი</th>
+                          <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">მოქმედებები</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.055]">
+                        {filteredApartments.map((apt) => {
+                          const contact = getContactDisplay(apt)
+                          const inv = invoices[apt.id]
+                          const totalAmount = inv?.total_amount || 0
+                          const paidAmount = inv?.paid_amount || 0
+                          const balance = totalAmount - paidAmount
+                          const status = getInvoiceStatus(apt)
 
-                        return (
-                          <tr key={apt.id} className="hover:bg-white/[0.035] transition-colors">
-                            <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-white bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg">
-                                {apt.apartment_number}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-slate-300">{apt.floor || '—'}</td>
-                            <td className="px-6 py-4 text-sm text-slate-300">{apt.area_sqm ? `${apt.area_sqm} მ²` : '—'}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
-                                    apt.residency_status === 'გაქირავებულია' ? 'bg-blue-500/20 text-blue-400' :
-                                    apt.residency_status === 'დაკეტილი/ცარიელი' ? 'bg-slate-500/20 text-slate-400' :
-                                    'bg-emerald-500/20 text-emerald-400'
-                                  }`}>
-                                    {apt.residency_status || 'მეპატრონე'}
-                                  </span>
-                                  <span className="text-sm font-medium text-white">{contact.name || '—'}</span>
-                                </div>
-                                {contact.phone && (
-                                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                                    <IconPhone className="w-3 h-3" /> {contact.phone}
+                          return (
+                            <tr key={apt.id} className="hover:bg-white/[0.035] transition-colors">
+                              <td className="px-6 py-4">
+                                <span className="text-sm font-bold text-white bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg">
+                                  {apt.apartment_number}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-300">{apt.floor || '—'}</td>
+                              <td className="px-6 py-4 text-sm text-slate-300">{apt.area_sqm ? `${apt.area_sqm} მ²` : '—'}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                                      apt.residency_status === 'გაქირავებულია' ? 'bg-blue-500/20 text-blue-400' :
+                                      apt.residency_status === 'დაკეტილი/ცარიელი' ? 'bg-slate-500/20 text-slate-400' :
+                                      'bg-emerald-500/20 text-emerald-400'
+                                    }`}>
+                                      {apt.residency_status || 'მეპატრონე'}
+                                    </span>
+                                    <span className="text-sm font-medium text-white">{contact.name || '—'}</span>
                                   </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {inv ? (
-                                <div className="text-sm font-bold text-emerald-300">{totalAmount.toFixed(2)}₾</div>
-                              ) : (
-                                <div className="text-xs text-slate-500 italic">—</div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              {inv ? (
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-sm font-bold ${
-                                    balance > 0 ? 'text-rose-400' : 'text-emerald-400'
-                                  }`}>
-                                    {balance > 0 ? `${balance.toFixed(2)}₾` : '0₾'}
-                                  </span>
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${status.bg} ${status.color}`}>
-                                    {status.label}
-                                  </span>
+                                  {contact.phone && (
+                                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                                      <IconPhone className="w-3 h-3" /> {contact.phone}
+                                    </div>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="text-xs text-slate-500 italic">—</div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button 
-                                  onClick={() => handleOpenTariffModal(apt)}
-                                  className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
-                                  title="ტარიფების მართვა"
-                                >
-                                  <IconSettings className="w-4 h-4" />
-                                </button>
-                                <button 
-                                  onClick={() => handleOpenEditApartment(apt)}
-                                  className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
-                                  title="რედაქტირება"
-                                >
-                                  <IconEdit className="w-4 h-4" />
-                                </button>
-                                <button 
-                                  onClick={() => { setApartmentToDelete(apt); setIsDeleteApartmentConfirmOpen(true) }}
-                                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                                  title="წაშლა"
-                                >
-                                  <IconTrash className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                              </td>
+                              <td className="px-6 py-4">
+                                {inv ? (
+                                  <div className="text-sm font-bold text-emerald-300">{totalAmount.toFixed(2)}₾</div>
+                                ) : (
+                                  <div className="text-xs text-slate-500 italic">—</div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4">
+                                {inv ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-sm font-bold ${
+                                      balance > 0 ? 'text-rose-400' : 'text-emerald-400'
+                                    }`}>
+                                      {balance > 0 ? `${balance.toFixed(2)}₾` : '0₾'}
+                                    </span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${status.bg} ${status.color}`}>
+                                      {status.label}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-slate-500 italic">—</div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => handleOpenTariffModal(apt)}
+                                    className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                    title="ტარიფების მართვა"
+                                  >
+                                    <IconSettings className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenEditApartment(apt)}
+                                    className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                    title="რედაქტირება"
+                                  >
+                                    <IconEdit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => { setApartmentToDelete(apt); setIsDeleteApartmentConfirmOpen(true) }}
+                                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                    title="წაშლა"
+                                  >
+                                    <IconTrash className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+
+                {/* Mobile cards */}
+                <div className="md:hidden space-y-3">
+                  {filteredApartments.map((apt) => {
+                    const contact = getContactDisplay(apt)
+                    const inv = invoices[apt.id]
+                    const totalAmount = inv?.total_amount || 0
+                    const paidAmount = inv?.paid_amount || 0
+                    const balance = totalAmount - paidAmount
+                    const status = getInvoiceStatus(apt)
+
+                    return (
+                      <div key={apt.id} className="bg-white/[0.035] border border-white/[0.08] rounded-2xl p-4 backdrop-blur-xl shadow-[0_12px_36px_rgba(0,0,0,0.14)]">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">
+                              ბინა {apt.apartment_number}
+                            </span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                              apt.residency_status === 'გაქირავებულია' ? 'bg-blue-500/20 text-blue-400' :
+                              apt.residency_status === 'დაკეტილი/ცარიელი' ? 'bg-slate-500/20 text-slate-400' :
+                              'bg-emerald-500/20 text-emerald-400'
+                            }`}>
+                              {apt.residency_status || 'მეპატრონე'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleOpenTariffModal(apt)}
+                              className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                              title="ტარიფების მართვა"
+                            >
+                              <IconSettings className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditApartment(apt)}
+                              className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                              title="რედაქტირება"
+                            >
+                              <IconEdit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => { setApartmentToDelete(apt); setIsDeleteApartmentConfirmOpen(true) }}
+                              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                              title="წაშლა"
+                            >
+                              <IconTrash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-xs text-slate-400 mb-3">
+                          <span>სართული: <span className="text-slate-200 font-medium">{apt.floor || '—'}</span></span>
+                          <span>ფართი: <span className="text-slate-200 font-medium">{apt.area_sqm ? `${apt.area_sqm} მ²` : '—'}</span></span>
+                        </div>
+
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-white">{contact.name || '—'}</span>
+                          {contact.phone && (
+                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                              <IconPhone className="w-3 h-3" /> {contact.phone}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
+                          <div>
+                            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">გადასახდელი</div>
+                            <div className="text-sm font-bold text-emerald-300">{inv ? `${totalAmount.toFixed(2)}₾` : '—'}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">ბალანსი</div>
+                            {inv ? (
+                              <div className="flex items-center gap-1.5 justify-end">
+                                <span className={`text-sm font-bold ${balance > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                  {balance > 0 ? `${balance.toFixed(2)}₾` : '0₾'}
+                                </span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${status.bg} ${status.color}`}>
+                                  {status.label}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-500 italic">—</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -1023,7 +1153,7 @@ export default function BuildingPage() {
             <div className="bg-white/[0.035] border border-white/[0.08] rounded-[28px] p-5 sm:p-7 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-6">ზოგადი პარამეტრები</h2>
               <p className="text-slate-400 mb-6">კორპუსის ძირითადი ინფორმაციის შესაცვლელად გამოიყენეთ ზედა მარჯვენა კუთხეში არსებული "რედაქტირება" ღილაკი.</p>
-              
+
               <div className="grid sm:grid-cols-2 gap-4 text-sm">
                 <div className="bg-[#0B1018]/70 p-4 rounded-xl border border-white/5">
                   <span className="text-slate-500 block mb-1">კორპუსის ID</span>
@@ -1043,7 +1173,7 @@ export default function BuildingPage() {
               <p className="text-slate-300 mb-6">
                 კორპუსის წაშლა წაშლის მის ყველა დაკავშირებულ მონაცემს სამუდამოდ: ბინებს, გადახდებს, საკონტაქტო პირებს და კომუნალურ ინფორმაციას. ეს მოქმედება შეუქცევადია.
               </p>
-              <button 
+              <button
                 onClick={() => setIsDeleteConfirmOpen(true)}
                 className="px-6 py-3 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white font-extrabold rounded-xl transition-all shadow-[0_10px_30px_rgba(244,63,94,0.20)]"
               >
@@ -1143,7 +1273,7 @@ export default function BuildingPage() {
                 <h3 className="text-sm font-bold text-emerald-400 mb-4 flex items-center gap-2">
                   <IconShield className="w-4 h-4" /> ძირითადი ინფორმაცია
                 </h3>
-                
+
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">ბინის ნომერი *</label>
@@ -1211,7 +1341,7 @@ export default function BuildingPage() {
               </div>
 
               <div className="pt-2 border-t border-white/10">
-                <button 
+                <button
                   onClick={() => setShowAdvancedAptInfo(!showAdvancedAptInfo)}
                   className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-400 transition-colors"
                 >
@@ -1312,6 +1442,83 @@ export default function BuildingPage() {
           </div>
         </div>
       )}
+
+      {/* ============ NOTIFICATION MODAL (replaces alert()) ============ */}
+      {notification && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setNotification(null)}
+          />
+          <div className="relative w-full max-w-sm animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300">
+            <div
+              className={`relative overflow-hidden rounded-[28px] border p-8 text-center backdrop-blur-2xl shadow-[0_30px_80px_rgba(0,0,0,0.5)] ${
+                notification.type === 'success'
+                  ? 'bg-gradient-to-b from-[#0F1D17] to-[#0B1611] border-emerald-400/25'
+                  : 'bg-gradient-to-b from-[#1D0F0F] to-[#160B0B] border-rose-400/25'
+              }`}
+            >
+              <div
+                className={`absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+                  notification.type === 'success' ? 'bg-emerald-400/20' : 'bg-rose-400/20'
+                }`}
+              />
+
+              <button
+                onClick={() => setNotification(null)}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors"
+              >
+                <IconX className="w-4 h-4" />
+              </button>
+
+              <div className="relative flex justify-center mb-5">
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    notification.type === 'success'
+                      ? 'bg-emerald-400/[0.12] ring-1 ring-emerald-400/30'
+                      : 'bg-rose-400/[0.12] ring-1 ring-rose-400/30'
+                  }`}
+                >
+                  {notification.type === 'success' ? (
+                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="11" stroke="rgb(52,211,153)" strokeWidth="1.5" opacity="0.3" />
+                      <path
+                        d="M7 12.5l3 3 7-7"
+                        stroke="rgb(52,211,153)"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="ezo-check-draw"
+                      />
+                    </svg>
+                  ) : (
+                    <IconAlertTriangle className="w-7 h-7 text-rose-400" />
+                  )}
+                </div>
+              </div>
+
+              <h3 className={`relative text-lg font-bold mb-2 ${notification.type === 'success' ? 'text-white' : 'text-rose-50'}`}>
+                {notification.title || (notification.type === 'success' ? 'წარმატებით შესრულდა' : 'დაფიქსირდა შეცდომა')}
+              </h3>
+              <p className="relative text-sm text-slate-400 leading-relaxed mb-6">
+                {notification.message}
+              </p>
+
+              <button
+                onClick={() => setNotification(null)}
+                className={`relative w-full py-3 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 ${
+                  notification.type === 'success'
+                    ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 shadow-[0_12px_32px_rgba(16,185,129,0.25)]'
+                    : 'bg-white/[0.08] text-white border border-white/[0.12]'
+                }`}
+              >
+                გასაგებია
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         .ezo-shell {
           background:
@@ -1350,6 +1557,16 @@ export default function BuildingPage() {
         }
         .ezo-shell .animate-in {
           animation-timing-function: cubic-bezier(.22,1,.36,1);
+        }
+        .ezo-shell .no-scrollbar::-webkit-scrollbar { display: none; }
+        .ezo-shell .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .ezo-check-draw {
+          stroke-dasharray: 20;
+          stroke-dashoffset: 20;
+          animation: checkDraw 0.4s ease-out 0.15s forwards;
+        }
+        @keyframes checkDraw {
+          to { stroke-dashoffset: 0; }
         }
         @media (max-width: 640px) {
           .ezo-shell main { min-height: calc(100vh - 130px); }
