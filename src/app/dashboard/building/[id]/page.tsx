@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import ApartmentTariffModal from '@/components/apartments/ApartmentTariffModal'
 
 // ============ ICONS ============
 const IconBuilding = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -181,9 +182,6 @@ export default function BuildingPage() {
   // Tariff Modal State
   const [isTariffModalOpen, setIsTariffModalOpen] = useState(false)
   const [selectedApartmentForTariff, setSelectedApartmentForTariff] = useState<any>(null)
-  const [expenseCategories, setExpenseCategories] = useState<any[]>([])
-  const [apartmentSubscriptions, setApartmentSubscriptions] = useState<any[]>([])
-  const [loadingTariffs, setLoadingTariffs] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
@@ -380,89 +378,15 @@ export default function BuildingPage() {
     }
   }
 
-  // ============ TARIFF HANDLERS ============
-  const handleOpenTariffModal = async (apt: any) => {
+  // ============ TARIFF HANDLER ============
+  const handleOpenTariffModal = (apt: any) => {
     setSelectedApartmentForTariff(apt)
     setIsTariffModalOpen(true)
-    setLoadingTariffs(true)
-    try {
-      const { data: categories, error: catError } = await supabase
-        .from('expense_categories')
-        .select('*')
-        .eq('building_id', buildingId)
-        .eq('is_active', true)
-        .order('name', { ascending: true })
-
-      if (catError) throw catError
-      setExpenseCategories(categories || [])
-
-      const { data: subs, error: subError } = await supabase
-        .from('apartment_service_subscriptions')
-        .select('*')
-        .eq('apartment_id', apt.id)
-
-      if (subError) throw subError
-      setApartmentSubscriptions(subs || [])
-    } catch (error) {
-      console.error('Error loading tariffs:', error)
-      alert('ტარიფების ჩატვირთვის შეცდომა')
-    } finally {
-      setLoadingTariffs(false)
-    }
   }
 
-  const updateSubscription = (categoryId: string, field: string, value: any) => {
-    setApartmentSubscriptions(prev => {
-      const existingIndex = prev.findIndex(s => s.category_id === categoryId)
-      let newSub: any = { category_id: categoryId, is_subscribed: true, override_amount: null, override_reason: '' }
-      
-      if (existingIndex >= 0) {
-        newSub = { ...prev[existingIndex] }
-      }
-      
-      newSub[field] = value
-      
-      if (field === 'is_subscribed' && value === false) {
-        newSub.override_amount = null
-      }
-      
-      if (existingIndex >= 0) {
-        const newSubs = [...prev]
-        newSubs[existingIndex] = newSub
-        return newSubs
-      } else {
-        return [...prev, newSub]
-      }
-    })
-  }
-
-  const handleSaveTariffs = async () => {
-    if (!selectedApartmentForTariff) return
-    setLoadingTariffs(true)
-    try {
-      await supabase.from('apartment_service_subscriptions').delete().eq('apartment_id', selectedApartmentForTariff.id)
-      
-      const payload = apartmentSubscriptions.map(sub => ({
-        apartment_id: selectedApartmentForTariff.id,
-        category_id: sub.category_id,
-        is_subscribed: sub.is_subscribed,
-        override_amount: sub.override_amount,
-        override_reason: sub.override_reason || null,
-      }))
-
-      if (payload.length > 0) {
-        const { error } = await supabase.from('apartment_service_subscriptions').insert(payload)
-        if (error) throw error
-      }
-
-      setIsTariffModalOpen(false)
-      alert('ტარიფები წარმატებით შეინახა!')
-    } catch (error) {
-      console.error('Error saving tariffs:', error)
-      alert('ტარიფების შენახვის შეცდომა')
-    } finally {
-      setLoadingTariffs(false)
-    }
+  const handleTariffSaved = () => {
+    // ტარიფების შენახვის შემდეგ შეიძლება დამატებითი ლოგიკა
+    console.log('ტარიფები წარმატებით შეინახა')
   }
 
   if (loading) {
@@ -1022,7 +946,7 @@ export default function BuildingPage() {
                   <select value={aptForm.residency_status} onChange={(e) => setAptForm({...aptForm, residency_status: e.target.value})} className="w-full px-3 py-2 bg-[#111823] border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors">
                     <option value="მეპატრონე ცხოვრობს">🏠 მეპატრონე ცხოვრობს</option>
                     <option value="გაქირავებულია">🔑 გაქირავებულია</option>
-                    <option value="დაკეტილი/ცარიელი">🔒 დაკეტილი / ცარიელი</option>
+                    <option value="დაკეტილი/ცარიელი"> დაკეტილი / ცარიელი</option>
                   </select>
                 </div>
 
@@ -1105,115 +1029,18 @@ export default function BuildingPage() {
         </div>
       )}
 
-      {/* ============ TARIFF MODAL ============ */}
+      {/* ============ TARIFF MODAL (External Component) ============ */}
       {isTariffModalOpen && selectedApartmentForTariff && (
-        <div className="fixed inset-0 bg-[#020409]/80 backdrop-blur-xl z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A1018]/98 border border-white/[0.10] rounded-[24px] max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.55)] flex flex-col">
-            <div className="p-6 border-b border-white/10 flex items-center justify-between bg-[#0A1018]/98">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <IconSettings className="w-5 h-5 text-emerald-400" />
-                  ტარიფების მართვა: ბინა {selectedApartmentForTariff.apartment_number}
-                </h2>
-                <p className="text-sm text-slate-400 mt-1">აირჩიეთ რომელი სერვისი იქნება ჩართული ამ ბინისთვის</p>
-              </div>
-              <button onClick={() => setIsTariffModalOpen(false)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-                <IconX className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {loadingTariffs ? (
-                <div className="flex items-center justify-center py-12">
-                  <IconLoader className="w-8 h-8 text-emerald-400 animate-spin" />
-                </div>
-              ) : expenseCategories.length === 0 ? (
-                <div className="text-center py-12 text-slate-400">
-                  <p>ამ კორპუსში ხარჯების კატეგორიები ჯერ არ არის შექმნილი.</p>
-                </div>
-              ) : (
-                expenseCategories.map((cat) => {
-                  const sub = apartmentSubscriptions.find(s => s.category_id === cat.id) || { is_subscribed: cat.default_enabled, override_amount: null, override_reason: '' }
-                  const isSubscribed = sub.is_subscribed
-
-                  return (
-                    <div key={cat.id} className={`p-4 rounded-xl border transition-all ${isSubscribed ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-slate-800/30 border-white/5 opacity-75'}`}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl ${isSubscribed ? 'bg-emerald-500/20' : 'bg-slate-700/50'}`}>
-                            {cat.icon || '💰'}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-white">{cat.name}</h4>
-                              {cat.is_optional && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-medium">ნებაყოფლობითი</span>
-                              )}
-                            </div>
-                            <p className="text-xs text-slate-400 mt-1">{cat.description || 'აღწერა არ არის'}</p>
-                            <div className="text-xs text-slate-500 mt-2 font-mono">
-                              მეთოდი: {cat.calculation_method === 'fixed' ? `ფიქსირებული (${cat.base_amount}₾)` : 
-                                       cat.calculation_method === 'per_sqm' ? `კვადრატულობითი (${cat.per_sqm_rate}₾/მ²)` : 
-                                       cat.calculation_method === 'equal_split' ? 'თანაბარი გაყოფა' : cat.calculation_method}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-end gap-3 min-w-[140px]">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              checked={isSubscribed}
-                              onChange={(e) => updateSubscription(cat.id, 'is_subscribed', e.target.checked)}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                          </label>
-                          
-                          {isSubscribed && (
-                            <div className="w-full">
-                              <input 
-                                type="number"
-                                placeholder="ინდივ. თანხა (₾)"
-                                value={sub.override_amount || ''}
-                                onChange={(e) => updateSubscription(cat.id, 'override_amount', e.target.value ? parseFloat(e.target.value) : null)}
-                                className="w-full px-2 py-1.5 bg-[#111823] border border-white/10 rounded text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors text-right"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {!isSubscribed && (
-                        <div className="mt-3 pt-3 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
-                          <input 
-                            type="text"
-                            placeholder="მიზეზი (მაგ: პირველი სართული, არ სჭირდება)"
-                            value={sub.override_reason || ''}
-                            onChange={(e) => updateSubscription(cat.id, 'override_reason', e.target.value)}
-                            className="w-full px-3 py-2 bg-[#111823] border border-rose-500/20 rounded-lg text-xs text-white focus:outline-none focus:border-rose-500 transition-colors"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )
-                })
-              )}
-            </div>
-
-            <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-[#0A1018]/98">
-              <button onClick={() => setIsTariffModalOpen(false)} className="px-5 py-2.5 bg-[#111823] hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">გაუქმება</button>
-              <button 
-                onClick={handleSaveTariffs} 
-                disabled={loadingTariffs}
-                className="px-5 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-extrabold rounded-xl transition-all shadow-[0_10px_30px_rgba(16,185,129,0.22)] disabled:opacity-50 flex items-center gap-2"
-              >
-                {loadingTariffs && <IconLoader className="w-4 h-4 animate-spin" />}
-                შენახვა
-              </button>
-            </div>
-          </div>
-        </div>
+        <ApartmentTariffModal
+          apartment={selectedApartmentForTariff}
+          buildingId={buildingId}
+          isOpen={isTariffModalOpen}
+          onClose={() => {
+            setIsTariffModalOpen(false)
+            setSelectedApartmentForTariff(null)
+          }}
+          onSave={handleTariffSaved}
+        />
       )}
 
       {/* ============ DELETE APARTMENT CONFIRMATION MODAL ============ */}
