@@ -118,20 +118,40 @@ const IconChevronDown = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
-const IconCar = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
-    <circle cx="7" cy="17" r="2" />
-    <circle cx="17" cy="17" r="2" />
-  </svg>
-)
-
 const IconCalendar = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
     <line x1="16" y1="2" x2="16" y2="6" />
     <line x1="8" y1="2" x2="8" y2="6" />
     <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+)
+
+const IconTrendUp = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+    <polyline points="17 6 23 6 23 12" />
+  </svg>
+)
+
+const IconAlertCircle = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+)
+
+const IconCheckCircle = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
+  </svg>
+)
+
+const IconFilter = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
   </svg>
 )
 
@@ -166,7 +186,9 @@ export default function BuildingPage() {
 
   // Apartments State
   const [apartments, setApartments] = useState<any[]>([])
+  const [invoices, setInvoices] = useState<Record<string, any>>({}) // apartment_id -> invoice
   const [searchQuery, setSearchQuery] = useState('')
+  const [balanceFilter, setBalanceFilter] = useState<'all' | 'debtors' | 'paid' | 'rented'>('all')
   const [isApartmentModalOpen, setIsApartmentModalOpen] = useState(false)
   const [editingApartment, setEditingApartment] = useState<any>(null)
   const [isDeleteApartmentConfirmOpen, setIsDeleteApartmentConfirmOpen] = useState(false)
@@ -193,6 +215,9 @@ export default function BuildingPage() {
   // Tariff Modal State
   const [isTariffModalOpen, setIsTariffModalOpen] = useState(false)
   const [selectedApartmentForTariff, setSelectedApartmentForTariff] = useState<any>(null)
+
+  const currentMonth = new Date().getMonth() + 1
+  const currentYear = new Date().getFullYear()
 
   useEffect(() => {
     const loadData = async () => {
@@ -234,6 +259,22 @@ export default function BuildingPage() {
 
         if (aptsError) throw aptsError
         setApartments(aptsData || [])
+
+        // Load invoices for current month
+        const { data: invoicesData, error: invoicesError } = await supabase
+          .from('monthly_invoices')
+          .select('*')
+          .eq('building_id', buildingId)
+          .eq('month', currentMonth)
+          .eq('year', currentYear)
+
+        if (!invoicesError && invoicesData) {
+          const invoiceMap: Record<string, any> = {}
+          invoicesData.forEach((inv: any) => {
+            invoiceMap[inv.apartment_id] = inv
+          })
+          setInvoices(invoiceMap)
+        }
 
       } catch (error) {
         console.error('Error loading data:', error)
@@ -282,6 +323,7 @@ export default function BuildingPage() {
       await supabase.from('building_settings').delete().eq('building_id', buildingId)
       await supabase.from('building_utilities').delete().eq('building_id', buildingId)
       await supabase.from('building_contacts').delete().eq('building_id', buildingId)
+      await supabase.from('monthly_invoices').delete().eq('building_id', buildingId)
       
       const { error } = await supabase.from('buildings').delete().eq('id', buildingId)
       if (error) throw error
@@ -374,6 +416,7 @@ export default function BuildingPage() {
   const handleDeleteApartment = async () => {
     if (!apartmentToDelete) return
     try {
+      await supabase.from('monthly_invoices').delete().eq('apartment_id', apartmentToDelete.id)
       const { error } = await supabase.from('apartments').delete().eq('id', apartmentToDelete.id)
       if (error) throw error
       
@@ -389,7 +432,6 @@ export default function BuildingPage() {
     }
   }
 
-  // ============ TARIFF HANDLER ============
   const handleOpenTariffModal = (apt: any) => {
     setSelectedApartmentForTariff(apt)
     setIsTariffModalOpen(true)
@@ -425,11 +467,52 @@ export default function BuildingPage() {
   const emergency = contacts.find(c => c.role === 'emergency')
   const accountant = contacts.find(c => c.role === 'accountant')
 
-  const filteredApartments = apartments.filter(apt => 
-    apt.apartment_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    apt.owner_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    apt.tenant_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredApartments = apartments.filter(apt => {
+    const matchesSearch = 
+      apt.apartment_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      apt.owner_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      apt.tenant_name?.toLowerCase().includes(searchQuery.toLowerCase())
+
+    if (!matchesSearch) return false
+
+    const inv = invoices[apt.id]
+    const balance = inv ? (inv.total_amount - inv.paid_amount) : 0
+
+    if (balanceFilter === 'debtors') return balance > 0
+    if (balanceFilter === 'paid') return balance <= 0 && inv
+    if (balanceFilter === 'rented') return apt.residency_status === 'გაქირავებულია'
+
+    return true
+  })
+
+  // Calculate totals
+  const totalDebt = apartments.reduce((sum, apt) => {
+    const inv = invoices[apt.id]
+    if (!inv) return sum
+    return sum + (inv.total_amount - inv.paid_amount)
+  }, 0)
+
+  const totalExpected = apartments.reduce((sum, apt) => {
+    const inv = invoices[apt.id]
+    if (!inv) return sum
+    return sum + inv.total_amount
+  }, 0)
+
+  const totalPaid = apartments.reduce((sum, apt) => {
+    const inv = invoices[apt.id]
+    if (!inv) return sum
+    return sum + inv.paid_amount
+  }, 0)
+
+  const debtorsCount = apartments.filter(apt => {
+    const inv = invoices[apt.id]
+    return inv && (inv.total_amount - inv.paid_amount) > 0
+  }).length
+
+  const paidCount = apartments.filter(apt => {
+    const inv = invoices[apt.id]
+    return inv && (inv.total_amount - inv.paid_amount) <= 0
+  }).length
 
   const getContactDisplay = (apt: any) => {
     if (apt.residency_status === 'გაქირავებულია' && apt.tenant_name) {
@@ -439,6 +522,15 @@ export default function BuildingPage() {
       return { label: 'სტატუსი', name: 'დაკეტილი / ცარიელი', phone: null }
     }
     return { label: 'მეპატრონე', name: apt.owner_name, phone: apt.phone || apt.owner_phone }
+  }
+
+  const getInvoiceStatus = (apt: any) => {
+    const inv = invoices[apt.id]
+    if (!inv) return { label: '—', color: 'text-slate-500', bg: 'bg-slate-500/10' }
+    const balance = inv.total_amount - inv.paid_amount
+    if (balance <= 0) return { label: 'გადახდილი', color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
+    if (inv.paid_amount > 0) return { label: 'ნაწილობრივ', color: 'text-amber-400', bg: 'bg-amber-500/10' }
+    return { label: 'ვალიანი', color: 'text-rose-400', bg: 'bg-rose-500/10' }
   }
 
   return (
@@ -671,8 +763,51 @@ export default function BuildingPage() {
 
         {activeTab === 'apartments' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Financial Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] border border-emerald-400/20 rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <IconTrendUp className="w-4 h-4 text-emerald-400" />
+                  <span className="text-[11px] uppercase tracking-wider text-emerald-300/80 font-semibold">მოცდელი თანხა</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-emerald-300">{totalExpected.toFixed(2)}₾</div>
+                <div className="text-xs text-slate-500 mt-1">ამ თვის ჯამი</div>
+              </div>
+
+              <div className="relative overflow-hidden bg-gradient-to-br from-cyan-500/[0.08] to-cyan-500/[0.02] border border-cyan-400/20 rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <IconCheckCircle className="w-4 h-4 text-cyan-400" />
+                  <span className="text-[11px] uppercase tracking-wider text-cyan-300/80 font-semibold">გადახდილი</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-cyan-300">{totalPaid.toFixed(2)}₾</div>
+                <div className="text-xs text-slate-500 mt-1">{paidCount} ბინა</div>
+              </div>
+
+              <div className="relative overflow-hidden bg-gradient-to-br from-rose-500/[0.08] to-rose-500/[0.02] border border-rose-400/20 rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <IconAlertCircle className="w-4 h-4 text-rose-400" />
+                  <span className="text-[11px] uppercase tracking-wider text-rose-300/80 font-semibold">ვალიანობა</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-rose-300">{totalDebt.toFixed(2)}₾</div>
+                <div className="text-xs text-slate-500 mt-1">{debtorsCount} ვალიანი ბინა</div>
+              </div>
+
+              <div className="relative overflow-hidden bg-gradient-to-br from-amber-500/[0.08] to-amber-500/[0.02] border border-amber-400/20 rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <IconWallet className="w-4 h-4 text-amber-400" />
+                  <span className="text-[11px] uppercase tracking-wider text-amber-300/80 font-semibold">შემოსავალი</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-amber-300">
+                  {totalExpected > 0 ? ((totalPaid / totalExpected) * 100).toFixed(0) : 0}%
+                </div>
+                <div className="text-xs text-slate-500 mt-1">აღდგენის %</div>
+              </div>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
               <div className="relative flex-1 max-w-md">
+                <svg className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input 
                   type="text" 
                   placeholder="ძიება ბინის ნომრით ან სახელით..." 
@@ -680,7 +815,49 @@ export default function BuildingPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 bg-[#111823]/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                 />
-                <svg className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <div className="flex items-center gap-2">
+                <IconFilter className="w-4 h-4 text-slate-500" />
+                <button 
+                  onClick={() => setBalanceFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    balanceFilter === 'all' 
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30' 
+                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
+                  }`}
+                >
+                  ყველა ({apartments.length})
+                </button>
+                <button 
+                  onClick={() => setBalanceFilter('debtors')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    balanceFilter === 'debtors' 
+                      ? 'bg-rose-500/20 text-rose-400 border border-rose-400/30' 
+                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
+                  }`}
+                >
+                  ვალიანები ({debtorsCount})
+                </button>
+                <button 
+                  onClick={() => setBalanceFilter('paid')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    balanceFilter === 'paid' 
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30' 
+                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
+                  }`}
+                >
+                  გადახდილი ({paidCount})
+                </button>
+                <button 
+                  onClick={() => setBalanceFilter('rented')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    balanceFilter === 'rented' 
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30' 
+                      : 'bg-white/[0.04] text-slate-400 border border-white/[0.08] hover:text-white'
+                  }`}
+                >
+                  გაქირავებული
+                </button>
               </div>
               <button 
                 onClick={handleOpenAddApartment}
@@ -706,12 +883,20 @@ export default function BuildingPage() {
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სართული</th>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ფართი</th>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სტატუსი / კონტაქტი</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-emerald-400 uppercase tracking-wider">გადასახდელი</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-cyan-400 uppercase tracking-wider">ბალანსი</th>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">მოქმედებები</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/[0.055]">
                       {filteredApartments.map((apt) => {
                         const contact = getContactDisplay(apt)
+                        const inv = invoices[apt.id]
+                        const totalAmount = inv?.total_amount || 0
+                        const paidAmount = inv?.paid_amount || 0
+                        const balance = totalAmount - paidAmount
+                        const status = getInvoiceStatus(apt)
+
                         return (
                           <tr key={apt.id} className="hover:bg-white/[0.035] transition-colors">
                             <td className="px-6 py-4">
@@ -739,6 +924,29 @@ export default function BuildingPage() {
                                   </div>
                                 )}
                               </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {inv ? (
+                                <div className="text-sm font-bold text-emerald-300">{totalAmount.toFixed(2)}₾</div>
+                              ) : (
+                                <div className="text-xs text-slate-500 italic">—</div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              {inv ? (
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-sm font-bold ${
+                                    balance > 0 ? 'text-rose-400' : 'text-emerald-400'
+                                  }`}>
+                                    {balance > 0 ? `${balance.toFixed(2)}₾` : '0₾'}
+                                  </span>
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${status.bg} ${status.color}`}>
+                                    {status.label}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="text-xs text-slate-500 italic">—</div>
+                              )}
                             </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex items-center justify-end gap-2">
