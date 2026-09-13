@@ -110,6 +110,12 @@ const IconSettings = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 )
 
+const IconChevronDown = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+)
+
 // ============ TABS CONFIG ============
 const tabs = [
   { id: 'overview', label: 'მიმოხილვა', icon: IconBuilding },
@@ -145,14 +151,22 @@ export default function BuildingPage() {
   const [editingApartment, setEditingApartment] = useState<any>(null)
   const [isDeleteApartmentConfirmOpen, setIsDeleteApartmentConfirmOpen] = useState(false)
   const [apartmentToDelete, setApartmentToDelete] = useState<any>(null)
+  const [showAdvancedAptInfo, setShowAdvancedAptInfo] = useState(false)
   
   const [aptForm, setAptForm] = useState({
+    // Primary
     apartment_number: '',
     floor: '',
-    area: '',
+    area_sqm: '',
     owner_name: '',
     phone: '',
-    email: ''
+    // Secondary
+    email: '',
+    rooms: '',
+    bathrooms: '',
+    parking_spaces: '',
+    status: 'დაკავებული',
+    special_notes: ''
   })
 
   useEffect(() => {
@@ -257,19 +271,29 @@ export default function BuildingPage() {
   // Apartment Handlers
   const handleOpenAddApartment = () => {
     setEditingApartment(null)
-    setAptForm({ apartment_number: '', floor: '', area: '', owner_name: '', phone: '', email: '' })
+    setShowAdvancedAptInfo(false)
+    setAptForm({ 
+      apartment_number: '', floor: '', area_sqm: '', owner_name: '', phone: '',
+      email: '', rooms: '', bathrooms: '', parking_spaces: '', status: 'დაკავებული', special_notes: '' 
+    })
     setIsApartmentModalOpen(true)
   }
 
   const handleOpenEditApartment = (apt: any) => {
     setEditingApartment(apt)
+    setShowAdvancedAptInfo(false)
     setAptForm({
       apartment_number: apt.apartment_number || '',
       floor: apt.floor?.toString() || '',
-      area: apt.area?.toString() || '',
+      area_sqm: apt.area_sqm?.toString() || '',
       owner_name: apt.owner_name || '',
       phone: apt.phone || '',
-      email: apt.email || ''
+      email: apt.email || '',
+      rooms: apt.rooms?.toString() || '',
+      bathrooms: apt.bathrooms?.toString() || '',
+      parking_spaces: apt.parking_spaces?.toString() || '',
+      status: apt.status || 'დაკავებული',
+      special_notes: apt.special_notes || ''
     })
     setIsApartmentModalOpen(true)
   }
@@ -285,10 +309,15 @@ export default function BuildingPage() {
         building_id: buildingId,
         apartment_number: aptForm.apartment_number,
         floor: aptForm.floor ? parseInt(aptForm.floor) : null,
-        area: aptForm.area ? parseFloat(aptForm.area) : null,
+        area_sqm: aptForm.area_sqm ? parseFloat(aptForm.area_sqm) : null,
         owner_name: aptForm.owner_name || null,
         phone: aptForm.phone || null,
         email: aptForm.email || null,
+        rooms: aptForm.rooms ? parseInt(aptForm.rooms) : null,
+        bathrooms: aptForm.bathrooms ? parseInt(aptForm.bathrooms) : null,
+        parking_spaces: aptForm.parking_spaces ? parseInt(aptForm.parking_spaces) : null,
+        status: aptForm.status || null,
+        special_notes: aptForm.special_notes || null,
       }
 
       if (editingApartment) {
@@ -640,7 +669,7 @@ export default function BuildingPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-300">{apt.floor || '—'}</td>
-                          <td className="px-6 py-4 text-sm text-slate-300">{apt.area ? `${apt.area} მ²` : '—'}</td>
+                          <td className="px-6 py-4 text-sm text-slate-300">{apt.area_sqm ? `${apt.area_sqm} მ²` : '—'}</td>
                           <td className="px-6 py-4">
                             <div className="text-sm font-medium text-white">{apt.owner_name || '—'}</div>
                           </td>
@@ -831,7 +860,7 @@ export default function BuildingPage() {
       {/* ============ APARTMENT MODAL ============ */}
       {isApartmentModalOpen && (
         <div className="fixed inset-0 bg-[#020409]/75 backdrop-blur-xl z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A1018]/98 border border-white/[0.10] rounded-[24px] max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
+          <div className="bg-[#0A1018]/98 border border-white/[0.10] rounded-[24px] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
             <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#0A1018]/98 backdrop-blur-xl z-10">
               <h2 className="text-xl font-bold text-white">{editingApartment ? 'ბინის რედაქტირება' : 'ახალი ბინის დამატება'}</h2>
               <button onClick={() => setIsApartmentModalOpen(false)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
@@ -839,33 +868,85 @@ export default function BuildingPage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ბინის ნომერი *</label>
-                  <input type="text" value={aptForm.apartment_number} onChange={(e) => setAptForm({...aptForm, apartment_number: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 12" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">სართული</label>
-                  <input type="number" value={aptForm.floor} onChange={(e) => setAptForm({...aptForm, floor: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 3" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ფართი (მ²)</label>
-                  <input type="number" step="0.1" value={aptForm.area} onChange={(e) => setAptForm({...aptForm, area: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 85.5" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">მფლობელის სახელი</label>
-                  <input type="text" value={aptForm.owner_name} onChange={(e) => setAptForm({...aptForm, owner_name: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: გიორგი გიორგაძე" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ტელეფონი</label>
-                  <input type="text" value={aptForm.phone} onChange={(e) => setAptForm({...aptForm, phone: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: +995 555 123 456" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">ელ-ფოსტა</label>
-                  <input type="email" value={aptForm.email} onChange={(e) => setAptForm({...aptForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: giorgi@example.com" />
+            <div className="p-6 space-y-6">
+              {/* Primary Fields */}
+              <div>
+                <h3 className="text-sm font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                  <IconShield className="w-4 h-4" /> ძირითადი ინფორმაცია
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">ბინის ნომერი *</label>
+                    <input type="text" value={aptForm.apartment_number} onChange={(e) => setAptForm({...aptForm, apartment_number: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 12" required />
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">სართული</label>
+                    <input type="number" value={aptForm.floor} onChange={(e) => setAptForm({...aptForm, floor: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 3" />
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">ფართი (მ²)</label>
+                    <input type="number" step="0.1" value={aptForm.area_sqm} onChange={(e) => setAptForm({...aptForm, area_sqm: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 85.5" />
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">მფლობელის სახელი</label>
+                    <input type="text" value={aptForm.owner_name} onChange={(e) => setAptForm({...aptForm, owner_name: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: გიორგი გიორგაძე" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">ტელეფონი</label>
+                    <input type="text" value={aptForm.phone} onChange={(e) => setAptForm({...aptForm, phone: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: +995 555 123 456" />
+                  </div>
                 </div>
               </div>
+
+              {/* Toggle Advanced */}
+              <div className="pt-2 border-t border-white/10">
+                <button 
+                  onClick={() => setShowAdvancedAptInfo(!showAdvancedAptInfo)}
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-400 transition-colors"
+                >
+                  <IconChevronDown className={`w-4 h-4 transition-transform ${showAdvancedAptInfo ? 'rotate-180' : ''}`} />
+                  {showAdvancedAptInfo ? 'დამატებითი ინფორმაციის დამალვა' : 'დამატებითი ინფორმაციის დამატება'}
+                </button>
+              </div>
+
+              {/* Secondary Fields */}
+              {showAdvancedAptInfo && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <h3 className="text-sm font-bold text-blue-400 mb-4 flex items-center gap-2">
+                    <IconSettings className="w-4 h-4" /> დამატებითი დეტალები
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">ელ-ფოსტა</label>
+                      <input type="email" value={aptForm.email} onChange={(e) => setAptForm({...aptForm, email: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: giorgi@example.com" />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">სტატუსი</label>
+                      <select value={aptForm.status} onChange={(e) => setAptForm({...aptForm, status: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors">
+                        <option value="დაკავებული">დაკავებული</option>
+                        <option value="თავისუფალი">თავისუფალი</option>
+                        <option value="ქირავდება">ქირავდება</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">ოთახების რაოდენობა</label>
+                      <input type="number" value={aptForm.rooms} onChange={(e) => setAptForm({...aptForm, rooms: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 3" />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">სააბაზანოების რაოდენობა</label>
+                      <input type="number" value={aptForm.bathrooms} onChange={(e) => setAptForm({...aptForm, bathrooms: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 1" />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">საპარკინგე ადგილები</label>
+                      <input type="number" value={aptForm.parking_spaces} onChange={(e) => setAptForm({...aptForm, parking_spaces: e.target.value})} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors" placeholder="მაგ: 1" />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">დამატებითი შენიშვნები</label>
+                      <textarea value={aptForm.special_notes} onChange={(e) => setAptForm({...aptForm, special_notes: e.target.value})} rows={3} className="w-full px-4 py-2.5 bg-[#111823] border border-white/10 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors resize-none" placeholder="ნებისმიერი დამატებითი ინფორმაცია..." />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-6 border-t border-white/10 flex justify-end gap-3 sticky bottom-0 bg-[#0A1018]">
