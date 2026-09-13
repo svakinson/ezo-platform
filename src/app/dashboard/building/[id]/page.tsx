@@ -772,7 +772,6 @@ export default function BuildingPage() {
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სართული</th>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ფართი</th>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">სტატუსი / კონტაქტი</th>
-                        <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">ტარიფი</th>
                         <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">მოქმედებები</th>
                       </tr>
                     </thead>
@@ -807,17 +806,15 @@ export default function BuildingPage() {
                                 )}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-center">
-                              <button 
-                                onClick={() => handleOpenTariffModal(apt)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/10 transition-colors text-xs font-medium text-slate-300 hover:text-white"
-                              >
-                                <IconSettings className="w-3.5 h-3.5" />
-                                მართვა
-                              </button>
-                            </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex items-center justify-end gap-2">
+                                <button 
+                                  onClick={() => handleOpenTariffModal(apt)}
+                                  className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                  title="ტარიფების მართვა"
+                                >
+                                  <IconSettings className="w-4 h-4" />
+                                </button>
                                 <button 
                                   onClick={() => handleOpenEditApartment(apt)}
                                   className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
