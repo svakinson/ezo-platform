@@ -275,6 +275,11 @@ export default function BuildingPage() {
   }
 
   const handleSaveApartment = async () => {
+    if (!aptForm.apartment_number.trim()) {
+      alert('ბინის ნომერი სავალდებულოა!')
+      return
+    }
+
     try {
       const payload = {
         building_id: buildingId,
