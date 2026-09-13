@@ -225,6 +225,7 @@ export default function BuildingPage() {
   const [utilities, setUtilities] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('overview')
   const [notification, setNotification] = useState<NotificationState | null>(null)
+  const [fundBalance, setFundBalance] = useState(0)
 
   // Edit Building Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -328,6 +329,30 @@ export default function BuildingPage() {
           })
           setInvoices(invoiceMap)
         }
+
+        // Load fund balance
+        const { data: fundData, error: fundError } = await supabase
+          .from('fund_transactions')
+          .select('amount, type')
+          .eq('building_id', buildingId)
+
+        let calculatedFundBalance = 0
+        if (!fundError && fundData) {
+          calculatedFundBalance = fundData.reduce((sum: number, tx: any) => {
+            const amt = Number(tx.amount) || 0
+            if (tx.type === 'monthly_surplus' || tx.type === 'manual_deposit') {
+              return sum + amt
+            }
+            if (tx.type === 'emergency_withdrawal') {
+              return sum - amt
+            }
+            if (tx.type === 'correction') {
+              return sum + amt
+            }
+            return sum
+          }, 0)
+        }
+        setFundBalance(calculatedFundBalance)
 
       } catch (error) {
         console.error('Error loading data:', error)
@@ -654,7 +679,7 @@ export default function BuildingPage() {
 
         {activeTab === 'overview' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="group relative overflow-hidden bg-white/[0.045] border border-white/[0.08] rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.16)] hover:bg-white/[0.06] hover:border-emerald-400/25 hover:-translate-y-0.5 transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg">
                   <IconHome className="w-6 h-6 text-white" />
@@ -682,6 +707,13 @@ export default function BuildingPage() {
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">{building.total_area || '0'} <span className="text-lg text-slate-400">მ²</span></div>
                 <div className="text-sm text-slate-400">ფართობი</div>
+              </div>
+              <div className="group relative overflow-hidden bg-gradient-to-br from-amber-500/[0.08] to-amber-500/[0.02] border border-amber-400/20 rounded-2xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.16)] hover:bg-amber-500/[0.12] hover:border-amber-400/40 hover:-translate-y-0.5 transition-all duration-300 col-span-2 lg:col-span-1">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center mb-4 shadow-lg">
+                  <IconWallet className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-3xl font-bold text-amber-300 mb-1">{fundBalance.toFixed(2)}₾</div>
+                <div className="text-sm text-amber-300/80">კორპუსის ყულაბა</div>
               </div>
             </div>
 
