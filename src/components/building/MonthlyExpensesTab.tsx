@@ -228,12 +228,6 @@ export default function MonthlyExpensesTab({ buildingId }: MonthlyExpensesTabPro
     loadExpenses()
   }, [buildingId, selectedMonth, selectedYear])
 
-  useEffect(() => {
-    if (!toast) return
-    const timer = setTimeout(() => setToast(null), 3500)
-    return () => clearTimeout(timer)
-  }, [toast])
-
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type })
   }
@@ -571,52 +565,52 @@ export default function MonthlyExpensesTab({ buildingId }: MonthlyExpensesTabPro
               </button>
 
               {isOpen && (
-                <div className="p-3.5 sm:p-4 space-y-2.5 border-t border-white/[0.06] bg-black/[0.06]">
-                  {cat.items.map((item, itemIndex) => {
-                    if (query && !item.name.toLowerCase().includes(query)) return null
-                    const hasValue = parseFloat(item.total_amount) > 0
+                <div className="p-3.5 sm:p-4 border-t border-white/[0.06] bg-black/[0.06]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {cat.items.map((item, itemIndex) => {
+                      if (query && !item.name.toLowerCase().includes(query)) return null
+                      const hasValue = parseFloat(item.total_amount) > 0
 
-                    return (
-                      <div
-                        key={item.id}
-                        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 sm:p-4 rounded-xl border-l-[3px] transition-all duration-200 ${
-                          hasValue
-                            ? 'bg-gradient-to-r from-emerald-500/[0.07] to-teal-500/[0.025] border-l-emerald-400 border-y border-r border-emerald-400/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]'
-                            : 'bg-white/[0.025] border-l-white/[0.09] border-y border-r border-white/[0.06]'
-                        }`}
-                      >
-                        <div className="flex-1">
-                          <span className={`text-sm font-medium ${hasValue ? 'text-white' : 'text-slate-400'}`}>
-                            {item.name}
-                          </span>
-                        </div>
+                      return (
+                        <div
+                          key={item.id}
+                          className={`p-3 rounded-xl border-l-[3px] transition-all duration-200 ${
+                            hasValue
+                              ? 'bg-gradient-to-r from-emerald-500/[0.07] to-teal-500/[0.025] border-l-emerald-400 border-y border-r border-emerald-400/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]'
+                              : 'bg-white/[0.025] border-l-white/[0.09] border-y border-r border-white/[0.06]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <span className={`text-xs font-medium leading-snug ${hasValue ? 'text-white' : 'text-slate-400'}`}>
+                              {item.name}
+                            </span>
+                            {hasValue && (
+                              <button
+                                onClick={() => clearExpense(catIndex, itemIndex)}
+                                className="shrink-0 w-5 h-5 flex items-center justify-center rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 transition-colors"
+                                title="გასუფთავება"
+                              >
+                                <IconX className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
 
-                        <div className="flex items-center gap-2 sm:w-64">
-                          <div className="relative flex-1">
+                          <div className="relative">
                             <input
                               type="number"
                               step="0.01"
                               min="0"
                               value={item.total_amount}
                               onChange={(e) => updateExpense(catIndex, itemIndex, e.target.value)}
-                              className="w-full px-3.5 py-2.5 bg-[#0D151F] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/10 transition-all text-right pr-9 shadow-inner"
+                              className="w-full px-3 py-2 bg-[#0D151F] border border-white/[0.08] rounded-lg text-white text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/10 transition-all text-right pr-8 shadow-inner"
                               placeholder="0.00"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">₾</span>
+                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-slate-500">₾</span>
                           </div>
-                          {hasValue && (
-                            <button
-                              onClick={() => clearExpense(catIndex, itemIndex)}
-                              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 transition-colors"
-                              title="გასუფთავება"
-                            >
-                              <IconX className="w-4 h-4" />
-                            </button>
-                          )}
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -630,22 +624,84 @@ export default function MonthlyExpensesTab({ buildingId }: MonthlyExpensesTabPro
         )}
       </div>
 
-      {/* Toast */}
+      {/* Confirmation Modal */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
           <div
-            className={`flex items-start gap-3 max-w-sm px-4 py-3.5 rounded-2xl border backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] ${
-              toast.type === 'success'
-                ? 'bg-emerald-500/[0.12] border-emerald-400/30 text-emerald-100'
-                : 'bg-rose-500/[0.12] border-rose-400/30 text-rose-100'
-            }`}
-          >
-            {toast.type === 'success' ? (
-              <IconCheck className="w-4.5 h-4.5 shrink-0 mt-0.5 text-emerald-400" />
-            ) : (
-              <IconAlertTriangle className="w-4.5 h-4.5 shrink-0 mt-0.5 text-rose-400" />
-            )}
-            <span className="text-sm font-medium leading-snug">{toast.message}</span>
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setToast(null)}
+          />
+
+          {/* Modal */}
+          <div className="relative w-full max-w-sm animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300">
+            <div
+              className={`relative overflow-hidden rounded-[28px] border p-8 text-center backdrop-blur-2xl shadow-[0_30px_80px_rgba(0,0,0,0.5)] ${
+                toast.type === 'success'
+                  ? 'bg-gradient-to-b from-[#0F1D17] to-[#0B1611] border-emerald-400/25'
+                  : 'bg-gradient-to-b from-[#1D0F0F] to-[#160B0B] border-rose-400/25'
+              }`}
+            >
+              {/* Glow */}
+              <div
+                className={`absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+                  toast.type === 'success' ? 'bg-emerald-400/20' : 'bg-rose-400/20'
+                }`}
+              />
+
+              {/* Close button */}
+              <button
+                onClick={() => setToast(null)}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors"
+              >
+                <IconX className="w-4 h-4" />
+              </button>
+
+              {/* Icon circle */}
+              <div className="relative flex justify-center mb-5">
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    toast.type === 'success'
+                      ? 'bg-emerald-400/[0.12] ring-1 ring-emerald-400/30'
+                      : 'bg-rose-400/[0.12] ring-1 ring-rose-400/30'
+                  }`}
+                >
+                  {toast.type === 'success' ? (
+                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="11" stroke="rgb(52,211,153)" strokeWidth="1.5" opacity="0.3" />
+                      <path
+                        d="M7 12.5l3 3 7-7"
+                        stroke="rgb(52,211,153)"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="ezo-check-draw"
+                      />
+                    </svg>
+                  ) : (
+                    <IconAlertTriangle className="w-7 h-7 text-rose-400" />
+                  )}
+                </div>
+              </div>
+
+              <h3 className={`relative text-lg font-bold mb-2 ${toast.type === 'success' ? 'text-white' : 'text-rose-50'}`}>
+                {toast.type === 'success' ? 'წარმატებით შენახულია' : 'დაფიქსირდა შეცდომა'}
+              </h3>
+              <p className="relative text-sm text-slate-400 leading-relaxed mb-6">
+                {toast.message}
+              </p>
+
+              <button
+                onClick={() => setToast(null)}
+                className={`relative w-full py-3 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 ${
+                  toast.type === 'success'
+                    ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 shadow-[0_12px_32px_rgba(16,185,129,0.25)]'
+                    : 'bg-white/[0.08] text-white border border-white/[0.12]'
+                }`}
+              >
+                გასაგებია
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -658,6 +714,14 @@ export default function MonthlyExpensesTab({ buildingId }: MonthlyExpensesTabPro
         select option { background: #0D151F; color: #fff; }
         @media (max-width: 640px) {
           input, select, button { min-height: 42px; }
+        }
+        .ezo-check-draw {
+          stroke-dasharray: 20;
+          stroke-dashoffset: 20;
+          animation: checkDraw 0.4s ease-out 0.15s forwards;
+        }
+        @keyframes checkDraw {
+          to { stroke-dashoffset: 0; }
         }
       `}</style>
     </div>
